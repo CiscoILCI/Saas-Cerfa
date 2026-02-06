@@ -1,49 +1,38 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { PDFDocument } = require('pdf-lib');
 
 const app = express();
-const PORT = 3000;
+app.use(express.json());
 
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// =====================
+// STOCKAGE EN MÉMOIRE (POC)
+// En production, utiliser une base de données (Vercel KV, Supabase, etc.)
+// =====================
+const store = { contracts: {} };
 
+const MAPPING_FILE = path.join(__dirname, '..', 'mapping_complet_v2.json');
+const CERFA_TEMPLATE = path.join(__dirname, '..', 'cerfa_ apprentissage_10103-14.pdf');
+
+// Helper: obtenir l'URL de base dynamiquement
 function getBaseUrl(req) {
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   return `${proto}://${host}`;
-}
-
-const DATA_FILE = path.join(__dirname, 'data', 'contracts.json');
-const MAPPING_FILE = path.join(__dirname, 'mapping_complet_v2.json');
-const CERFA_TEMPLATE = path.join(__dirname, 'cerfa_ apprentissage_10103-14.pdf');
-
-// Charger les données
-function loadData() {
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch (e) {
-    return { contracts: {} };
-  }
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
 // =====================
 // CRÉATION D'UN NOUVEAU CONTRAT
 // =====================
 app.post('/api/contracts', (req, res) => {
-  const data = loadData();
   const contractId = uuidv4();
   const etudiantToken = uuidv4();
   const entrepriseToken = uuidv4();
-  
-  data.contracts[contractId] = {
+  const baseUrl = getBaseUrl(req);
+
+  store.contracts[contractId] = {
     id: contractId,
     createdAt: new Date().toISOString(),
     status: 'pending',
@@ -55,15 +44,13 @@ app.post('/api/contracts', (req, res) => {
     entreprise: null,
     formation: null
   };
-  
-  saveData(data);
-  
+
   res.json({
     success: true,
     contractId,
     liens: {
-      etudiant: `${getBaseUrl(req)}/etudiant.html?token=${etudiantToken}`,
-      entreprise: `${getBaseUrl(req)}/entreprise.html?token=${entrepriseToken}`
+      etudiant: `${baseUrl}/etudiant.html?token=${etudiantToken}`,
+      entreprise: `${baseUrl}/entreprise.html?token=${entrepriseToken}`
     }
   });
 });
@@ -72,16 +59,16 @@ app.post('/api/contracts', (req, res) => {
 // RÉCUPÉRER TOUS LES CONTRATS (Dashboard)
 // =====================
 app.get('/api/contracts', (req, res) => {
-  const data = loadData();
-  const contracts = Object.values(data.contracts).map(c => ({
+  const baseUrl = getBaseUrl(req);
+  const contracts = Object.values(store.contracts).map(c => ({
     id: c.id,
     createdAt: c.createdAt,
     status: c.status,
     etudiantComplete: !!c.etudiant,
     entrepriseComplete: !!c.entreprise,
     liens: {
-      etudiant: `${getBaseUrl(req)}/etudiant.html?token=${c.tokens.etudiant}`,
-      entreprise: `${getBaseUrl(req)}/entreprise.html?token=${c.tokens.entreprise}`
+      etudiant: `${baseUrl}/etudiant.html?token=${c.tokens.etudiant}`,
+      entreprise: `${baseUrl}/entreprise.html?token=${c.tokens.entreprise}`
     }
   }));
   res.json(contracts);
@@ -92,27 +79,26 @@ app.get('/api/contracts', (req, res) => {
 // =====================
 app.get('/api/contract/by-token/:token', (req, res) => {
   const { token } = req.params;
-  const data = loadData();
-  
-  for (const contract of Object.values(data.contracts)) {
+
+  for (const contract of Object.values(store.contracts)) {
     if (contract.tokens.etudiant === token) {
-      return res.json({ 
-        type: 'etudiant', 
+      return res.json({
+        type: 'etudiant',
         contractId: contract.id,
         data: contract.etudiant,
         complete: !!contract.etudiant
       });
     }
     if (contract.tokens.entreprise === token) {
-      return res.json({ 
-        type: 'entreprise', 
+      return res.json({
+        type: 'entreprise',
         contractId: contract.id,
         data: contract.entreprise,
         complete: !!contract.entreprise
       });
     }
   }
-  
+
   res.status(404).json({ error: 'Token invalide' });
 });
 
@@ -121,17 +107,15 @@ app.get('/api/contract/by-token/:token', (req, res) => {
 // =====================
 app.post('/api/etudiant/:token', (req, res) => {
   const { token } = req.params;
-  const data = loadData();
-  
-  for (const contractId of Object.keys(data.contracts)) {
-    if (data.contracts[contractId].tokens.etudiant === token) {
-      data.contracts[contractId].etudiant = req.body;
-      updateContractStatus(data.contracts[contractId]);
-      saveData(data);
+
+  for (const contractId of Object.keys(store.contracts)) {
+    if (store.contracts[contractId].tokens.etudiant === token) {
+      store.contracts[contractId].etudiant = req.body;
+      updateContractStatus(store.contracts[contractId]);
       return res.json({ success: true, message: 'Données étudiant enregistrées' });
     }
   }
-  
+
   res.status(404).json({ error: 'Token invalide' });
 });
 
@@ -140,17 +124,15 @@ app.post('/api/etudiant/:token', (req, res) => {
 // =====================
 app.post('/api/entreprise/:token', (req, res) => {
   const { token } = req.params;
-  const data = loadData();
-  
-  for (const contractId of Object.keys(data.contracts)) {
-    if (data.contracts[contractId].tokens.entreprise === token) {
-      data.contracts[contractId].entreprise = req.body;
-      updateContractStatus(data.contracts[contractId]);
-      saveData(data);
+
+  for (const contractId of Object.keys(store.contracts)) {
+    if (store.contracts[contractId].tokens.entreprise === token) {
+      store.contracts[contractId].entreprise = req.body;
+      updateContractStatus(store.contracts[contractId]);
       return res.json({ success: true, message: 'Données entreprise enregistrées' });
     }
   }
-  
+
   res.status(404).json({ error: 'Token invalide' });
 });
 
@@ -172,33 +154,32 @@ function updateContractStatus(contract) {
 // =====================
 app.get('/api/contracts/:id/generate-pdf', async (req, res) => {
   const { id } = req.params;
-  const data = loadData();
-  const contract = data.contracts[id];
-  
+  const contract = store.contracts[id];
+
   if (!contract) {
     return res.status(404).json({ error: 'Contrat non trouvé' });
   }
-  
+
   if (contract.status !== 'ready') {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Le contrat n\'est pas complet',
       etudiantComplete: !!contract.etudiant,
       entrepriseComplete: !!contract.entreprise
     });
   }
-  
+
   try {
     const pdfBytes = fs.readFileSync(CERFA_TEMPLATE);
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
     const mapping = JSON.parse(fs.readFileSync(MAPPING_FILE, 'utf8'));
-    
+
     // Fusionner les données
     const mergedData = {
       ...contract.entreprise,
       ...contract.etudiant
     };
-    
+
     // Fonction récursive pour aplatir les objets
     function flattenObject(obj, prefix = '') {
       const result = {};
@@ -212,7 +193,7 @@ app.get('/api/contracts/:id/generate-pdf', async (req, res) => {
       }
       return result;
     }
-    
+
     // Fonction récursive pour aplatir le mapping
     function flattenMapping(obj, prefix = '') {
       const result = {};
@@ -227,20 +208,20 @@ app.get('/api/contracts/:id/generate-pdf', async (req, res) => {
       }
       return result;
     }
-    
+
     const flatData = flattenObject(mergedData);
     const flatMapping = flattenMapping(mapping);
-    
+
     let filledCount = 0;
-    
+
     for (const [dataKey, pdfFieldName] of Object.entries(flatMapping)) {
       const value = flatData[dataKey];
       if (value === undefined || value === null || value === '') continue;
-      
+
       try {
         const field = form.getField(pdfFieldName);
         const type = field.constructor.name;
-        
+
         if (type === 'PDFTextField') {
           field.setText(String(value));
           filledCount++;
@@ -254,15 +235,15 @@ app.get('/api/contracts/:id/generate-pdf', async (req, res) => {
         // Champ non trouvé - ignorer
       }
     }
-    
+
     console.log(`PDF généré: ${filledCount} champs remplis`);
-    
+
     const pdfOut = await pdfDoc.save();
-    
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="cerfa_contrat_${id.slice(0,8)}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="cerfa_contrat_${id.slice(0, 8)}.pdf"`);
     res.send(Buffer.from(pdfOut));
-    
+
   } catch (error) {
     console.error('Erreur génération PDF:', error);
     res.status(500).json({ error: 'Erreur lors de la génération du PDF' });
@@ -274,18 +255,14 @@ app.get('/api/contracts/:id/generate-pdf', async (req, res) => {
 // =====================
 app.delete('/api/contracts/:id', (req, res) => {
   const { id } = req.params;
-  const data = loadData();
-  
-  if (data.contracts[id]) {
-    delete data.contracts[id];
-    saveData(data);
+
+  if (store.contracts[id]) {
+    delete store.contracts[id];
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Contrat non trouvé' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur CERFA SaaS démarré sur http://localhost:${PORT}`);
-  console.log(`📋 Dashboard: http://localhost:${PORT}/`);
-});
+// Export pour Vercel
+module.exports = app;
