@@ -1,0 +1,155 @@
+{
+  "_source": "Notice CERFA 51649#09 - Contrat d'apprentissage",
+  "_version": "Codes officiels extraits de la notice",
+  
+  "mode_contractuel": {
+    "label": "Mode contractuel de l'apprentissage",
+    "codes": {
+      "1": "À durée limitée",
+      "2": "Dans le cadre d'un CDI",
+      "3": "Entreprise de travail temporaire",
+      "4": "Activités saisonnières à deux employeurs"
+    }
+  },
+
+  "type_employeur": {
+    "label": "Type d'employeur",
+    "help": "Code correspondant à la catégorie juridique de l'employeur",
+    "codes_prive": {
+      "11": "Entreprise inscrite au répertoire des métiers ou au registre des entreprises (Alsace-Moselle)",
+      "12": "Entreprise inscrite uniquement au registre du commerce et des sociétés",
+      "13": "Entreprises dont les salariés relèvent de la mutualité sociale agricole",
+      "14": "Profession libérale",
+      "15": "Association",
+      "16": "Autre employeur privé"
+    },
+    "codes_public": {
+      "21": "Service de l'État (administrations centrales et services déconcentrés)",
+      "22": "Commune",
+      "23": "Département",
+      "24": "Région",
+      "25": "Établissement public hospitalier",
+      "26": "Établissement public local d'enseignement",
+      "27": "Établissement public administratif de l'État",
+      "28": "Établissement public administratif local (y compris EPCI)",
+      "29": "Autre employeur public",
+      "30": "Établissement public industriel et commercial"
+    }
+  },
+
+  "employeur_specifique": {
+    "label": "Employeur spécifique",
+    "codes": {
+      "0": "Aucun de ces cas",
+      "1": "Entreprise de travail temporaire",
+      "2": "Groupement d'employeurs",
+      "3": "Employeur saisonnier",
+      "4": "Apprentissage familial : l'employeur est un ascendant de l'apprenti"
+    }
+  },
+
+  "code_naf": {
+    "label": "Code NAF",
+    "help": "Nomenclature d'activités et des produits française correspondant à l'activité principale de l'établissement d'exécution du contrat (version 2008)"
+  },
+
+  "code_idcc": {
+    "label": "Code IDCC",
+    "help": "Identifiant de la convention collective de branche. Trouvez-le sur https://quel-est-mon-opco.francecompetences.fr/. Si pas de convention: 9999. Si en cours de négociation: 9998."
+  },
+
+  "nationalite": {
+    "label": "Nationalité",
+    "codes": {
+      "1": "Française",
+      "2": "Union européenne",
+      "3": "Étranger hors Union européenne"
+    }
+  },
+
+  "situation_avant_contrat": {
+    "label": "Situation avant ce contrat",
+    "help": "Situation de l'apprenti juste avant la conclusion du présent contrat",
+    "codes": {
+      "1": "Scolaire",
+      "2": "Prépa apprentissage",
+      "3": "Étudiant",
+      "4": "Contrat d'apprentissage",
+      "5": "Contrat de professionnalisation",
+      "6": "Contrat aidé",
+      "7": "En formation au CFA sous statut de stagiaire, avant conclusion d'un contrat (L6222-12-1)",
+      "8": "En formation au CFA sans contrat, suite à rupture d'un précédent contrat (L6231-2)",
+      "9": "Autres situations sous statut de stagiaire de la formation professionnelle",
+      "10": "Salarié",
+      "11": "Personne à la recherche d'un emploi (inscrite ou non à Pôle Emploi)",
+      "12": "Inactif"
+    }
+  },
+
+  "regime_social": {
+    "label": "Régime social",
+    "codes": {
+      "1": "MSA (secteur agricole)",
+      "2": "URSSAF (régime général)"
+    }
+  },
+
+  "diplomes_titres": {
+    "label": "Diplômes et titres (pour dernier diplôme préparé, diplôme le plus élevé obtenu, diplôme visé)",
+    "help": "Table commune pour les 3 champs relatifs aux diplômes",
+    "codes": {
+      "niveau_bac5_plus": {
+        "80": "Doctorat",
+        "73": "Master",
+        "75": "Diplôme d'ingénieur",
+        "76": "Diplôme d'école de commerce",
+        "79": "Autre diplôme ou titre de niveau bac+5 ou plus"
+      },
+      "niveau_bac3_4": {
+        "62": "Licence professionnelle",
+        "63": "Licence générale",
+        "64": "Bachelor universitaire de technologie (BUT)",
+        "69": "Autre diplôme ou titre de niveau bac+3 ou 4"
+      },
+      "niveau_bac2": {
+        "54": "Brevet de Technicien Supérieur (BTS)",
+        "55": "Diplôme Universitaire de Technologie (DUT)",
+        "58": "Autre diplôme ou titre de niveau bac+2"
+      },
+      "niveau_bac": {
+        "41": "Baccalauréat professionnel",
+        "42": "Baccalauréat général",
+        "43": "Baccalauréat technologique",
+        "44": "Diplôme de spécialisation professionnelle",
+        "49": "Autre diplôme ou titre de niveau bac"
+      },
+      "niveau_cap_bep": {
+        "33": "CAP",
+        "34": "BEP",
+        "35": "Certificat de spécialisation (ex-Mention complémentaire)",
+        "38": "Autre diplôme ou titre de niveau CAP/BEP"
+      },
+      "aucun_diplome": {
+        "25": "Diplôme national du brevet (DNB)",
+        "26": "Certificat de formation générale (CFG)",
+        "13": "Aucun diplôme ni titre professionnel"
+      }
+    }
+  },
+
+  "derniere_classe_suivie": {
+    "label": "Dernière année ou classe suivie par l'apprenti",
+    "codes": {
+      "01": "Dernière année du cycle suivie et diplôme obtenu",
+      "11": "1ère année du cycle suivie et validée (examens réussis mais année non diplômante)",
+      "12": "1ère année du cycle suivie mais non validée (échec, interruption ou abandon)",
+      "21": "2ème année du cycle suivie et validée",
+      "22": "2ème année du cycle suivie mais non validée",
+      "31": "3ème année du cycle suivie et validée",
+      "32": "3ème année du cycle suivie mais non validée",
+      "40": "1er cycle de l'enseignement secondaire achevé (collège)",
+      "41": "Interruption des études en classe de 3ème",
+      "42": "Interruption des études en classe de 4ème"
+    }
+  }
+}

@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContratFlow - Formulaire Entreprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #ede9fe; --accent: #10b981; --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827; --danger: #ef4444; --radius: 12px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); min-height: 100vh; padding: 24px; color: var(--gray-800); }
+        .container { max-width: 780px; margin: 0 auto; }
+        .header { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; text-align: center; }
+        .header .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--primary-light); color: var(--primary-dark); padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 600; margin-bottom: 12px; }
+        .header h1 { font-size: 1.5em; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+        .header p { color: var(--gray-500); font-size: 0.9em; }
+        .form-content { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; }
+        .form-section { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--gray-200); }
+        .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .form-section h2 { font-size: 1.05em; font-weight: 700; color: var(--gray-900); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .form-section h2::before { content: ""; width: 3px; height: 18px; background: var(--primary); border-radius: 2px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 6px; color: var(--gray-700); font-size: 0.8em; }
+        .form-group .help { font-size: 0.72em; color: var(--gray-400); margin-top: 4px; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+        .form-group .help a { color: var(--primary); }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select { padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.875em; transition: all 0.15s; font-family: inherit; background: white; color: var(--gray-800); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        input::placeholder { color: var(--gray-400); }
+        select { cursor: pointer; }
+        .checkbox-group { display: flex; align-items: center; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+        .checkbox-group label { margin: 0; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: var(--gray-700); }
+        input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+        .date-group { display: grid; grid-template-columns: 60px 60px 80px; gap: 8px; }
+        .date-group input { text-align: center; padding: 9px 4px; }
+        h3 { font-size: 0.9em !important; font-weight: 600 !important; color: var(--gray-500) !important; }
+        button[type="submit"] { background: var(--primary); color: white; border: none; padding: 12px 24px; font-size: 0.9em; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.15s; margin-top: 8px; font-family: inherit; }
+        button[type="submit"]:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+        button[type="submit"]:disabled { background: var(--gray-300); cursor: not-allowed; box-shadow: none; }
+        .info-box { background: var(--gray-50); border: 1px solid var(--gray-200); padding: 12px 16px; margin-bottom: 20px; border-radius: 8px; }
+        .info-box p { color: var(--gray-600); font-size: 0.8em; line-height: 1.5; }
+        .success-message { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; padding: 24px; border-radius: var(--radius); text-align: center; display: none; }
+        .success-message h3 { color: #065f46 !important; margin-bottom: 8px; }
+        .success-message p { font-size: 0.9em; }
+        .error-message { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; font-size: 0.85em; }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .form-row.triple { grid-template-columns: 1fr; }
+            body { padding: 12px; }
+            .form-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="badge">ContratFlow</div>
+            <h1>Formulaire Entreprise</h1>
+            <p>Renseignez les informations de l'employeur, du contrat et de la formation</p>
+        </div>
+        
+        <div class="form-content">
+            <div class="info-box">
+                <p>📝 Ce formulaire permet de compléter les informations de l'employeur, du contrat, de la formation et du maître d'apprentissage.</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage">
+                <h3>✅ Informations enregistrées !</h3>
+                <p>Le contrat est maintenant complet et peut être généré.</p>
+            </div>
+
+            <form id="entrepriseForm">
+                
+                <!-- EMPLOYEUR -->
+                <div class="form-section">
+                    <h2>L'Employeur</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Type d'employeur *</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="employeur.type" value="prive" checked required> Privé</label>
+                                <label><input type="radio" name="employeur.type" value="public"> Public</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Dénomination / Raison sociale *</label>
+                            <input type="text" name="employeur.denomination" required>
+                        </div>
+                        <div class="form-group">
+                            <label>N° SIRET (14 chiffres) *</label>
+                            <input type="text" name="employeur.siret" placeholder="123 456 789 00012" maxlength="17" required>
+                            <span class="help">SIRET de l'établissement d'exécution du contrat</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N°</label>
+                            <input type="text" name="employeur.adresse_numero">
+                        </div>
+                        <div class="form-group">
+                            <label>Voie *</label>
+                            <input type="text" name="employeur.adresse_voie" required>
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Complément d'adresse</label>
+                            <input type="text" name="employeur.adresse_complement">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code postal *</label>
+                            <input type="text" name="employeur.adresse_code_postal" maxlength="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Commune *</label>
+                            <input type="text" name="employeur.adresse_commune" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" name="employeur.telephone">
+                        </div>
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="employeur.courriel">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Type d'employeur (code) *</label>
+                            <select name="employeur.type_employeur" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <optgroup label="Employeur privé">
+                                    <option value="11">11 - Entreprise inscrite au répertoire des métiers</option>
+                                    <option value="12">12 - Entreprise inscrite uniquement au RCS</option>
+                                    <option value="13">13 - Entreprise dont les salariés relèvent de la MSA</option>
+                                    <option value="14">14 - Profession libérale</option>
+                                    <option value="15">15 - Association</option>
+                                    <option value="16">16 - Autre employeur privé</option>
+                                </optgroup>
+                                <optgroup label="Employeur public">
+                                    <option value="21">21 - Service de l'État</option>
+                                    <option value="22">22 - Commune</option>
+                                    <option value="23">23 - Département</option>
+                                    <option value="24">24 - Région</option>
+                                    <option value="25">25 - Établissement public hospitalier</option>
+                                    <option value="26">26 - Établissement public local d'enseignement</option>
+                                    <option value="27">27 - Établissement public administratif de l'État</option>
+                                    <option value="28">28 - Établissement public administratif local (EPCI)</option>
+                                    <option value="29">29 - Autre employeur public</option>
+                                    <option value="30">30 - Établissement public industriel et commercial</option>
+                                </optgroup>
+                            </select>
+                            <span class="help">Code correspondant à la catégorie juridique de l'employeur</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Employeur spécifique</label>
+                            <select name="employeur.employeur_specifique">
+                                <option value="0">0 - Aucun de ces cas</option>
+                                <option value="1">1 - Entreprise de travail temporaire</option>
+                                <option value="2">2 - Groupement d'employeurs</option>
+                                <option value="3">3 - Employeur saisonnier</option>
+                                <option value="4">4 - Apprentissage familial (ascendant de l'apprenti)</option>
+                            </select>
+                            <span class="help">Si situation particulière de l'employeur</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code APE/NAF *</label>
+                            <input type="text" name="employeur.code_ape" placeholder="Ex: 6201Z" required>
+                            <span class="help">Nomenclature d'activités française (version 2008) - Code de l'activité principale de l'établissement</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Effectif total de l'entreprise *</label>
+                            <input type="number" name="employeur.effectif_entreprise" required>
+                            <span class="help">Nombre total de salariés de l'entreprise (tous établissements confondus)</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code IDCC de la convention collective</label>
+                            <input type="text" name="employeur.code_idcc" placeholder="Ex: 1486" maxlength="4">
+                            <span class="help">4 chiffres - Trouvez votre code sur <a href="https://quel-est-mon-opco.francecompetences.fr/" target="_blank">France Compétences</a>. Si pas de convention: 9999. Si en cours de négociation: 9998</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Adhésion au régime d'assurance chômage</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui, l'employeur adhère au régime d'assurance chômage</label>
+                            </div>
+                            <span class="help">Employeur public non industriel/commercial qui choisit d'adhérer</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTRAT -->
+                <div class="form-section">
+                    <h2>Le Contrat</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Mode contractuel *</label>
+                            <select name="contrat.mode_contractuel" required>
+                                <option value="1">1 - Contrat à durée limitée</option>
+                                <option value="2">2 - Dans le cadre d'un CDI</option>
+                                <option value="3">3 - Entreprise de travail temporaire</option>
+                                <option value="4">4 - Activités saisonnières à deux employeurs</option>
+                            </select>
+                            <span class="help">Type de contrat d'apprentissage</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Type de contrat ou avenant *</label>
+                            <select name="contrat.type_contrat" required>
+                                <optgroup label="Contrat initial">
+                                    <option value="11">11 - Premier contrat d'apprentissage de l'apprenti</option>
+                                </optgroup>
+                                <optgroup label="Nouveau contrat">
+                                    <option value="21">21 - Nouveau contrat avec un nouvel employeur</option>
+                                    <option value="22">22 - Nouveau contrat avec le même employeur</option>
+                                    <option value="23">23 - Nouveau contrat avec le même employeur pour diplôme différent</option>
+                                </optgroup>
+                                <optgroup label="Avenant">
+                                    <option value="31">31 - Modification situation juridique employeur</option>
+                                    <option value="32">32 - Changement employeur (contrat saisonnier)</option>
+                                    <option value="33">33 - Prolongation suite échec examen</option>
+                                    <option value="34">34 - Prolongation suite reconnaissance handicap</option>
+                                    <option value="35">35 - Modification du diplôme préparé</option>
+                                    <option value="36">36 - Autres modifications</option>
+                                    <option value="37">37 - Réduction de la durée du contrat</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Type de dérogation</label>
+                            <select name="contrat.type_derogation">
+                                <option value="">Aucune</option>
+                                <option value="11">11 - Âge de l'apprenti inférieur à 16 ans</option>
+                                <option value="12">12 - Âge de l'apprenti supérieur à 29 ans</option>
+                                <option value="21">21 - Réduction de la durée du contrat</option>
+                                <option value="22">22 - Allongement de la durée du contrat</option>
+                                <option value="50">50 - Cumul de dérogations</option>
+                                <option value="60">60 - Autre dérogation</option>
+                            </select>
+                            <span class="help">À renseigner si une dérogation existe pour ce contrat</span>
+                        </div>
+                        <div class="form-group">
+                            <label>N° du contrat précédent ou sur lequel porte l'avenant</label>
+                            <input type="text" name="contrat.numero_contrat_precedent">
+                        </div>
+                    </div>
+                    <div class="form-row triple">
+                        <div class="form-group">
+                            <label>Date de conclusion (signature) *</label>
+                            <div class="date-group">
+                                <input type="text" name="contrat.date_conclusion_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="contrat.date_conclusion_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="contrat.date_conclusion_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Date de début d'exécution *</label>
+                            <div class="date-group">
+                                <input type="text" name="contrat.date_debut_contrat_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="contrat.date_debut_contrat_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="contrat.date_debut_contrat_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Date début formation employeur</label>
+                            <div class="date-group">
+                                <input type="text" name="contrat.date_debut_formation_employeur_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="contrat.date_debut_formation_employeur_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="contrat.date_debut_formation_employeur_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                            <span class="help">Date de début de formation pratique chez l'employeur</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Si avenant, date d'effet</label>
+                            <div class="date-group">
+                                <input type="text" name="contrat.date_effet_avenant_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="contrat.date_effet_avenant_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="contrat.date_effet_avenant_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Date de fin du contrat *</label>
+                            <div class="date-group">
+                                <input type="text" name="contrat.date_fin_contrat_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="contrat.date_fin_contrat_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="contrat.date_fin_contrat_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Durée hebdomadaire (heures) *</label>
+                            <input type="number" name="contrat.duree_hebdomadaire_heures" value="35" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Minutes</label>
+                            <input type="number" name="contrat.duree_hebdomadaire_minutes" value="0" max="59">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Travail sur machines dangereuses ?</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="contrat.travail_risque" value="oui"> Oui</label>
+                                <label><input type="radio" name="contrat.travail_risque" value="non" checked> Non</label>
+                            </div>
+                            <span class="help">Uniquement si apprenti mineur</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Salaire brut mensuel à l'embauche (€)</label>
+                            <input type="text" name="contrat.salaire_brut_mensuel" placeholder="Ex: 1000.00">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Caisse de retraite complémentaire</label>
+                            <input type="text" name="contrat.caisse_retraite_complementaire" placeholder="Ex: AGIRC-ARRCO">
+                        </div>
+                    </div>
+                    <h3 style="margin-top: 20px; margin-bottom: 15px; color: #667eea; font-size: 1em;">Avantages en nature</h3>
+                    <div class="form-row triple">
+                        <div class="form-group">
+                            <label>Nourriture (€/repas)</label>
+                            <input type="text" name="contrat.nourriture" placeholder="Ex: 3.50">
+                        </div>
+                        <div class="form-group">
+                            <label>Logement (€/mois)</label>
+                            <input type="text" name="contrat.logement" placeholder="Ex: 150">
+                        </div>
+                        <div class="form-group">
+                            <label>Autre (€)</label>
+                            <input type="text" name="contrat.autre" placeholder="Ex: Prime panier">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RÉMUNÉRATION -->
+                <div class="form-section">
+                    <h2>Rémunération</h2>
+                    <div class="info-box">
+                        <p>💰 Indiquer le % du SMIC ou SMC pour chaque période. Chaque année peut avoir 2 périodes si le taux change (ex: anniversaire de l'apprenti).</p>
+                    </div>
+                    <h3 style="margin-bottom: 10px; color: #667eea; font-size: 1em;">1ère année</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_1_du_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_du_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_du_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_1_au_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_au_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_au_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC</label>
+                            <input type="text" name="remuneration.annee_1_pourcentage" placeholder="Ex: 27">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (SMIC ou SMC)</label>
+                            <select name="remuneration.annee_1_base">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_1_du_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_du_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_du_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_1_au_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_au_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_1_au_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC (2ème période)</label>
+                            <input type="text" name="remuneration.annee_1_pourcentage_2" placeholder="Ex: 43">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (2ème période)</label>
+                            <select name="remuneration.annee_1_base_2">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 15px; margin-bottom: 10px; color: #667eea; font-size: 1em;">2ème année</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_2_du_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_du_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_du_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_2_au_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_au_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_au_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC</label>
+                            <input type="text" name="remuneration.annee_2_pourcentage" placeholder="Ex: 39">
+                        </div>
+                        <div class="form-group">
+                            <label>Base</label>
+                            <select name="remuneration.annee_2_base">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_2_du_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_du_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_du_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_2_au_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_au_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_2_au_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC (2ème période)</label>
+                            <input type="text" name="remuneration.annee_2_pourcentage_2">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (2ème période)</label>
+                            <select name="remuneration.annee_2_base_2">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 15px; margin-bottom: 10px; color: #667eea; font-size: 1em;">3ème année</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_3_du_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_du_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_du_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_3_au_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_au_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_au_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC</label>
+                            <input type="text" name="remuneration.annee_3_pourcentage">
+                        </div>
+                        <div class="form-group">
+                            <label>Base</label>
+                            <select name="remuneration.annee_3_base">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_3_du_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_du_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_du_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_3_au_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_au_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_3_au_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC (2ème période)</label>
+                            <input type="text" name="remuneration.annee_3_pourcentage_2">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (2ème période)</label>
+                            <select name="remuneration.annee_3_base_2">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 15px; margin-bottom: 10px; color: #667eea; font-size: 1em;">4ème année</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_4_du_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_du_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_du_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_4_au_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_au_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_au_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC</label>
+                            <input type="text" name="remuneration.annee_4_pourcentage">
+                        </div>
+                        <div class="form-group">
+                            <label>Base</label>
+                            <select name="remuneration.annee_4_base">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Du (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_4_du_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_du_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_du_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Au (2ème période)</label>
+                            <div class="date-group">
+                                <input type="text" name="remuneration.annee_4_au_2_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_au_2_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="remuneration.annee_4_au_2_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>% du SMIC/SMC (2ème période)</label>
+                            <input type="text" name="remuneration.annee_4_pourcentage_2">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (2ème période)</label>
+                            <select name="remuneration.annee_4_base_2">
+                                <option value="SMIC">SMIC</option>
+                                <option value="SMC">SMC</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMATION -->
+                <div class="form-section">
+                    <h2>La Formation</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CFA d'entreprise ?</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="formation.cfa_entreprise" value="oui"> Oui</label>
+                                <label><input type="radio" name="formation.cfa_entreprise" value="non" checked> Non</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Dénomination du CFA *</label>
+                            <input type="text" name="formation.denomination_cfa" required>
+                        </div>
+                        <div class="form-group">
+                            <label>N° UAI du CFA</label>
+                            <input type="text" name="formation.uai_cfa" placeholder="Ex: 0123456A">
+                            <span class="help">Code établissement (8 caractères)</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>SIRET du CFA</label>
+                            <input type="text" name="formation.siret_cfa">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N°</label>
+                            <input type="text" name="formation.adresse_cfa_numero">
+                        </div>
+                        <div class="form-group">
+                            <label>Voie</label>
+                            <input type="text" name="formation.adresse_cfa_voie">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Complément d'adresse</label>
+                            <input type="text" name="formation.adresse_cfa_complement">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code postal</label>
+                            <input type="text" name="formation.adresse_cfa_code_postal" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Commune</label>
+                            <input type="text" name="formation.adresse_cfa_commune">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Diplôme ou titre visé *</label>
+                            <select name="formation.diplome_vise" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <optgroup label="Aucun diplôme ni titre">
+                                    <option value="13">13 - Aucun diplôme ni titre professionnel</option>
+                                    <option value="26">26 - Certificat de formation générale (CFG)</option>
+                                    <option value="25">25 - Diplôme national du brevet (DNB)</option>
+                                </optgroup>
+                                <optgroup label="Niveau CAP/BEP">
+                                    <option value="33">33 - CAP</option>
+                                    <option value="34">34 - BEP</option>
+                                    <option value="35">35 - Certificat de spécialisation (ex-Mention complémentaire)</option>
+                                    <option value="38">38 - Autre diplôme ou titre de niveau CAP/BEP</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac">
+                                    <option value="41">41 - Baccalauréat professionnel</option>
+                                    <option value="42">42 - Baccalauréat général</option>
+                                    <option value="43">43 - Baccalauréat technologique</option>
+                                    <option value="44">44 - Diplôme de spécialisation professionnelle</option>
+                                    <option value="49">49 - Autre diplôme ou titre de niveau bac</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+2">
+                                    <option value="54">54 - Brevet de Technicien Supérieur (BTS)</option>
+                                    <option value="55">55 - Diplôme Universitaire de Technologie (DUT)</option>
+                                    <option value="58">58 - Autre diplôme ou titre de niveau bac+2</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+3/4">
+                                    <option value="62">62 - Licence professionnelle</option>
+                                    <option value="63">63 - Licence générale</option>
+                                    <option value="64">64 - Bachelor universitaire de technologie (BUT)</option>
+                                    <option value="69">69 - Autre diplôme ou titre de niveau bac+3 ou 4</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+5 et plus">
+                                    <option value="73">73 - Master</option>
+                                    <option value="75">75 - Diplôme d'ingénieur</option>
+                                    <option value="76">76 - Diplôme d'école de commerce</option>
+                                    <option value="79">79 - Autre diplôme ou titre de niveau bac+5 ou plus</option>
+                                    <option value="80">80 - Doctorat</option>
+                                </optgroup>
+                            </select>
+                            <span class="help">Code du type de diplôme préparé dans le cadre de ce contrat</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Intitulé précis *</label>
+                            <input type="text" name="formation.intitule_precis" placeholder="Ex: Développeur Web et Web Mobile" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code du diplôme</label>
+                            <input type="text" name="formation.code_diplome" placeholder="Ex: 32321303">
+                        </div>
+                        <div class="form-group">
+                            <label>Code RNCP</label>
+                            <input type="text" name="formation.code_rncp" placeholder="Ex: RNCP31114">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date de début de formation en CFA *</label>
+                            <div class="date-group">
+                                <input type="text" name="formation.date_debut_formation_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="formation.date_debut_formation_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="formation.date_debut_formation_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Date prévue de fin des épreuves *</label>
+                            <div class="date-group">
+                                <input type="text" name="formation.date_fin_formation_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="formation.date_fin_formation_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="formation.date_fin_formation_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Durée de la formation (heures) *</label>
+                            <input type="number" name="formation.duree_formation_heures" placeholder="Ex: 400" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dont heures à distance</label>
+                            <input type="number" name="formation.duree_formation_distance" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAÎTRE D'APPRENTISSAGE -->
+                <div class="form-section">
+                    <h2>Maître d'Apprentissage</h2>
+                    <div class="info-box">
+                        <p>ℹ️ Le maître d'apprentissage doit justifier de compétences professionnelles (diplôme et/ou expérience) dans le domaine du diplôme préparé.</p>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom *</label>
+                            <input type="text" name="maitre_apprentissage.nom" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prénom *</label>
+                            <input type="text" name="maitre_apprentissage.prenom" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date de naissance</label>
+                            <div class="date-group">
+                                <input type="text" name="maitre_apprentissage.date_naissance_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="maitre_apprentissage.date_naissance_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="maitre_apprentissage.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="maitre_apprentissage.courriel">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Emploi occupé *</label>
+                            <input type="text" name="maitre_apprentissage.emploi_occupe" placeholder="Ex: Directeur technique" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Diplôme ou titre le plus élevé obtenu *</label>
+                            <input type="text" name="maitre_apprentissage.diplome_le_plus_eleve" placeholder="Ex: Master Informatique" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Niveau de diplôme *</label>
+                            <select name="maitre_apprentissage.niveau_diplome" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="1">1 - Niveau CAP/BEP</option>
+                                <option value="2">2 - Niveau Bac</option>
+                                <option value="3">3 - Niveau Bac+2</option>
+                                <option value="4">4 - Niveau Bac+3/4</option>
+                                <option value="5">5 - Niveau Bac+5 et plus</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px; margin-bottom: 15px; color: #888; font-size: 1em;">Second maître d'apprentissage (optionnel)</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom</label>
+                            <input type="text" name="maitre_apprentissage_2.nom">
+                        </div>
+                        <div class="form-group">
+                            <label>Prénom</label>
+                            <input type="text" name="maitre_apprentissage_2.prenom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date de naissance</label>
+                            <div class="date-group">
+                                <input type="text" name="maitre_apprentissage_2.date_naissance_jour" placeholder="JJ" maxlength="2">
+                                <input type="text" name="maitre_apprentissage_2.date_naissance_mois" placeholder="MM" maxlength="2">
+                                <input type="text" name="maitre_apprentissage_2.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="maitre_apprentissage_2.courriel">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Emploi occupé</label>
+                            <input type="text" name="maitre_apprentissage_2.emploi_occupe">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Diplôme ou titre le plus élevé obtenu</label>
+                            <input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve">
+                        </div>
+                        <div class="form-group">
+                            <label>Niveau de diplôme</label>
+                            <select name="maitre_apprentissage_2.niveau_diplome">
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="1">1 - Niveau CAP/BEP</option>
+                                <option value="2">2 - Niveau Bac</option>
+                                <option value="3">3 - Niveau Bac+2</option>
+                                <option value="4">4 - Niveau Bac+3/4</option>
+                                <option value="5">5 - Niveau Bac+5 et plus</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATTESTATION -->
+                <div class="form-section">
+                    <h2>Attestation</h2>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Fait à *</label>
+                            <input type="text" name="attestation.fait_a" placeholder="Ex: Paris" required>
+                            <span class="help">Lieu de signature du contrat</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="attestation.pieces_justificatives" value="true">
+                                L'employeur atteste disposer de l'ensemble des pièces justificatives nécessaires au dépôt du contrat
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">📤 Envoyer les informations</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            document.querySelector('.form-content').innerHTML = '<div class="error-message" style="display:block;">❌ Lien invalide. Veuillez utiliser le lien qui vous a été envoyé.</div>';
+        }
+
+        // Formatage automatique SIRET (14 chiffres -> XXX XXX XXX XXXXX)
+        const siretInput = document.querySelector('input[name="employeur.siret"]');
+        if (siretInput) {
+            siretInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Garde que les chiffres
+                if (value.length > 14) value = value.slice(0, 14);
+                // Formatage : XXX XXX XXX XXXXX
+                let formatted = '';
+                if (value.length > 0) formatted = value.slice(0, 3);
+                if (value.length > 3) formatted += ' ' + value.slice(3, 6);
+                if (value.length > 6) formatted += ' ' + value.slice(6, 9);
+                if (value.length > 9) formatted += ' ' + value.slice(9, 14);
+                e.target.value = formatted;
+            });
+        }
+
+        // Formatage automatique téléphone (XX XX XX XX XX)
+        const telInputs = document.querySelectorAll('input[type="tel"]');
+        telInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 10) value = value.slice(0, 10);
+                let formatted = '';
+                for (let i = 0; i < value.length; i += 2) {
+                    if (i > 0) formatted += ' ';
+                    formatted += value.slice(i, i + 2);
+                }
+                e.target.value = formatted;
+            });
+        });
+
+        // Formatage code postal (5 chiffres)
+        const cpInputs = document.querySelectorAll('input[name$="code_postal"]');
+        cpInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+            });
+        });
+
+        // Fonction pour nettoyer les données avant envoi (enlever espaces des numéros)
+        function cleanData(data) {
+            if (data.employeur && data.employeur.siret) {
+                data.employeur.siret = data.employeur.siret.replace(/\s/g, '');
+            }
+            if (data.employeur && data.employeur.telephone) {
+                data.employeur.telephone = data.employeur.telephone.replace(/\s/g, '');
+            }
+            return data;
+        }
+
+        // Vérifier si déjà rempli
+        fetch(`/api/contract/by-token/${token}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.complete) {
+                    document.getElementById('entrepriseForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                }
+            })
+            .catch(e => console.error(e));
+
+        document.getElementById('entrepriseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '⏳ Envoi en cours...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                const parts = key.split('.');
+                if (parts.length === 2) {
+                    if (!data[parts[0]]) data[parts[0]] = {};
+                    data[parts[0]][parts[1]] = value;
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            // Initialiser les sections si elles n'existent pas encore
+            if (!data.employeur) data.employeur = {};
+            if (!data.contrat) data.contrat = {};
+            if (!data.formation) data.formation = {};
+            if (!data.remuneration) data.remuneration = {};
+            if (!data.maitre_apprentissage) data.maitre_apprentissage = {};
+            if (!data.maitre_apprentissage_2) data.maitre_apprentissage_2 = {};
+            if (!data.attestation) data.attestation = {};
+
+            // Gestion des radios booléennes
+            const employeurType = document.querySelector('input[name="employeur.type"]:checked');
+            data.employeur.type_prive = employeurType?.value === 'prive';
+            data.employeur.type_public = employeurType?.value === 'public';
+
+            const adhesionChomage = document.querySelector('input[name="employeur.adhesion_chomage"]');
+            data.employeur.adhesion_chomage = adhesionChomage?.checked;
+
+            const travailRisque = document.querySelector('input[name="contrat.travail_risque"]:checked');
+            data.contrat.travail_risque_oui = travailRisque?.value === 'oui';
+            data.contrat.travail_risque_non = travailRisque?.value === 'non';
+
+            const cfaEntreprise = document.querySelector('input[name="formation.cfa_entreprise"]:checked');
+            data.formation.cfa_entreprise_oui = cfaEntreprise?.value === 'oui';
+            data.formation.cfa_entreprise_non = cfaEntreprise?.value === 'non';
+
+            const pieces = document.querySelector('input[name="attestation.pieces_justificatives"]');
+            data.attestation.pieces_justificatives = pieces?.checked;
+
+            // Nettoyer les données avant envoi
+            const cleanedData = cleanData(data);
+
+            try {
+                const response = await fetch(`/api/entreprise/${token}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cleanedData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('entrepriseForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    const err = await response.json();
+                    document.getElementById('errorMessage').textContent = err.error || 'Erreur lors de l\'envoi';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    btn.textContent = '📤 Envoyer les informations';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = 'Erreur de connexion';
+                document.getElementById('errorMessage').style.display = 'block';
+                btn.textContent = '📤 Envoyer les informations';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

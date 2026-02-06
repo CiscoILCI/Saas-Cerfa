@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContratFlow - Formulaire Apprenti(e)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #10b981; --primary-dark: #059669; --primary-light: #d1fae5; --accent: #4f46e5; --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827; --danger: #ef4444; --radius: 12px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); min-height: 100vh; padding: 24px; color: var(--gray-800); }
+        .container { max-width: 720px; margin: 0 auto; }
+        .header { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; text-align: center; }
+        .header .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--primary-light); color: var(--primary-dark); padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 600; margin-bottom: 12px; }
+        .header h1 { font-size: 1.5em; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+        .header p { color: var(--gray-500); font-size: 0.9em; }
+        .form-content { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; }
+        .form-section { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--gray-200); }
+        .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .form-section h2 { font-size: 1.05em; font-weight: 700; color: var(--gray-900); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .form-section h2::before { content: ""; width: 3px; height: 18px; background: var(--primary); border-radius: 2px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 6px; color: var(--gray-700); font-size: 0.8em; }
+        .form-group .help { font-size: 0.72em; color: var(--gray-400); margin-top: 4px; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select { padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.875em; transition: all 0.15s; font-family: inherit; background: white; color: var(--gray-800); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        input::placeholder { color: var(--gray-400); }
+        select { cursor: pointer; }
+        .checkbox-group { display: flex; align-items: center; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+        .checkbox-group label { margin: 0; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: var(--gray-700); }
+        input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+        .date-group { display: grid; grid-template-columns: 60px 60px 80px; gap: 8px; }
+        .date-group input { text-align: center; padding: 9px 4px; }
+        button[type="submit"] { background: var(--primary); color: white; border: none; padding: 12px 24px; font-size: 0.9em; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.15s; margin-top: 8px; font-family: inherit; }
+        button[type="submit"]:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+        button[type="submit"]:disabled { background: var(--gray-300); cursor: not-allowed; box-shadow: none; }
+        .info-box { background: var(--gray-50); border: 1px solid var(--gray-200); padding: 12px 16px; margin-bottom: 20px; border-radius: 8px; }
+        .info-box p { color: var(--gray-600); font-size: 0.8em; line-height: 1.5; }
+        .success-message { background: var(--primary-light); border: 1px solid #a7f3d0; color: #065f46; padding: 24px; border-radius: var(--radius); text-align: center; display: none; }
+        .success-message h3 { margin-bottom: 8px; }
+        .success-message p { font-size: 0.9em; }
+        .error-message { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; font-size: 0.85em; }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .form-row.triple { grid-template-columns: 1fr; }
+            body { padding: 12px; }
+            .form-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="badge">ContratFlow</div>
+            <h1>Formulaire Apprenti(e)</h1>
+            <p>Remplissez vos informations personnelles pour votre contrat d'apprentissage</p>
+        </div>
+        
+        <div class="form-content">
+            <div class="info-box">
+                <p>📝 Veuillez remplir ce formulaire avec vos informations personnelles. Ces données seront utilisées pour générer votre contrat d'apprentissage (CERFA).</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage">
+                <h3>✅ Vos informations ont été enregistrées !</h3>
+                <p>L'entreprise doit maintenant compléter sa partie du formulaire.</p>
+            </div>
+
+            <form id="etudiantForm">
+                
+                <div class="form-section">
+                    <h2>État Civil</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom de naissance *</label>
+                            <input type="text" name="apprenti.nom_naissance" required>
+                            <span class="help">Votre nom tel qu'inscrit sur votre acte de naissance</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Nom d'usage</label>
+                            <input type="text" name="apprenti.nom_usage">
+                            <span class="help">Si différent du nom de naissance (ex: nom marital)</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prénom *</label>
+                            <input type="text" name="apprenti.prenom" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sexe *</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="apprenti.sexe" value="homme" required> Homme</label>
+                                <label><input type="radio" name="apprenti.sexe" value="femme"> Femme</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date de naissance *</label>
+                            <div class="date-group">
+                                <input type="text" name="apprenti.date_naissance_jour" placeholder="JJ" maxlength="2" required>
+                                <input type="text" name="apprenti.date_naissance_mois" placeholder="MM" maxlength="2" required>
+                                <input type="text" name="apprenti.date_naissance_annee" placeholder="AAAA" maxlength="4" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>N° de Sécurité Sociale (NIR)</label>
+                            <input type="text" name="apprenti.nir" placeholder="1 23 45 67 890 123 45">
+                            <span class="help">15 chiffres figurant sur votre carte Vitale</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Département de naissance *</label>
+                            <input type="text" name="apprenti.departement_naissance" placeholder="Ex: 75" maxlength="3" required>
+                            <span class="help">Code département (099 si né à l'étranger)</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Commune de naissance *</label>
+                            <input type="text" name="apprenti.commune_naissance" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nationalité *</label>
+                            <select name="apprenti.nationalite" required>
+                                <option value="1">1 - Française</option>
+                                <option value="2">2 - Union Européenne (UE)</option>
+                                <option value="3">3 - Étranger hors Union Européenne</option>
+                            </select>
+                            <span class="help">Nationalité de l'apprenti à la date de signature du contrat</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Régime social *</label>
+                            <select name="apprenti.regime_social" required>
+                                <option value="1">1 - MSA (secteur agricole)</option>
+                                <option value="2">2 - Régime général (URSSAF)</option>
+                            </select>
+                            <span class="help">Régime social dont dépendra l'apprenti pendant son contrat</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Adresse</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N°</label>
+                            <input type="text" name="apprenti.adresse_numero" placeholder="Ex: 12">
+                        </div>
+                        <div class="form-group">
+                            <label>Voie *</label>
+                            <input type="text" name="apprenti.adresse_voie" placeholder="Ex: Rue de la Paix" required>
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Complément d'adresse</label>
+                            <input type="text" name="apprenti.adresse_complement" placeholder="Bâtiment, étage, etc.">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code postal *</label>
+                            <input type="text" name="apprenti.adresse_code_postal" maxlength="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Commune *</label>
+                            <input type="text" name="apprenti.adresse_commune" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" name="apprenti.telephone" placeholder="06 12 34 56 78">
+                        </div>
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="apprenti.courriel" placeholder="votre@email.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Situation</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Situation avant ce contrat *</label>
+                            <select name="apprenti.situation_avant_contrat" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="1">1 - Scolaire</option>
+                                <option value="2">2 - Prépa apprentissage</option>
+                                <option value="3">3 - Étudiant</option>
+                                <option value="4">4 - Contrat d'apprentissage</option>
+                                <option value="5">5 - Contrat de professionnalisation</option>
+                                <option value="6">6 - Contrat aidé</option>
+                                <option value="7">7 - En formation au CFA avant contrat (L6222-12-1)</option>
+                                <option value="8">8 - En formation au CFA sans contrat suite à rupture (L6231-2)</option>
+                                <option value="9">9 - Autres situations stagiaire formation pro</option>
+                                <option value="10">10 - Salarié</option>
+                                <option value="11">11 - Personne à la recherche d'un emploi (inscrite ou non à Pôle Emploi)</option>
+                                <option value="12">12 - Inactif</option>
+                            </select>
+                            <span class="help">Votre situation juste avant la conclusion du présent contrat</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Dernier diplôme ou titre préparé *</label>
+                            <select name="apprenti.dernier_diplome" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <optgroup label="Aucun diplôme ni titre">
+                                    <option value="13">13 - Aucun diplôme ni titre professionnel</option>
+                                    <option value="26">26 - Certificat de formation générale (CFG)</option>
+                                    <option value="25">25 - Diplôme national du brevet (DNB)</option>
+                                </optgroup>
+                                <optgroup label="Niveau CAP/BEP">
+                                    <option value="33">33 - CAP</option>
+                                    <option value="34">34 - BEP</option>
+                                    <option value="35">35 - Certificat de spécialisation (ex-Mention complémentaire)</option>
+                                    <option value="38">38 - Autre diplôme ou titre de niveau CAP/BEP</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac">
+                                    <option value="41">41 - Baccalauréat professionnel</option>
+                                    <option value="42">42 - Baccalauréat général</option>
+                                    <option value="43">43 - Baccalauréat technologique</option>
+                                    <option value="44">44 - Diplôme de spécialisation professionnelle</option>
+                                    <option value="49">49 - Autre diplôme ou titre de niveau bac</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+2">
+                                    <option value="54">54 - Brevet de Technicien Supérieur (BTS)</option>
+                                    <option value="55">55 - Diplôme Universitaire de Technologie (DUT)</option>
+                                    <option value="58">58 - Autre diplôme ou titre de niveau bac+2</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+3/4">
+                                    <option value="62">62 - Licence professionnelle</option>
+                                    <option value="63">63 - Licence générale</option>
+                                    <option value="64">64 - Bachelor universitaire de technologie (BUT)</option>
+                                    <option value="69">69 - Autre diplôme ou titre de niveau bac+3 ou 4</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+5 et plus">
+                                    <option value="73">73 - Master</option>
+                                    <option value="75">75 - Diplôme d'ingénieur</option>
+                                    <option value="76">76 - Diplôme d'école de commerce</option>
+                                    <option value="79">79 - Autre diplôme ou titre de niveau bac+5 ou plus</option>
+                                    <option value="80">80 - Doctorat</option>
+                                </optgroup>
+                            </select>
+                            <span class="help">Dernier diplôme ou titre préparé AVANT ce contrat</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Diplôme ou titre le plus élevé obtenu *</label>
+                            <select name="apprenti.diplome_le_plus_eleve" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <optgroup label="Aucun diplôme ni titre">
+                                    <option value="13">13 - Aucun diplôme ni titre professionnel</option>
+                                    <option value="26">26 - Certificat de formation générale (CFG)</option>
+                                    <option value="25">25 - Diplôme national du brevet (DNB)</option>
+                                </optgroup>
+                                <optgroup label="Niveau CAP/BEP">
+                                    <option value="33">33 - CAP</option>
+                                    <option value="34">34 - BEP</option>
+                                    <option value="35">35 - Certificat de spécialisation (ex-Mention complémentaire)</option>
+                                    <option value="38">38 - Autre diplôme ou titre de niveau CAP/BEP</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac">
+                                    <option value="41">41 - Baccalauréat professionnel</option>
+                                    <option value="42">42 - Baccalauréat général</option>
+                                    <option value="43">43 - Baccalauréat technologique</option>
+                                    <option value="44">44 - Diplôme de spécialisation professionnelle</option>
+                                    <option value="49">49 - Autre diplôme ou titre de niveau bac</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+2">
+                                    <option value="54">54 - Brevet de Technicien Supérieur (BTS)</option>
+                                    <option value="55">55 - Diplôme Universitaire de Technologie (DUT)</option>
+                                    <option value="58">58 - Autre diplôme ou titre de niveau bac+2</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+3/4">
+                                    <option value="62">62 - Licence professionnelle</option>
+                                    <option value="63">63 - Licence générale</option>
+                                    <option value="64">64 - Bachelor universitaire de technologie (BUT)</option>
+                                    <option value="69">69 - Autre diplôme ou titre de niveau bac+3 ou 4</option>
+                                </optgroup>
+                                <optgroup label="Niveau Bac+5 et plus">
+                                    <option value="73">73 - Master</option>
+                                    <option value="75">75 - Diplôme d'ingénieur</option>
+                                    <option value="76">76 - Diplôme d'école de commerce</option>
+                                    <option value="79">79 - Autre diplôme ou titre de niveau bac+5 ou plus</option>
+                                    <option value="80">80 - Doctorat</option>
+                                </optgroup>
+                            </select>
+                            <span class="help">Plus haut diplôme ou titre DÉJÀ OBTENU</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Intitulé du dernier diplôme</label>
+                            <input type="text" name="apprenti.intitule_dernier_diplome" placeholder="Ex: BAC PRO Commerce">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Dernière classe suivie *</label>
+                            <select name="apprenti.derniere_classe" required>
+                                <option value="">-- Sélectionnez --</option>
+                                <optgroup label="Diplôme obtenu">
+                                    <option value="01">01 - Dernière année du cycle suivie et diplôme obtenu</option>
+                                </optgroup>
+                                <optgroup label="1ère année du cycle">
+                                    <option value="11">11 - 1ère année suivie et validée</option>
+                                    <option value="12">12 - 1ère année suivie mais non validée</option>
+                                </optgroup>
+                                <optgroup label="2ème année du cycle">
+                                    <option value="21">21 - 2ème année suivie et validée</option>
+                                    <option value="22">22 - 2ème année suivie mais non validée</option>
+                                </optgroup>
+                                <optgroup label="3ème année du cycle">
+                                    <option value="31">31 - 3ème année suivie et validée</option>
+                                    <option value="32">32 - 3ème année suivie mais non validée</option>
+                                </optgroup>
+                                <optgroup label="Collège">
+                                    <option value="40">40 - 1er cycle secondaire achevé (collège)</option>
+                                    <option value="41">41 - Interruption en classe de 3ème</option>
+                                    <option value="42">42 - Interruption en classe de 4ème</option>
+                                </optgroup>
+                            </select>
+                            <span class="help">Résultat de la dernière année de formation suivie</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reconnaissance travailleur handicapé ?</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="apprenti.handicap" value="oui"> Oui</label>
+                                <label><input type="radio" name="apprenti.handicap" value="non" checked> Non</label>
+                            </div>
+                            <span class="help">RQTH délivrée par la MDPH</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Sportif de haut niveau ?</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="apprenti.sportif_haut_niveau" value="oui"> Oui</label>
+                                <label><input type="radio" name="apprenti.sportif_haut_niveau" value="non" checked> Non</label>
+                            </div>
+                            <span class="help">Inscrit sur la liste ministérielle</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Représentant légal (si mineur)</h2>
+                    <div class="info-box">
+                        <p>⚠️ À remplir uniquement si l'apprenti(e) est mineur(e) à la date de signature du contrat.</p>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Nom de naissance et prénom</label>
+                            <input type="text" name="representant_legal.nom_prenom" placeholder="Ex: DUPONT Marie">
+                            <span class="help">Nom et prénom du représentant légal</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N°</label>
+                            <input type="text" name="representant_legal.adresse_numero">
+                        </div>
+                        <div class="form-group">
+                            <label>Voie</label>
+                            <input type="text" name="representant_legal.adresse_voie">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Complément d'adresse</label>
+                            <input type="text" name="representant_legal.adresse_complement">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code postal</label>
+                            <input type="text" name="representant_legal.adresse_code_postal" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Commune</label>
+                            <input type="text" name="representant_legal.adresse_commune">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="representant_legal.courriel">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">📤 Envoyer mes informations</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            document.querySelector('.form-content').innerHTML = '<div class="error-message" style="display:block;">❌ Lien invalide. Veuillez utiliser le lien qui vous a été envoyé.</div>';
+        }
+
+        // Formatage automatique NIR (13 chiffres -> X XX XX XX XXX XXX)
+        const nirInput = document.querySelector('input[name="apprenti.nir"]');
+        if (nirInput) {
+            nirInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 13) value = value.slice(0, 13);
+                // Formatage : X XX XX XX XXX XXX
+                let formatted = '';
+                if (value.length > 0) formatted = value.slice(0, 1);
+                if (value.length > 1) formatted += ' ' + value.slice(1, 3);
+                if (value.length > 3) formatted += ' ' + value.slice(3, 5);
+                if (value.length > 5) formatted += ' ' + value.slice(5, 7);
+                if (value.length > 7) formatted += ' ' + value.slice(7, 10);
+                if (value.length > 10) formatted += ' ' + value.slice(10, 13);
+                e.target.value = formatted;
+            });
+        }
+
+        // Formatage automatique téléphone (XX XX XX XX XX)
+        const telInputs = document.querySelectorAll('input[type="tel"]');
+        telInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 10) value = value.slice(0, 10);
+                let formatted = '';
+                for (let i = 0; i < value.length; i += 2) {
+                    if (i > 0) formatted += ' ';
+                    formatted += value.slice(i, i + 2);
+                }
+                e.target.value = formatted;
+            });
+        });
+
+        // Formatage code postal (5 chiffres)
+        const cpInputs = document.querySelectorAll('input[name$="code_postal"]');
+        cpInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+            });
+        });
+
+        // Fonction pour nettoyer les données avant envoi
+        function cleanData(data) {
+            if (data.apprenti) {
+                if (data.apprenti.nir) data.apprenti.nir = data.apprenti.nir.replace(/\s/g, '');
+                if (data.apprenti.telephone) data.apprenti.telephone = data.apprenti.telephone.replace(/\s/g, '');
+            }
+            if (data.representant_legal && data.representant_legal.telephone) {
+                data.representant_legal.telephone = data.representant_legal.telephone.replace(/\s/g, '');
+            }
+            return data;
+        }
+
+        // Vérifier si déjà rempli
+        fetch(`/api/contract/by-token/${token}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.complete) {
+                    document.getElementById('etudiantForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                }
+            })
+            .catch(e => console.error(e));
+
+        document.getElementById('etudiantForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '⏳ Envoi en cours...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                const parts = key.split('.');
+                if (parts.length === 2) {
+                    if (!data[parts[0]]) data[parts[0]] = {};
+                    data[parts[0]][parts[1]] = value;
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            // Gestion des checkboxes booléennes
+            const handicap = document.querySelector('input[name="apprenti.handicap"]:checked');
+            data.apprenti.handicap_oui = handicap?.value === 'oui';
+            data.apprenti.handicap_non = handicap?.value === 'non';
+            
+            const sportif = document.querySelector('input[name="apprenti.sportif_haut_niveau"]:checked');
+            data.apprenti.sportif_haut_niveau_oui = sportif?.value === 'oui';
+            data.apprenti.sportif_haut_niveau_non = sportif?.value === 'non';
+
+            const sexe = document.querySelector('input[name="apprenti.sexe"]:checked');
+            data.apprenti.sexe_homme = sexe?.value === 'homme';
+            data.apprenti.sexe_femme = sexe?.value === 'femme';
+
+            // Nettoyer les données avant envoi
+            const cleanedData = cleanData(data);
+
+            try {
+                const response = await fetch(`/api/etudiant/${token}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cleanedData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('etudiantForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    const err = await response.json();
+                    document.getElementById('errorMessage').textContent = err.error || 'Erreur lors de l\'envoi';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    btn.textContent = '📤 Envoyer mes informations';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = 'Erreur de connexion';
+                document.getElementById('errorMessage').style.display = 'block';
+                btn.textContent = '📤 Envoyer mes informations';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

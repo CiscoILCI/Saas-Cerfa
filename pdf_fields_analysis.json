@@ -1,0 +1,866 @@
+[
+  {
+    "name": "Case #C3#A0 cocher 1",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 2",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 3",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 4",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_2",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_3",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_4",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_5",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_6",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_7",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_8",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_9",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_10",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 6",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 2_2",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Zone de texte 8",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_2",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_3",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_4",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_5",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_6",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_7",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_8",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_9",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_2",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_3",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_4",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_5",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_6",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_7",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_8",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_9",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_10",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_11",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_12",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_13",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_14",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_15",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_16",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_17",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_18",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_19",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_20",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_21",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_22",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_23",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_24",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_25",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_26",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_27",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_28",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_29",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_30",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_31",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_32",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_33",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_34",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_35",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_36",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_37",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_38",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_39",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_40",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_41",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_42",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_43",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_44",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_45",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_46",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_47",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_48",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_49",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_50",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_51",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_52",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_53",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_54",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_11",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_12",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 7",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 8",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Zone de texte 21_10",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_11",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_12",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_13",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_14",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_15",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_16",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_17",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_18",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_19",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_20",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_21",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_22",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_23",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_24",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_25",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_26",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_27",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_28",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_29",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_30",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_31",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_32",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_33",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_34",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_35",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_36",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_55",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_37",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_38",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_39",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_40",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_41",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_42",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_56",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_57",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_43",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_44",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_45",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_46",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_47",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_48",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_58",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_59",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_49",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_50",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_51",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_52",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_53",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_54",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_60",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_61",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_55",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_56",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_57",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_58",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_59",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_60",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_62",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_63",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_61",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_62",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_63",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_64",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_65",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_66",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_64",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_65",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_67",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_68",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_69",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_70",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_71",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_72",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_66",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_67",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_68",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_69",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_13",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Case #C3#A0 cocher 5_14",
+    "type": "PDFCheckBox"
+  },
+  {
+    "name": "Zone de texte 8_70",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_71",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_72",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_73",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_74",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_75",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_76",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_77",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_78",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_79",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_73",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_74",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_75",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_76",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_77",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_80",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_78",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_79",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_80",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_81",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_82",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_83",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_84",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_85",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_86",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_87",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_88",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_89",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_90",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_91",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_92",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_93",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_94",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_81",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_82",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_83",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_84",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_85",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_86",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_95",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_96",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_87",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_88",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_89",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_90",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_91",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 21_92",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_97",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_98",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_99",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_100",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_101",
+    "type": "PDFTextField"
+  },
+  {
+    "name": "Zone de texte 8_102",
+    "type": "PDFTextField"
+  }
+]

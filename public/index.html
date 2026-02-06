@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContratFlow - Gestion des Contrats CERFA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); min-height: 100vh; color: var(--gray-800); }
+
+        /* Navbar */
+        .navbar { background: white; border-bottom: 1px solid var(--gray-200); padding: 0 32px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .navbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2em; color: var(--gray-900); }
+        .navbar .brand .logo { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
+        .navbar .credits { background: var(--gray-100); padding: 6px 14px; border-radius: 20px; font-size: 0.8em; color: var(--gray-600); font-weight: 500; }
+
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: white; padding: 20px 24px; border-radius: var(--radius); border: 1px solid var(--gray-200); transition: all 0.2s; }
+        .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .stat-card .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .stat-card .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .stat-card .stat-icon.total { background: #ede9fe; }
+        .stat-card .stat-icon.pending { background: #fef3c7; }
+        .stat-card .stat-icon.partial { background: #dbeafe; }
+        .stat-card .stat-icon.ready { background: #d1fae5; }
+        .stat-card .number { font-size: 2em; font-weight: 700; color: var(--gray-900); line-height: 1; }
+        .stat-card .label { color: var(--gray-500); font-size: 0.85em; margin-top: 4px; font-weight: 500; }
+
+        /* Actions bar */
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .actions-bar h2 { font-size: 1.25em; font-weight: 700; color: var(--gray-900); }
+        .actions-bar .btns { display: flex; gap: 10px; }
+
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.875em; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); box-shadow: var(--shadow-md); }
+        .btn-ghost { background: transparent; color: var(--gray-600); border: 1px solid var(--gray-300); }
+        .btn-ghost:hover { background: var(--gray-100); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8em; border-radius: 6px; }
+        .btn-icon { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--gray-200); background: white; cursor: pointer; transition: all 0.15s; font-size: 14px; }
+        .btn-icon:hover { background: var(--gray-100); }
+        .btn-icon.danger:hover { background: #fef2f2; border-color: #fecaca; }
+        .btn-icon.success { border-color: var(--success); color: var(--success); }
+        .btn-icon.success:hover { background: #ecfdf5; }
+
+        /* Table */
+        .table-wrapper { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); overflow: hidden; }
+        .table-wrapper table { width: 100%; border-collapse: collapse; }
+        .table-wrapper th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+        .table-wrapper td { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); font-size: 0.9em; vertical-align: middle; }
+        .table-wrapper tr:last-child td { border-bottom: none; }
+        .table-wrapper tr:hover td { background: var(--gray-50); }
+
+        /* Contract ID */
+        .contract-id { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8em; color: var(--gray-600); background: var(--gray-100); padding: 3px 8px; border-radius: 4px; }
+
+        /* Status badges */
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75em; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .badge.pending { background: #fef3c7; color: #92400e; }
+        .badge.partial { background: #dbeafe; color: #1e40af; }
+        .badge.ready { background: #d1fae5; color: #065f46; }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .badge.pending .badge-dot { background: #f59e0b; }
+        .badge.partial .badge-dot { background: #3b82f6; }
+        .badge.ready .badge-dot { background: #10b981; }
+
+        /* Progress */
+        .completion { display: flex; align-items: center; gap: 8px; font-size: 0.85em; }
+        .completion .check { color: var(--success); font-weight: 600; }
+        .completion .waiting { color: var(--gray-400); }
+        .completion a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .completion a:hover { text-decoration: underline; }
+
+        /* Actions cell */
+        .actions-cell { display: flex; gap: 6px; }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 80px 20px; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state h3 { color: var(--gray-700); font-size: 1.1em; margin-bottom: 6px; }
+        .empty-state p { color: var(--gray-400); font-size: 0.9em; margin-bottom: 20px; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 16px; max-width: 520px; width: 90%; box-shadow: var(--shadow-lg); animation: modalIn 0.2s ease-out; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-header { padding: 24px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+        .modal-header h2 { font-size: 1.15em; font-weight: 700; color: var(--gray-900); }
+        .modal-header .close-btn { background: none; border: none; font-size: 20px; color: var(--gray-400); cursor: pointer; padding: 4px; border-radius: 6px; }
+        .modal-header .close-btn:hover { background: var(--gray-100); color: var(--gray-600); }
+        .modal-body { padding: 20px 24px 24px; }
+        .modal-body p { color: var(--gray-500); font-size: 0.85em; margin-bottom: 20px; line-height: 1.5; }
+        .link-group { margin-bottom: 16px; }
+        .link-group label { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.8em; color: var(--gray-700); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+        .link-input-row { display: flex; gap: 8px; }
+        .link-input-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.85em; font-family: 'SF Mono', monospace; color: var(--gray-600); background: var(--gray-50); }
+        .link-input-row input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .copy-btn { padding: 10px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.8em; cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: inherit; }
+        .copy-btn:hover { background: var(--primary-dark); }
+        .copy-btn.copied { background: var(--success); }
+
+        /* Delete confirm modal */
+        .confirm-modal { max-width: 400px; }
+        .confirm-modal .modal-icon { width: 48px; height: 48px; border-radius: 50%; background: #fef2f2; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; }
+        .confirm-modal .modal-body { text-align: center; padding: 24px; }
+        .confirm-modal .modal-body h3 { font-size: 1.1em; font-weight: 700; color: var(--gray-900); margin-bottom: 8px; }
+        .confirm-modal .modal-body p { color: var(--gray-500); font-size: 0.875em; margin-bottom: 24px; }
+        .confirm-modal .modal-body .contract-ref { background: var(--gray-100); padding: 3px 10px; border-radius: 4px; font-family: 'SF Mono', monospace; font-size: 0.8em; color: var(--gray-600); }
+        .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+        .confirm-actions .btn { min-width: 120px; justify-content: center; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+        .btn-cancel { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+        .btn-cancel:hover { background: var(--gray-50); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.875em; font-weight: 500; box-shadow: var(--shadow-lg); transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .actions-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+            .container { padding: 16px; }
+            .navbar { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">
+            <div class="logo">C</div>
+            ContratFlow
+        </div>
+        <div class="credits">Mode POC</div>
+    </nav>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="number" id="statTotal">0</div>
+                        <div class="label">Contrats total</div>
+                    </div>
+                    <div class="stat-icon total">&#128196;</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="number" id="statPending">0</div>
+                        <div class="label">En attente</div>
+                    </div>
+                    <div class="stat-icon pending">&#9203;</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="number" id="statPartial">0</div>
+                        <div class="label">En cours</div>
+                    </div>
+                    <div class="stat-icon partial">&#9997;</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="number" id="statReady">0</div>
+                        <div class="label">Complets</div>
+                    </div>
+                    <div class="stat-icon ready">&#10004;</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-bar">
+            <h2>Contrats</h2>
+            <div class="btns">
+                <button class="btn btn-ghost" onclick="loadContracts()">&#8635; Actualiser</button>
+                <button class="btn btn-primary" onclick="createContract()">+ Nouveau contrat</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Contrat</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Apprenti</th>
+                        <th>Entreprise</th>
+                        <th style="text-align:right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contractsBody">
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">&#128203;</div>
+                                <h3>Aucun contrat</h3>
+                                <p>Commencez par cr&eacute;er votre premier contrat d'apprentissage</p>
+                                <button class="btn btn-primary" onclick="createContract()">+ Cr&eacute;er un contrat</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal liens -->
+    <div class="modal-overlay" id="linksModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Liens de remplissage</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Partagez ces liens uniques avec l'apprenti et l'entreprise. Chacun pourra remplir sa partie du formulaire.</p>
+                
+                <div class="link-group">
+                    <label>&#128100; Lien Apprenti</label>
+                    <div class="link-input-row">
+                        <input type="text" id="linkEtudiant" readonly onclick="this.select()">
+                        <button class="copy-btn" onclick="copyLink('linkEtudiant', this)">Copier</button>
+                    </div>
+                </div>
+                
+                <div class="link-group">
+                    <label>&#127970; Lien Entreprise</label>
+                    <div class="link-input-row">
+                        <input type="text" id="linkEntreprise" readonly onclick="this.select()">
+                        <button class="copy-btn" onclick="copyLink('linkEntreprise', this)">Copier</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal suppression -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal confirm-modal">
+            <div class="modal-body">
+                <div class="modal-icon">&#128465;</div>
+                <h3>Supprimer ce contrat ?</h3>
+                <p>Le contrat <span class="contract-ref" id="deleteContractRef"></span> et toutes ses donn&eacute;es seront d&eacute;finitivement supprim&eacute;s. Cette action est irr&eacute;versible.</p>
+                <div class="confirm-actions">
+                    <button class="btn btn-cancel" onclick="closeDeleteModal()">Annuler</button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let contracts = [];
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        async function loadContracts() {
+            try {
+                const response = await fetch('/api/contracts');
+                contracts = await response.json();
+                renderContracts();
+                updateStats();
+            } catch (e) {
+                console.error('Erreur chargement:', e);
+            }
+        }
+
+        function renderContracts() {
+            const tbody = document.getElementById('contractsBody');
+            
+            if (contracts.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <div class="empty-icon">&#128203;</div>
+                            <h3>Aucun contrat</h3>
+                            <p>Commencez par cr\u00e9er votre premier contrat d'apprentissage</p>
+                            <button class="btn btn-primary" onclick="createContract()">+ Cr\u00e9er un contrat</button>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = contracts.map(c => `
+                <tr>
+                    <td><span class="contract-id">${c.id.slice(0, 8)}</span></td>
+                    <td>${new Date(c.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td><span class="badge ${c.status}"><span class="badge-dot"></span>${getStatusLabel(c.status)}</span></td>
+                    <td>
+                        <div class="completion">
+                            ${c.etudiantComplete 
+                                ? '<span class="check">&#10003; Rempli</span>' 
+                                : '<a onclick="showLinks(\'' + c.id + '\')">Envoyer le lien</a>'}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="completion">
+                            ${c.entrepriseComplete 
+                                ? '<span class="check">&#10003; Rempli</span>' 
+                                : '<a onclick="showLinks(\'' + c.id + '\')">Envoyer le lien</a>'}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="actions-cell" style="justify-content:flex-end">
+                            <button class="btn-icon success" title="T\u00e9l\u00e9charger le PDF" ${c.status !== 'ready' ? 'disabled style="opacity:0.3;cursor:not-allowed"' : ''} onclick="downloadPdf('${c.id}')">&#8615;</button>
+                            <button class="btn-icon" title="Voir les liens" onclick="showLinks('${c.id}')">&#128279;</button>
+                            <button class="btn-icon danger" title="Supprimer" onclick="deleteContract('${c.id}')">&#128465;</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusLabel(status) {
+            const labels = { pending: 'En attente', partial: 'En cours', ready: 'Complet' };
+            return labels[status] || status;
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').textContent = contracts.length;
+            document.getElementById('statPending').textContent = contracts.filter(c => c.status === 'pending').length;
+            document.getElementById('statPartial').textContent = contracts.filter(c => c.status === 'partial').length;
+            document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready').length;
+        }
+
+        async function createContract() {
+            try {
+                const response = await fetch('/api/contracts', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    await loadContracts();
+                    showLinksFromData(result.liens);
+                    showToast('Contrat cr\u00e9\u00e9 avec succ\u00e8s');
+                }
+            } catch (e) {
+                showToast('Erreur lors de la cr\u00e9ation');
+            }
+        }
+
+        function showLinks(contractId) {
+            const contract = contracts.find(c => c.id === contractId);
+            if (contract) showLinksFromData(contract.liens);
+        }
+
+        function showLinksFromData(liens) {
+            document.getElementById('linkEtudiant').value = liens.etudiant;
+            document.getElementById('linkEntreprise').value = liens.entreprise;
+            document.querySelectorAll('.copy-btn').forEach(b => { b.textContent = 'Copier'; b.classList.remove('copied'); });
+            document.getElementById('linksModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('linksModal').classList.remove('active');
+        }
+
+        function copyLink(inputId, btn) {
+            const input = document.getElementById(inputId);
+            navigator.clipboard.writeText(input.value).then(() => {
+                btn.textContent = 'Copi\u00e9 !';
+                btn.classList.add('copied');
+                showToast('Lien copi\u00e9 dans le presse-papiers');
+                setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+
+        async function downloadPdf(contractId) {
+            try {
+                showToast('G\u00e9n\u00e9ration du PDF...');
+                const response = await fetch(`/api/contracts/${contractId}/generate-pdf`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `cerfa_contrat_${contractId.slice(0,8)}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    showToast('PDF t\u00e9l\u00e9charg\u00e9');
+                } else {
+                    const err = await response.json();
+                    showToast(err.error || 'Erreur lors de la g\u00e9n\u00e9ration');
+                }
+            } catch (e) {
+                showToast('Erreur de connexion');
+            }
+        }
+
+        let pendingDeleteId = null;
+
+        function deleteContract(contractId) {
+            pendingDeleteId = contractId;
+            document.getElementById('deleteContractRef').textContent = contractId.slice(0, 8);
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            pendingDeleteId = null;
+        }
+
+        async function confirmDelete() {
+            if (!pendingDeleteId) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.textContent = 'Suppression...';
+            btn.disabled = true;
+            try {
+                await fetch(`/api/contracts/${pendingDeleteId}`, { method: 'DELETE' });
+                closeDeleteModal();
+                loadContracts();
+                showToast('Contrat supprim\u00e9');
+            } catch (e) {
+                showToast('Erreur lors de la suppression');
+            } finally {
+                btn.textContent = 'Supprimer';
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('linksModal').addEventListener('click', (e) => {
+            if (e.target.id === 'linksModal') closeModal();
+        });
+
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') closeDeleteModal();
+        });
+
+        loadContracts();
+    </script>
+</body>
+</html>
