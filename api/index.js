@@ -2,13 +2,66 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { PDFDocument } = require('pdf-lib');
+const { Redis } = require('@upstash/redis');
 
 // =====================
-// STOCKAGE EN MÉMOIRE (POC)
+// UPSTASH REDIS (persistance serverless)
 // =====================
-const store = { contracts: {} };
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
-// Chemins des fichiers
+// Clés Redis
+const CONTRACTS_KEY = 'contracts'; // Hash: contractId -> JSON
+const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
+
+// =====================
+// REDIS HELPERS
+// =====================
+async function getContract(contractId) {
+  const data = await redis.hget(CONTRACTS_KEY, contractId);
+  if (!data) return null;
+  return typeof data === 'string' ? JSON.parse(data) : data;
+}
+
+async function saveContract(contract) {
+  await redis.hset(CONTRACTS_KEY, { [contract.id]: JSON.stringify(contract) });
+}
+
+async function getAllContracts() {
+  const all = await redis.hgetall(CONTRACTS_KEY);
+  if (!all) return [];
+  return Object.values(all).map(v => typeof v === 'string' ? JSON.parse(v) : v);
+}
+
+async function deleteContract(contractId) {
+  const contract = await getContract(contractId);
+  if (!contract) return false;
+  await redis.hdel(CONTRACTS_KEY, contractId);
+  if (contract.tokens) {
+    await redis.hdel(TOKENS_KEY, contract.tokens.etudiant);
+    await redis.hdel(TOKENS_KEY, contract.tokens.entreprise);
+  }
+  return true;
+}
+
+async function getContractByToken(token) {
+  const tokenData = await redis.hget(TOKENS_KEY, token);
+  if (!tokenData) return null;
+  const parsed = typeof tokenData === 'string' ? JSON.parse(tokenData) : tokenData;
+  const contract = await getContract(parsed.contractId);
+  if (!contract) return null;
+  return { contract, type: parsed.type };
+}
+
+async function saveTokenMapping(token, contractId, type) {
+  await redis.hset(TOKENS_KEY, { [token]: JSON.stringify({ contractId, type }) });
+}
+
+// =====================
+// FICHIERS & HELPERS
+// =====================
 function findFile(filename) {
   const candidates = [
     path.join(__dirname, '..', filename),
@@ -24,12 +77,7 @@ function findFile(filename) {
 const MAPPING_FILE = findFile('mapping_complet_v2.json');
 const CERFA_TEMPLATE = findFile('cerfa_ apprentissage_10103-14.pdf');
 
-// =====================
-// HELPERS
-// =====================
-function uuid() {
-  return crypto.randomUUID();
-}
+function uuid() { return crypto.randomUUID(); }
 
 function getBaseUrl(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -57,7 +105,6 @@ function sendJSON(res, data, status = 200) {
 }
 
 function matchRoute(url, pattern) {
-  // pattern like /api/contracts/:id/generate-pdf
   const patternParts = pattern.split('/');
   const urlParts = url.split('/');
   if (patternParts.length !== urlParts.length) return null;
@@ -110,7 +157,7 @@ function flattenMapping(obj, prefix = '') {
 }
 
 // =====================
-// HANDLER PRINCIPAL (Vercel natif)
+// HANDLER PRINCIPAL (Vercel natif + Upstash Redis)
 // =====================
 module.exports = async function handler(req, res) {
   const url = req.url.split('?')[0];
@@ -119,23 +166,22 @@ module.exports = async function handler(req, res) {
   try {
     // ---------- DEBUG ----------
     if (method === 'GET' && url === '/api/debug') {
-      const dirnameFiles = fs.existsSync(__dirname) ? fs.readdirSync(__dirname) : [];
-      const parentFiles = fs.existsSync(path.join(__dirname, '..')) ? fs.readdirSync(path.join(__dirname, '..')) : [];
+      const contracts = await getAllContracts();
       return sendJSON(res, {
-        env: { __dirname, cwd: process.cwd(), VERCEL: process.env.VERCEL },
-        files: { inDirname: dirnameFiles, inParent: parentFiles },
+        env: { VERCEL: process.env.VERCEL, hasRedisUrl: !!process.env.KV_REST_API_URL || !!process.env.UPSTASH_REDIS_REST_URL },
         paths: {
           MAPPING_FILE, MAPPING_EXISTS: fs.existsSync(MAPPING_FILE),
           CERFA_TEMPLATE, CERFA_EXISTS: fs.existsSync(CERFA_TEMPLATE)
         },
-        store: { contractCount: Object.keys(store.contracts).length }
+        redis: { contractCount: contracts.length }
       });
     }
 
     // ---------- GET /api/contracts ----------
     if (method === 'GET' && url === '/api/contracts') {
       const baseUrl = getBaseUrl(req);
-      const contracts = Object.values(store.contracts).map(c => ({
+      const contracts = await getAllContracts();
+      const result = contracts.map(c => ({
         id: c.id,
         createdAt: c.createdAt,
         status: c.status,
@@ -146,7 +192,7 @@ module.exports = async function handler(req, res) {
           entreprise: `${baseUrl}/entreprise.html?token=${c.tokens.entreprise}`
         }
       }));
-      return sendJSON(res, contracts);
+      return sendJSON(res, result);
     }
 
     // ---------- POST /api/contracts ----------
@@ -156,13 +202,17 @@ module.exports = async function handler(req, res) {
       const entrepriseToken = uuid();
       const baseUrl = getBaseUrl(req);
 
-      store.contracts[contractId] = {
+      const contract = {
         id: contractId,
         createdAt: new Date().toISOString(),
         status: 'pending',
         tokens: { etudiant: etudiantToken, entreprise: entrepriseToken },
         etudiant: null, entreprise: null, formation: null
       };
+
+      await saveContract(contract);
+      await saveTokenMapping(etudiantToken, contractId, 'etudiant');
+      await saveTokenMapping(entrepriseToken, contractId, 'entreprise');
 
       return sendJSON(res, {
         success: true,
@@ -177,50 +227,45 @@ module.exports = async function handler(req, res) {
     // ---------- GET /api/contract/by-token/:token ----------
     const tokenMatch = matchRoute(url, '/api/contract/by-token/:token');
     if (method === 'GET' && tokenMatch) {
-      const { token } = tokenMatch;
-      for (const contract of Object.values(store.contracts)) {
-        if (contract.tokens.etudiant === token) {
-          return sendJSON(res, { type: 'etudiant', contractId: contract.id, data: contract.etudiant, complete: !!contract.etudiant });
-        }
-        if (contract.tokens.entreprise === token) {
-          return sendJSON(res, { type: 'entreprise', contractId: contract.id, data: contract.entreprise, complete: !!contract.entreprise });
-        }
-      }
-      return sendJSON(res, { error: 'Token invalide' }, 404);
+      const result = await getContractByToken(tokenMatch.token);
+      if (!result) return sendJSON(res, { error: 'Token invalide' }, 404);
+      const { contract, type } = result;
+      return sendJSON(res, {
+        type,
+        contractId: contract.id,
+        data: contract[type],
+        complete: !!contract[type]
+      });
     }
 
     // ---------- POST /api/etudiant/:token ----------
     const etuMatch = matchRoute(url, '/api/etudiant/:token');
     if (method === 'POST' && etuMatch) {
+      const result = await getContractByToken(etuMatch.token);
+      if (!result || result.type !== 'etudiant') return sendJSON(res, { error: 'Token invalide' }, 404);
       const body = await parseBody(req);
-      for (const cid of Object.keys(store.contracts)) {
-        if (store.contracts[cid].tokens.etudiant === etuMatch.token) {
-          store.contracts[cid].etudiant = body;
-          updateContractStatus(store.contracts[cid]);
-          return sendJSON(res, { success: true, message: 'Données étudiant enregistrées' });
-        }
-      }
-      return sendJSON(res, { error: 'Token invalide' }, 404);
+      result.contract.etudiant = body;
+      updateContractStatus(result.contract);
+      await saveContract(result.contract);
+      return sendJSON(res, { success: true, message: 'Données étudiant enregistrées' });
     }
 
     // ---------- POST /api/entreprise/:token ----------
     const entMatch = matchRoute(url, '/api/entreprise/:token');
     if (method === 'POST' && entMatch) {
+      const result = await getContractByToken(entMatch.token);
+      if (!result || result.type !== 'entreprise') return sendJSON(res, { error: 'Token invalide' }, 404);
       const body = await parseBody(req);
-      for (const cid of Object.keys(store.contracts)) {
-        if (store.contracts[cid].tokens.entreprise === entMatch.token) {
-          store.contracts[cid].entreprise = body;
-          updateContractStatus(store.contracts[cid]);
-          return sendJSON(res, { success: true, message: 'Données entreprise enregistrées' });
-        }
-      }
-      return sendJSON(res, { error: 'Token invalide' }, 404);
+      result.contract.entreprise = body;
+      updateContractStatus(result.contract);
+      await saveContract(result.contract);
+      return sendJSON(res, { success: true, message: 'Données entreprise enregistrées' });
     }
 
     // ---------- GET /api/contracts/:id/generate-pdf ----------
     const pdfMatch = matchRoute(url, '/api/contracts/:id/generate-pdf');
     if (method === 'GET' && pdfMatch) {
-      const contract = store.contracts[pdfMatch.id];
+      const contract = await getContract(pdfMatch.id);
       if (!contract) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
       if (contract.status !== 'ready') {
         return sendJSON(res, { error: 'Le contrat n\'est pas complet', etudiantComplete: !!contract.etudiant, entrepriseComplete: !!contract.entreprise }, 400);
@@ -257,10 +302,8 @@ module.exports = async function handler(req, res) {
     // ---------- DELETE /api/contracts/:id ----------
     const delMatch = matchRoute(url, '/api/contracts/:id');
     if (method === 'DELETE' && delMatch) {
-      if (store.contracts[delMatch.id]) {
-        delete store.contracts[delMatch.id];
-        return sendJSON(res, { success: true });
-      }
+      const deleted = await deleteContract(delMatch.id);
+      if (deleted) return sendJSON(res, { success: true });
       return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
     }
 
