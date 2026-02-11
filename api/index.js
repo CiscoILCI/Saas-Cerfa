@@ -13,8 +13,10 @@ app.use(express.json());
 // =====================
 const store = { contracts: {} };
 
-const MAPPING_FILE = path.join(__dirname, '..', 'mapping_complet_v2.json');
-const CERFA_TEMPLATE = path.join(__dirname, '..', 'cerfa_ apprentissage_10103-14.pdf');
+// Sur Vercel, les fichiers includeFiles sont copiés relativement à la racine du projet
+const ROOT = path.join(__dirname, '..');
+const MAPPING_FILE = path.join(ROOT, 'mapping_complet_v2.json');
+const CERFA_TEMPLATE = path.join(ROOT, 'cerfa_ apprentissage_10103-14.pdf');
 
 // Helper: obtenir l'URL de base dynamiquement
 function getBaseUrl(req) {
