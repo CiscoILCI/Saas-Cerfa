@@ -13,10 +13,27 @@ app.use(express.json());
 // =====================
 const store = { contracts: {} };
 
-// Sur Vercel, les fichiers includeFiles sont copiés relativement à la racine du projet
-const ROOT = path.join(__dirname, '..');
-const MAPPING_FILE = path.join(ROOT, 'mapping_complet_v2.json');
-const CERFA_TEMPLATE = path.join(ROOT, 'cerfa_ apprentissage_10103-14.pdf');
+// Chemins des fichiers - on essaie plusieurs emplacements possibles
+function findFile(filename) {
+  const candidates = [
+    path.join(__dirname, '..', filename),
+    path.join(__dirname, filename),
+    path.join(process.cwd(), filename),
+    path.resolve(filename)
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+  return candidates[0]; // fallback
+}
+
+const MAPPING_FILE = findFile('mapping_complet_v2.json');
+const CERFA_TEMPLATE = findFile('cerfa_ apprentissage_10103-14.pdf');
+
+console.log('[INIT] __dirname:', __dirname);
+console.log('[INIT] cwd:', process.cwd());
+console.log('[INIT] MAPPING_FILE:', MAPPING_FILE, '| exists:', fs.existsSync(MAPPING_FILE));
+console.log('[INIT] CERFA_TEMPLATE:', CERFA_TEMPLATE, '| exists:', fs.existsSync(CERFA_TEMPLATE));
 
 // Helper: obtenir l'URL de base dynamiquement
 function getBaseUrl(req) {
@@ -26,9 +43,44 @@ function getBaseUrl(req) {
 }
 
 // =====================
+// ENDPOINT DEBUG (à supprimer en prod)
+// =====================
+app.get('/api/debug', (req, res) => {
+  const dirnameFiles = fs.existsSync(__dirname) ? fs.readdirSync(__dirname) : [];
+  const parentFiles = fs.existsSync(path.join(__dirname, '..')) ? fs.readdirSync(path.join(__dirname, '..')) : [];
+  let cwdFiles = [];
+  try { cwdFiles = fs.readdirSync(process.cwd()); } catch(e) { cwdFiles = ['ERROR: ' + e.message]; }
+
+  res.json({
+    env: {
+      __dirname,
+      cwd: process.cwd(),
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL: process.env.VERCEL,
+      VERCEL_ENV: process.env.VERCEL_ENV
+    },
+    files: {
+      inDirname: dirnameFiles,
+      inParent: parentFiles,
+      inCwd: cwdFiles
+    },
+    paths: {
+      MAPPING_FILE,
+      MAPPING_EXISTS: fs.existsSync(MAPPING_FILE),
+      CERFA_TEMPLATE,
+      CERFA_EXISTS: fs.existsSync(CERFA_TEMPLATE)
+    },
+    store: {
+      contractCount: Object.keys(store.contracts).length
+    }
+  });
+});
+
+// =====================
 // CRÉATION D'UN NOUVEAU CONTRAT
 // =====================
 app.post('/api/contracts', (req, res) => {
+  try {
   const contractId = uuidv4();
   const etudiantToken = uuidv4();
   const entrepriseToken = uuidv4();
@@ -55,6 +107,10 @@ app.post('/api/contracts', (req, res) => {
       entreprise: `${baseUrl}/entreprise.html?token=${entrepriseToken}`
     }
   });
+  } catch (error) {
+    console.error('[ERROR] POST /api/contracts:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
 });
 
 // =====================
@@ -264,6 +320,12 @@ app.delete('/api/contracts/:id', (req, res) => {
   } else {
     res.status(404).json({ error: 'Contrat non trouvé' });
   }
+});
+
+// Error handler global
+app.use((err, req, res, next) => {
+  console.error('[GLOBAL ERROR]', err);
+  res.status(500).json({ error: err.message, stack: err.stack });
 });
 
 // Export pour Vercel
