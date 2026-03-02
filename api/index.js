@@ -2,19 +2,28 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { PDFDocument } = require('pdf-lib');
-const { createClient } = require('redis');
 
 // =====================
-// REDIS (persistance via Upstash TCP)
+// UPSTASH REDIS REST API (serverless-friendly)
 // =====================
-let redisClient = null;
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-async function getRedis() {
-  if (redisClient && redisClient.isOpen) return redisClient;
-  redisClient = createClient({ url: process.env.REDIS_URL });
-  redisClient.on('error', (err) => console.error('[REDIS ERROR]', err));
-  await redisClient.connect();
-  return redisClient;
+async function redisCall(command) {
+  const response = await fetch(`${UPSTASH_URL}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${UPSTASH_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Redis API error: ${response.status} ${text}`);
+  }
+  const data = await response.json();
+  return data.result;
 }
 
 // Clés Redis
@@ -22,52 +31,79 @@ const CONTRACTS_KEY = 'contracts'; // Hash: contractId -> JSON
 const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
 
 // =====================
-// REDIS HELPERS
+// REDIS HELPERS (via REST API)
 // =====================
 async function getContract(contractId) {
-  const r = await getRedis();
-  const data = await r.hGet(CONTRACTS_KEY, contractId);
-  if (!data) return null;
-  return JSON.parse(data);
+  try {
+    const data = await redisCall(['HGET', CONTRACTS_KEY, contractId]);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('[REDIS ERROR] getContract:', e.message);
+    return null;
+  }
 }
 
 async function saveContract(contract) {
-  const r = await getRedis();
-  await r.hSet(CONTRACTS_KEY, contract.id, JSON.stringify(contract));
+  try {
+    await redisCall(['HSET', CONTRACTS_KEY, contract.id, JSON.stringify(contract)]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveContract:', e.message);
+  }
 }
 
 async function getAllContracts() {
-  const r = await getRedis();
-  const all = await r.hGetAll(CONTRACTS_KEY);
-  if (!all) return [];
-  return Object.values(all).map(v => JSON.parse(v));
+  try {
+    const all = await redisCall(['HGETALL', CONTRACTS_KEY]);
+    if (!all || all.length === 0) return [];
+    // HGETALL retourne un array [key1, val1, key2, val2, ...]
+    const contracts = [];
+    for (let i = 1; i < all.length; i += 2) {
+      contracts.push(JSON.parse(all[i]));
+    }
+    return contracts;
+  } catch (e) {
+    console.error('[REDIS ERROR] getAllContracts:', e.message);
+    return [];
+  }
 }
 
 async function deleteContractFromDB(contractId) {
-  const contract = await getContract(contractId);
-  if (!contract) return false;
-  const r = await getRedis();
-  await r.hDel(CONTRACTS_KEY, contractId);
-  if (contract.tokens) {
-    await r.hDel(TOKENS_KEY, contract.tokens.etudiant);
-    await r.hDel(TOKENS_KEY, contract.tokens.entreprise);
+  try {
+    const contract = await getContract(contractId);
+    if (!contract) return false;
+    await redisCall(['HDEL', CONTRACTS_KEY, contractId]);
+    if (contract.tokens) {
+      await redisCall(['HDEL', TOKENS_KEY, contract.tokens.etudiant]);
+      await redisCall(['HDEL', TOKENS_KEY, contract.tokens.entreprise]);
+    }
+    return true;
+  } catch (e) {
+    console.error('[REDIS ERROR] deleteContractFromDB:', e.message);
+    return false;
   }
-  return true;
 }
 
 async function getContractByToken(token) {
-  const r = await getRedis();
-  const tokenData = await r.hGet(TOKENS_KEY, token);
-  if (!tokenData) return null;
-  const parsed = JSON.parse(tokenData);
-  const contract = await getContract(parsed.contractId);
-  if (!contract) return null;
-  return { contract, type: parsed.type };
+  try {
+    const tokenData = await redisCall(['HGET', TOKENS_KEY, token]);
+    if (!tokenData) return null;
+    const parsed = JSON.parse(tokenData);
+    const contract = await getContract(parsed.contractId);
+    if (!contract) return null;
+    return { contract, type: parsed.type };
+  } catch (e) {
+    console.error('[REDIS ERROR] getContractByToken:', e.message);
+    return null;
+  }
 }
 
 async function saveTokenMapping(token, contractId, type) {
-  const r = await getRedis();
-  await r.hSet(TOKENS_KEY, token, JSON.stringify({ contractId, type }));
+  try {
+    await redisCall(['HSET', TOKENS_KEY, token, JSON.stringify({ contractId, type })]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveTokenMapping:', e.message);
+  }
 }
 
 // =====================
@@ -180,8 +216,7 @@ module.exports = async function handler(req, res) {
       let redisStatus = 'unknown';
       let contractCount = 0;
       try {
-        const r = await getRedis();
-        await r.ping();
+        await redisCall(['PING']);
         redisStatus = 'connected';
         const contracts = await getAllContracts();
         contractCount = contracts.length;
@@ -189,7 +224,7 @@ module.exports = async function handler(req, res) {
         redisStatus = 'error: ' + e.message;
       }
       return sendJSON(res, {
-        env: { VERCEL: process.env.VERCEL, hasRedisUrl: !!process.env.REDIS_URL },
+        env: { VERCEL: process.env.VERCEL, hasUpstashUrl: !!process.env.UPSTASH_REDIS_REST_URL },
         paths: {
           MAPPING_FILE, MAPPING_EXISTS: fs.existsSync(MAPPING_FILE),
           CERFA_TEMPLATE, CERFA_EXISTS: fs.existsSync(CERFA_TEMPLATE)
