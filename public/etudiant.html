@@ -361,12 +361,22 @@
                             <span class="help">Inscrit sur la liste ministérielle</span>
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Statut à la date de signature du contrat *</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="apprenti.statut_age" value="mineur" id="statut-mineur"> Mineur(e)</label>
+                                <label><input type="radio" name="apprenti.statut_age" value="majeur" id="statut-majeur" checked> Majeur(e)</label>
+                            </div>
+                            <span class="help">Indiquez si vous êtes mineur ou majeur à la date de signature</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-section">
-                    <h2>Représentant légal (si mineur)</h2>
+                <div class="form-section" id="representant-section" style="display: none;">
+                    <h2>Représentant légal</h2>
                     <div class="info-box">
-                        <p>⚠️ À remplir uniquement si l'apprenti(e) est mineur(e) à la date de signature du contrat.</p>
+                        <p>⚠️ À remplir car l'apprenti(e) est mineur(e) à la date de signature du contrat.</p>
                     </div>
                     <div class="form-row full">
                         <div class="form-group">
@@ -420,6 +430,24 @@
         
         if (!token) {
             document.querySelector('.form-content').innerHTML = '<div class="error-message" style="display:block;">❌ Lien invalide. Veuillez utiliser le lien qui vous a été envoyé.</div>';
+        }
+
+        // Gestion affichage/masquage section représentant légal selon statut d'âge
+        const statutMineurRadio = document.getElementById('statut-mineur');
+        const statutMajeurRadio = document.getElementById('statut-majeur');
+        const representantSection = document.getElementById('representant-section');
+
+        function updateRepresentantVisibility() {
+            if (statutMineurRadio.checked) {
+                representantSection.style.display = 'block';
+            } else {
+                representantSection.style.display = 'none';
+            }
+        }
+
+        if (statutMineurRadio && statutMajeurRadio) {
+            statutMineurRadio.addEventListener('change', updateRepresentantVisibility);
+            statutMajeurRadio.addEventListener('change', updateRepresentantVisibility);
         }
 
         // Formatage automatique NIR (13 chiffres -> X XX XX XX XXX XXX)
@@ -517,6 +545,11 @@
             const sexe = document.querySelector('input[name="apprenti.sexe"]:checked');
             data.apprenti.sexe_homme = sexe?.value === 'homme';
             data.apprenti.sexe_femme = sexe?.value === 'femme';
+
+            const statutAge = document.querySelector('input[name="apprenti.statut_age"]:checked');
+            data.apprenti.statut_age = statutAge?.value || 'majeur';
+            data.apprenti.mineur = statutAge?.value === 'mineur';
+            data.apprenti.majeur = statutAge?.value === 'majeur';
 
             // Nettoyer les données avant envoi
             const cleanedData = cleanData(data);
