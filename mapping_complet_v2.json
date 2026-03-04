@@ -51,7 +51,13 @@
     "dernier_diplome": "Zone de texte 8_29",
     "derniere_classe": "Zone de texte 8_30",
     "diplome_le_plus_eleve": "Zone de texte 8_32",
-    "intitule_dernier_diplome": "Zone de texte 8_31"
+    "intitule_dernier_diplome": "Zone de texte 8_31",
+    "equivalence_jeunes_oui": "Case #C3#A0 cocher 5_5",
+    "equivalence_jeunes_non": "Case #C3#A0 cocher 5_6",
+    "extension_boe_oui": "Case #C3#A0 cocher 5_7",
+    "extension_boe_non": "Case #C3#A0 cocher 5_8",
+    "projet_creation_entreprise_oui": "Case #C3#A0 cocher 5_9",
+    "projet_creation_entreprise_non": "Case #C3#A0 cocher 5_10"
   },
 
   "representant_legal": {
@@ -74,7 +80,7 @@
     "emploi_occupe": "Zone de texte 8_45",
     "diplome_le_plus_eleve": "Zone de texte 8_50",
     "niveau_diplome": "Zone de texte 8_52",
-    "atteste_criteres_eligibilite": "Case #C3#A0 cocher 5_12"
+    "atteste_criteres_eligibilite": "Case #C3#A0 cocher 6"
   },
 
   "maitre_apprentissage_2": {
@@ -93,9 +99,6 @@
     "mode_contractuel": "Zone de texte 8_54",
     "type_contrat": "Zone de texte 8_71",
     "type_derogation": "Zone de texte 8_70",
-    "type_contrat_initial": "Case #C3#A0 cocher 5_5",
-    "type_succession": "Case #C3#A0 cocher 5_6",
-    "type_avenant": "Case #C3#A0 cocher 5_7",
     "numero_contrat_precedent": "Zone de texte 8_55",
     "date_conclusion_jour": "Zone de texte 21_16",
     "date_conclusion_mois": "Zone de texte 21_17",
@@ -114,8 +117,8 @@
     "date_fin_contrat_annee": "Zone de texte 21_12",
     "duree_hebdomadaire_heures": "Zone de texte 8_68",
     "duree_hebdomadaire_minutes": "Zone de texte 8_69",
-    "travail_risque_oui": "Case #C3#A0 cocher 5_8",
-    "travail_risque_non": "Case #C3#A0 cocher 5_9",
+    "travail_risque_oui": "Case #C3#A0 cocher 5_13",
+    "travail_risque_non": "Case #C3#A0 cocher 5_14",
     "salaire_brut_mensuel": "Zone de texte 8_72",
     "salaire_brut_mensuel_centimes": "Zone de texte 21_73",
     "caisse_retraite_complementaire": "Zone de texte 21_74",
@@ -198,8 +201,8 @@
   },
 
   "formation": {
-    "cfa_entreprise_oui": "Case #C3#A0 cocher 5_10",
-    "cfa_entreprise_non": "Case #C3#A0 cocher 5_11",
+    "cfa_entreprise_oui": "Case #C3#A0 cocher 5_11",
+    "cfa_entreprise_non": "Case #C3#A0 cocher 5_12",
     "denomination_cfa": "Zone de texte 8_99",
     "uai_cfa": "Zone de texte 8_73",
     "siret_cfa": "Zone de texte 8_74",
@@ -208,7 +211,7 @@
     "adresse_cfa_complement": "Zone de texte 8_81",
     "adresse_cfa_code_postal": "Zone de texte 8_82",
     "adresse_cfa_commune": "Zone de texte 8_78",
-    "cfa_meme_lieu": "Case #C3#A0 cocher 6",
+    "cfa_meme_lieu": "Case #C3#A0 cocher 7",
     
     "diplome_vise": "Zone de texte 8_77",
     "intitule_precis": "Zone de texte 8_100",
@@ -235,7 +238,7 @@
   },
 
   "attestation": {
-    "pieces_justificatives": "Case #C3#A0 cocher 7",
+    "pieces_justificatives": "Case #C3#A0 cocher 8",
     "fait_a": "Zone de texte 8_90"
   },
 
