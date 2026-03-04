@@ -233,6 +233,24 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // ---------- DEBUG PDF FIELDS ----------
+    if (method === 'GET' && url === '/api/debug-pdf-fields') {
+      try {
+        const pdfBytes = fs.readFileSync(CERFA_TEMPLATE);
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const form = pdfDoc.getForm();
+        const fields = form.getFields();
+        const fieldList = fields.map(f => ({
+          name: f.getName(),
+          type: f.constructor.name
+        }));
+        const checkboxes = fieldList.filter(f => f.type === 'PDFCheckBox');
+        return sendJSON(res, { total: fieldList.length, checkboxCount: checkboxes.length, checkboxes, allFields: fieldList });
+      } catch (e) {
+        return sendJSON(res, { error: e.message }, 500);
+      }
+    }
+
     // ---------- GET /api/contracts ----------
     if (method === 'GET' && url === '/api/contracts') {
       const baseUrl = getBaseUrl(req);
