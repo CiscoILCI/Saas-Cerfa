@@ -639,45 +639,58 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Dénomination du CFA *</label>
-                            <input type="text" name="formation.denomination_cfa" required>
-                        </div>
-                        <div class="form-group">
-                            <label>N° UAI du CFA</label>
-                            <input type="text" name="formation.uai_cfa" placeholder="Ex: 0123456A">
-                            <span class="help">Code établissement (8 caractères)</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>SIRET du CFA</label>
-                            <input type="text" name="formation.siret_cfa">
+                            <label>Connaissez-vous les informations du CFA ? *</label>
+                            <div class="checkbox-group">
+                                <label><input type="radio" name="formation.connait_cfa" value="oui" id="connait-cfa-oui"> Oui</label>
+                                <label><input type="radio" name="formation.connait_cfa" value="non" id="connait-cfa-non" checked> Non</label>
+                            </div>
+                            <span class="help">Si non, ces informations pourront être complétées ultérieurement par le CFA</span>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>N°</label>
-                            <input type="text" name="formation.adresse_cfa_numero">
+
+                    <div id="cfa-details-section" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dénomination du CFA</label>
+                                <input type="text" name="formation.denomination_cfa">
+                            </div>
+                            <div class="form-group">
+                                <label>N° UAI du CFA</label>
+                                <input type="text" name="formation.uai_cfa" placeholder="Ex: 0123456A">
+                                <span class="help">Code établissement (8 caractères)</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Voie</label>
-                            <input type="text" name="formation.adresse_cfa_voie">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>SIRET du CFA</label>
+                                <input type="text" name="formation.siret_cfa">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row full">
-                        <div class="form-group">
-                            <label>Complément d'adresse</label>
-                            <input type="text" name="formation.adresse_cfa_complement">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>N°</label>
+                                <input type="text" name="formation.adresse_cfa_numero">
+                            </div>
+                            <div class="form-group">
+                                <label>Voie</label>
+                                <input type="text" name="formation.adresse_cfa_voie">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code postal</label>
-                            <input type="text" name="formation.adresse_cfa_code_postal" maxlength="5">
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label>Complément d'adresse</label>
+                                <input type="text" name="formation.adresse_cfa_complement">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Commune</label>
-                            <input type="text" name="formation.adresse_cfa_commune">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code postal</label>
+                                <input type="text" name="formation.adresse_cfa_code_postal" maxlength="5">
+                            </div>
+                            <div class="form-group">
+                                <label>Commune</label>
+                                <input type="text" name="formation.adresse_cfa_commune">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -937,6 +950,24 @@
             });
         });
 
+        // Gestion affichage/masquage section CFA selon si l'entreprise connaît les infos
+        const connaîtCfaOuiRadio = document.getElementById('connait-cfa-oui');
+        const connaîtCfaNonRadio = document.getElementById('connait-cfa-non');
+        const cfaDetailsSection = document.getElementById('cfa-details-section');
+
+        function updateCfaVisibility() {
+            if (connaîtCfaOuiRadio.checked) {
+                cfaDetailsSection.style.display = 'block';
+            } else {
+                cfaDetailsSection.style.display = 'none';
+            }
+        }
+
+        if (connaîtCfaOuiRadio && connaîtCfaNonRadio) {
+            connaîtCfaOuiRadio.addEventListener('change', updateCfaVisibility);
+            connaîtCfaNonRadio.addEventListener('change', updateCfaVisibility);
+        }
+
         // Formatage code postal (5 chiffres)
         const cpInputs = document.querySelectorAll('input[name$="code_postal"]');
         cpInputs.forEach(input => {
@@ -1010,6 +1041,11 @@
             const cfaEntreprise = document.querySelector('input[name="formation.cfa_entreprise"]:checked');
             data.formation.cfa_entreprise_oui = cfaEntreprise?.value === 'oui';
             data.formation.cfa_entreprise_non = cfaEntreprise?.value === 'non';
+
+            const connaîtCfa = document.querySelector('input[name="formation.connait_cfa"]:checked');
+            data.formation.connait_cfa = connaîtCfa?.value || 'non';
+            data.formation.connait_cfa_oui = connaîtCfa?.value === 'oui';
+            data.formation.connait_cfa_non = connaîtCfa?.value === 'non';
 
             const pieces = document.querySelector('input[name="attestation.pieces_justificatives"]');
             data.attestation.pieces_justificatives = pieces?.checked;
