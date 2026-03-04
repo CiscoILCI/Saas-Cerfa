@@ -884,6 +884,23 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="form-row full" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="maitre_apprentissage.atteste_criteres_eligibilite" value="true">
+                                L'employeur atteste sur l'honneur que le maître d'apprentissage répond à l'ensemble des critères d'éligibilité à cette fonction
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="maitre_apprentissage_2.atteste_criteres_eligibilite" value="true">
+                                L'employeur atteste sur l'honneur que le second maître d'apprentissage répond à l'ensemble des critères d'éligibilité à cette fonction
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ATTESTATION -->
@@ -1046,6 +1063,12 @@
             data.formation.connait_cfa = connaîtCfa?.value || 'non';
             data.formation.connait_cfa_oui = connaîtCfa?.value === 'oui';
             data.formation.connait_cfa_non = connaîtCfa?.value === 'non';
+
+            const attesteMaitre1 = document.querySelector('input[name="maitre_apprentissage.atteste_criteres_eligibilite"]');
+            data.maitre_apprentissage.atteste_criteres_eligibilite = attesteMaitre1?.checked;
+
+            const attesteMaitre2 = document.querySelector('input[name="maitre_apprentissage_2.atteste_criteres_eligibilite"]');
+            data.maitre_apprentissage_2.atteste_criteres_eligibilite = attesteMaitre2?.checked;
 
             const pieces = document.querySelector('input[name="attestation.pieces_justificatives"]');
             data.attestation.pieces_justificatives = pieces?.checked;

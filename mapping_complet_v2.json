@@ -73,7 +73,8 @@
     "courriel": "Zone de texte 8_44",
     "emploi_occupe": "Zone de texte 8_45",
     "diplome_le_plus_eleve": "Zone de texte 8_50",
-    "niveau_diplome": "Zone de texte 8_52"
+    "niveau_diplome": "Zone de texte 8_52",
+    "atteste_criteres_eligibilite": "Case #C3#A0 cocher 5_12"
   },
 
   "maitre_apprentissage_2": {
@@ -85,7 +86,8 @@
     "courriel": "Zone de texte 8_48",
     "emploi_occupe": "Zone de texte 8_49",
     "diplome_le_plus_eleve": "Zone de texte 8_51",
-    "niveau_diplome": "Zone de texte 8_53"
+    "niveau_diplome": "Zone de texte 8_53",
+    "atteste_criteres_eligibilite": "Case #C3#A0 cocher 5_13"
   },
 
   "contrat": {
