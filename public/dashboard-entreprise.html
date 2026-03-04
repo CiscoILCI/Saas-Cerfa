@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CERFA SaaS - Dashboard Entreprise</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .navbar {
+      background: linear-gradient(135deg, #2d5a87 0%, #1e3a5f 100%);
+      color: #fff;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .navbar .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .navbar .user-info { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    .navbar .role-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .btn-logout { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1e3a5f; }
+    .page-subtitle { font-size: 14px; color: #888; margin-bottom: 24px; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h3 { font-size: 16px; color: #1e3a5f; margin-bottom: 16px; }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .profile-grid .full { grid-column: 1 / -1; }
+    .form-group { margin-bottom: 0; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-group input:focus { border-color: #667eea; }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: #fff; color: #333; border: 2px solid #e0e0e0; }
+
+    .contract-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .contract-item:last-child { border-bottom: none; }
+    .contract-info { flex: 1; }
+    .contract-info .id { font-family: monospace; font-size: 12px; color: #888; }
+    .contract-info .date { font-size: 13px; color: #555; }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .status-pending { background: #fff3e0; color: #e65100; }
+    .status-partial { background: #e3f2fd; color: #1565c0; }
+    .status-ready { background: #e8f5e9; color: #2e7d32; }
+
+    .empty-state { text-align: center; padding: 32px; color: #888; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #333; color: #fff; padding: 12px 20px;
+      border-radius: 8px; font-size: 14px; z-index: 200; display: none;
+    }
+
+    @media (max-width: 600px) {
+      .profile-grid { grid-template-columns: 1fr; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">📋 CERFA SaaS</div>
+    <div class="user-info">
+      <span id="userName"></span>
+      <span class="role-badge">ENTREPRISE</span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Mon espace Entreprise</h1>
+    <p class="page-subtitle">Gérez votre profil et consultez vos contrats d'apprentissage</p>
+
+    <!-- PROFIL -->
+    <div class="card">
+      <h3>🏢 Mon profil entreprise</h3>
+      <form id="profileForm" onsubmit="saveProfile(event)">
+        <div class="profile-grid">
+          <div class="form-group full">
+            <label>Dénomination / Raison sociale</label>
+            <input type="text" id="profDenomination" placeholder="Ex: ACME SAS">
+          </div>
+          <div class="form-group">
+            <label>N° SIRET</label>
+            <input type="text" id="profSiret" placeholder="14 chiffres" maxlength="14">
+          </div>
+          <div class="form-group">
+            <label>Code APE</label>
+            <input type="text" id="profCodeApe" placeholder="Ex: 6201Z">
+          </div>
+          <div class="form-group full">
+            <label>Adresse</label>
+            <input type="text" id="profAdresse" placeholder="Numéro et voie">
+          </div>
+          <div class="form-group">
+            <label>Code postal</label>
+            <input type="text" id="profCp" placeholder="75001" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label>Commune</label>
+            <input type="text" id="profCommune" placeholder="Paris">
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" id="profTel" placeholder="01 23 45 67 89">
+          </div>
+          <div class="form-group">
+            <label>Email de contact</label>
+            <input type="email" id="profEmail" placeholder="contact@entreprise.fr">
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <button type="submit" class="btn btn-primary">💾 Enregistrer le profil</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- CONTRATS -->
+    <div class="card">
+      <h3>📄 Mes contrats d'apprentissage</h3>
+      <div id="contractsList"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let authToken = localStorage.getItem('auth_token');
+    let authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+
+    if (!authToken || authUser.role !== 'entreprise') {
+      window.location.href = '/login.html';
+    }
+    document.getElementById('userName').textContent = authUser.nom || authUser.email;
+
+    function authHeaders() {
+      return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
+    }
+
+    function logout() {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.href = '/login.html';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // Load profile
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/auth/me', { headers: authHeaders() });
+        const user = await res.json();
+        if (user.profile) {
+          const p = user.profile;
+          document.getElementById('profDenomination').value = p.denomination || '';
+          document.getElementById('profSiret').value = p.siret || '';
+          document.getElementById('profCodeApe').value = p.code_ape || '';
+          document.getElementById('profAdresse').value = p.adresse || '';
+          document.getElementById('profCp').value = p.code_postal || '';
+          document.getElementById('profCommune').value = p.commune || '';
+          document.getElementById('profTel').value = p.telephone || '';
+          document.getElementById('profEmail').value = p.email_contact || '';
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/auth/profile', {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            profile: {
+              denomination: document.getElementById('profDenomination').value,
+              siret: document.getElementById('profSiret').value,
+              code_ape: document.getElementById('profCodeApe').value,
+              adresse: document.getElementById('profAdresse').value,
+              code_postal: document.getElementById('profCp').value,
+              commune: document.getElementById('profCommune').value,
+              telephone: document.getElementById('profTel').value,
+              email_contact: document.getElementById('profEmail').value
+            }
+          })
+        });
+        if (res.ok) showToast('Profil enregistré !');
+      } catch (err) {
+        showToast('Erreur de sauvegarde');
+      }
+    }
+
+    // Load contracts (via tokens — for now show from general list)
+    async function loadContracts() {
+      try {
+        const res = await fetch('/api/contracts', { headers: authHeaders() });
+        const contracts = await res.json();
+        const el = document.getElementById('contractsList');
+
+        if (!contracts.length) {
+          el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Aucun contrat en cours</p><p style="font-size:13px;margin-top:4px;">Votre CFA vous enverra un lien pour remplir votre formulaire.</p></div>';
+          return;
+        }
+
+        el.innerHTML = contracts.map(c => {
+          const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+          const statusLabel = c.status === 'pending' ? 'En attente' : c.status === 'partial' ? 'Partiel' : 'Prêt';
+          return `<div class="contract-item">
+            <div class="contract-info">
+              <div class="id">#${c.id.slice(0,8)}</div>
+              <div class="date">Créé le ${date}</div>
+            </div>
+            <span class="status-badge status-${c.status}">${statusLabel}</span>
+          </div>`;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadProfile();
+    loadContracts();
+  </script>
+</body>
+</html>

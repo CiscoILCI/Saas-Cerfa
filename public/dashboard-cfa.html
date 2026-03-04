@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CERFA SaaS - Dashboard CFA</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+    /* NAV */
+    .navbar {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      color: #fff;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .navbar .brand {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .navbar .user-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+    }
+    .navbar .user-info .role-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-logout {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+    /* LAYOUT */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1e3a5f;
+    }
+
+    /* STATS */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stat-card .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1e3a5f;
+    }
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* ACTIONS */
+    .actions-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border: 2px solid #e0e0e0;
+    }
+    .btn-secondary:hover { border-color: #667eea; color: #667eea; }
+    .btn-danger {
+      background: #ff4757;
+      color: #fff;
+    }
+    .btn-danger:hover { opacity: 0.9; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* TABLE */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #eee;
+      font-weight: 600;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #eee;
+    }
+    td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid #f5f5f5;
+      vertical-align: middle;
+    }
+    tr:hover td { background: #fafbfc; }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3e0; color: #e65100; }
+    .status-partial { background: #e3f2fd; color: #1565c0; }
+    .status-ready { background: #e8f5e9; color: #2e7d32; }
+    .link-copy {
+      cursor: pointer;
+      color: #667eea;
+      font-size: 12px;
+      text-decoration: underline;
+    }
+    .link-copy:hover { color: #764ba2; }
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: #888;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal h3 { margin-bottom: 16px; color: #1e3a5f; }
+    .modal .form-group { margin-bottom: 14px; }
+    .modal .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 4px;
+    }
+    .modal input, .modal select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .modal input:focus, .modal select:focus { border-color: #667eea; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #333;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 200;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      .navbar { padding: 0 16px; }
+      td, th { padding: 10px 12px; font-size: 13px; }
+      .actions-bar { flex-direction: column; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">📋 CERFA SaaS</div>
+    <div class="user-info">
+      <span id="userName"></span>
+      <span class="role-badge">CFA</span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Tableau de bord CFA</h1>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Contrats total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-label">En attente</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statPartial">0</div>
+        <div class="stat-label">Partiellement remplis</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statReady">0</div>
+        <div class="stat-label">Prêts à générer</div>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn btn-primary" onclick="createContract()">➕ Nouveau contrat</button>
+      <button class="btn btn-secondary" onclick="loadContracts()">🔄 Rafraîchir</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Contrats d'apprentissage</span>
+        <span id="contractCount" style="font-size:13px;color:#888;"></span>
+      </div>
+      <div id="contractsTable"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = '';
+    let authToken = localStorage.getItem('auth_token');
+    let authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+
+    // Auth check
+    if (!authToken || authUser.role !== 'cfa') {
+      window.location.href = '/login.html';
+    }
+    document.getElementById('userName').textContent = authUser.nom || authUser.email;
+
+    function authHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + authToken
+      };
+    }
+
+    function logout() {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.href = '/login.html';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Lien copié !'));
+    }
+
+    async function loadContracts() {
+      try {
+        const res = await fetch('/api/contracts', { headers: authHeaders() });
+        const contracts = await res.json();
+
+        // Stats
+        document.getElementById('statTotal').textContent = contracts.length;
+        document.getElementById('statPending').textContent = contracts.filter(c => c.status === 'pending').length;
+        document.getElementById('statPartial').textContent = contracts.filter(c => c.status === 'partial').length;
+        document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready').length;
+        document.getElementById('contractCount').textContent = contracts.length + ' contrat(s)';
+
+        if (contracts.length === 0) {
+          document.getElementById('contractsTable').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📄</div>
+              <p>Aucun contrat pour le moment</p>
+              <p style="margin-top:8px;font-size:13px;">Cliquez sur "Nouveau contrat" pour commencer</p>
+            </div>`;
+          return;
+        }
+
+        let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Statut</th><th>Étudiant</th><th>Entreprise</th><th>Actions</th></tr></thead><tbody>';
+        contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        for (const c of contracts) {
+          const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+          const statusClass = 'status-' + c.status;
+          const statusLabel = c.status === 'pending' ? 'En attente' : c.status === 'partial' ? 'Partiel' : 'Prêt';
+          html += `<tr>
+            <td style="font-family:monospace;font-size:12px;">${c.id.slice(0, 8)}</td>
+            <td>${date}</td>
+            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td>
+              ${c.etudiantComplete ? '✅' : '⏳'}
+              <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Copier lien</span>
+            </td>
+            <td>
+              ${c.entrepriseComplete ? '✅' : '⏳'}
+              <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Copier lien</span>
+            </td>
+            <td>
+              ${c.status === 'ready' ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
+              <button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>
+            </td>
+          </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('contractsTable').innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        showToast('Erreur de chargement');
+      }
+    }
+
+    async function createContract() {
+      try {
+        const res = await fetch('/api/contracts', {
+          method: 'POST',
+          headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Contrat créé !');
+          loadContracts();
+        }
+      } catch (err) {
+        showToast('Erreur lors de la création');
+      }
+    }
+
+    async function deleteContract(id) {
+      if (!confirm('Supprimer ce contrat ?')) return;
+      try {
+        const res = await fetch('/api/contracts/' + id, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Contrat supprimé');
+          loadContracts();
+        }
+      } catch (err) {
+        showToast('Erreur de suppression');
+      }
+    }
+
+    function generatePdf(id) {
+      window.open('/api/contracts/' + id + '/generate-pdf', '_blank');
+    }
+
+    // Initial load
+    loadContracts();
+  </script>
+</body>
+</html>

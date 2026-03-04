@@ -2,6 +2,11 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { PDFDocument } = require('pdf-lib');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'cerfa-saas-secret-change-me';
+const JWT_EXPIRES_IN = '7d';
 
 // =====================
 // UPSTASH REDIS REST API (serverless-friendly)
@@ -29,6 +34,7 @@ async function redisCall(command) {
 // Clés Redis
 const CONTRACTS_KEY = 'contracts'; // Hash: contractId -> JSON
 const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
+const USERS_KEY = 'users';         // Hash: email -> JSON { id, email, password, role, createdAt, profile }
 
 // =====================
 // REDIS HELPERS (via REST API)
@@ -104,6 +110,76 @@ async function saveTokenMapping(token, contractId, type) {
   } catch (e) {
     console.error('[REDIS ERROR] saveTokenMapping:', e.message);
   }
+}
+
+// =====================
+// AUTH HELPERS
+// =====================
+async function getUserByEmail(email) {
+  try {
+    const data = await redisCall(['HGET', USERS_KEY, email.toLowerCase()]);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('[REDIS ERROR] getUserByEmail:', e.message);
+    return null;
+  }
+}
+
+async function saveUser(user) {
+  try {
+    await redisCall(['HSET', USERS_KEY, user.email.toLowerCase(), JSON.stringify(user)]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveUser:', e.message);
+  }
+}
+
+async function getAllUsers() {
+  try {
+    const all = await redisCall(['HGETALL', USERS_KEY]);
+    if (!all || all.length === 0) return [];
+    const users = [];
+    for (let i = 1; i < all.length; i += 2) {
+      const u = JSON.parse(all[i]);
+      delete u.password;
+      users.push(u);
+    }
+    return users;
+  } catch (e) {
+    console.error('[REDIS ERROR] getAllUsers:', e.message);
+    return [];
+  }
+}
+
+function generateToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+function verifyToken(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  try {
+    return jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+  } catch (e) {
+    return null;
+  }
+}
+
+function requireAuth(req, res, roles = []) {
+  const user = verifyToken(req);
+  if (!user) {
+    sendJSON(res, { error: 'Non authentifié' }, 401);
+    return null;
+  }
+  if (roles.length > 0 && !roles.includes(user.role)) {
+    sendJSON(res, { error: 'Accès non autorisé' }, 403);
+    return null;
+  }
+  return user;
 }
 
 // =====================
@@ -250,6 +326,121 @@ module.exports = async function handler(req, res) {
         return sendJSON(res, { error: e.message }, 500);
       }
     }
+
+    // =====================
+    // ROUTES AUTH
+    // =====================
+
+    // ---------- POST /api/auth/register ----------
+    if (method === 'POST' && url === '/api/auth/register') {
+      const body = await parseBody(req);
+      const { email, password, role, nom } = body;
+
+      if (!email || !password || !role) {
+        return sendJSON(res, { error: 'Email, mot de passe et rôle requis' }, 400);
+      }
+      if (!['cfa', 'entreprise'].includes(role)) {
+        return sendJSON(res, { error: 'Rôle invalide (cfa ou entreprise)' }, 400);
+      }
+      if (password.length < 6) {
+        return sendJSON(res, { error: 'Mot de passe trop court (min 6 caractères)' }, 400);
+      }
+
+      const existing = await getUserByEmail(email);
+      if (existing) {
+        return sendJSON(res, { error: 'Un compte existe déjà avec cet email' }, 409);
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = {
+        id: uuid(),
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role,
+        nom: nom || '',
+        createdAt: new Date().toISOString(),
+        profile: {}
+      };
+
+      await saveUser(user);
+      const token = generateToken(user);
+
+      return sendJSON(res, {
+        success: true,
+        token,
+        user: { id: user.id, email: user.email, role: user.role, nom: user.nom }
+      });
+    }
+
+    // ---------- POST /api/auth/login ----------
+    if (method === 'POST' && url === '/api/auth/login') {
+      const body = await parseBody(req);
+      const { email, password } = body;
+
+      if (!email || !password) {
+        return sendJSON(res, { error: 'Email et mot de passe requis' }, 400);
+      }
+
+      const user = await getUserByEmail(email);
+      if (!user) {
+        return sendJSON(res, { error: 'Email ou mot de passe incorrect' }, 401);
+      }
+
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) {
+        return sendJSON(res, { error: 'Email ou mot de passe incorrect' }, 401);
+      }
+
+      const token = generateToken(user);
+
+      return sendJSON(res, {
+        success: true,
+        token,
+        user: { id: user.id, email: user.email, role: user.role, nom: user.nom, profile: user.profile }
+      });
+    }
+
+    // ---------- GET /api/auth/me ----------
+    if (method === 'GET' && url === '/api/auth/me') {
+      const authUser = requireAuth(req, res);
+      if (!authUser) return;
+
+      const user = await getUserByEmail(authUser.email);
+      if (!user) return sendJSON(res, { error: 'Utilisateur non trouvé' }, 404);
+
+      return sendJSON(res, {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        nom: user.nom,
+        profile: user.profile,
+        createdAt: user.createdAt
+      });
+    }
+
+    // ---------- PUT /api/auth/profile ----------
+    if (method === 'PUT' && url === '/api/auth/profile') {
+      const authUser = requireAuth(req, res);
+      if (!authUser) return;
+
+      const body = await parseBody(req);
+      const user = await getUserByEmail(authUser.email);
+      if (!user) return sendJSON(res, { error: 'Utilisateur non trouvé' }, 404);
+
+      if (body.nom !== undefined) user.nom = body.nom;
+      if (body.profile !== undefined) user.profile = { ...user.profile, ...body.profile };
+
+      await saveUser(user);
+
+      return sendJSON(res, {
+        success: true,
+        user: { id: user.id, email: user.email, role: user.role, nom: user.nom, profile: user.profile }
+      });
+    }
+
+    // =====================
+    // ROUTES CONTRACTS (protégées par auth CFA)
+    // =====================
 
     // ---------- GET /api/contracts ----------
     if (method === 'GET' && url === '/api/contracts') {
