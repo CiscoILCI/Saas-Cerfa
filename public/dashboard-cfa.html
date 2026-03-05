@@ -250,12 +250,52 @@
       to { transform: translateY(0); opacity: 1; }
     }
 
+    /* TABS NAV */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .tab-btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #1e3a5f; border-bottom-color: #1e3a5f; }
+    .tab-btn:hover { color: #1e3a5f; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* PROFILE */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .profile-grid .full { grid-column: 1 / -1; }
+    .form-group { margin-bottom: 0; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
+    .form-group input {
+      width: 100%; padding: 10px 12px;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      font-size: 14px; outline: none;
+    }
+    .form-group input:focus { border-color: #667eea; }
+
     @media (max-width: 768px) {
       .container { padding: 16px; }
       .navbar { padding: 0 16px; }
       td, th { padding: 10px 12px; font-size: 13px; }
       .actions-bar { flex-direction: column; }
       .stats-row { grid-template-columns: 1fr 1fr; }
+      .profile-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -271,6 +311,14 @@
 
   <div class="container">
     <h1 class="page-title">Tableau de bord CFA</h1>
+
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="showTab('contrats')">📄 Contrats</button>
+      <button class="tab-btn" onclick="showTab('profil')">🏫 Mon profil CFA</button>
+    </div>
+
+    <!-- TAB CONTRATS -->
+    <div id="tab-contrats" class="tab-content active">
 
     <div class="stats-row">
       <div class="stat-card">
@@ -303,6 +351,55 @@
       </div>
       <div id="contractsTable"></div>
     </div>
+
+    </div><!-- fin tab-contrats -->
+
+    <!-- TAB PROFIL CFA -->
+    <div id="tab-profil" class="tab-content">
+      <div class="card">
+        <div class="card-header"><span>🏫 Profil du CFA</span></div>
+        <form id="cfaProfileForm" onsubmit="saveCfaProfile(event)" style="padding:20px;">
+          <div class="profile-grid">
+            <div class="form-group full">
+              <label>Dénomination du CFA</label>
+              <input type="text" id="cfaDenomination" placeholder="Ex: CFA des métiers du numérique">
+            </div>
+            <div class="form-group">
+              <label>N° UAI</label>
+              <input type="text" id="cfaUai" placeholder="Ex: 0751234X">
+            </div>
+            <div class="form-group">
+              <label>N° SIRET</label>
+              <input type="text" id="cfaSiret" placeholder="14 chiffres" maxlength="14">
+            </div>
+            <div class="form-group">
+              <label>N° et voie</label>
+              <input type="text" id="cfaNumero" placeholder="Numéro">
+            </div>
+            <div class="form-group">
+              <label>Voie</label>
+              <input type="text" id="cfaVoie" placeholder="Rue, avenue...">
+            </div>
+            <div class="form-group full">
+              <label>Complément d'adresse</label>
+              <input type="text" id="cfaComplement" placeholder="Bâtiment, étage...">
+            </div>
+            <div class="form-group">
+              <label>Code postal</label>
+              <input type="text" id="cfaCp" placeholder="75001" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label>Commune</label>
+              <input type="text" id="cfaCommune" placeholder="Paris">
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">💾 Enregistrer le profil CFA</button>
+          </div>
+        </form>
+      </div>
+    </div><!-- fin tab-profil -->
+
   </div>
 
   <!-- TOAST -->
@@ -436,8 +533,58 @@
       window.open('/api/contracts/' + id + '/generate-pdf', '_blank');
     }
 
+    function showTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    async function loadCfaProfile() {
+      try {
+        const res = await fetch('/api/auth/me', { headers: authHeaders() });
+        const user = await res.json();
+        if (user.profile) {
+          const p = user.profile;
+          document.getElementById('cfaDenomination').value = p.denomination || '';
+          document.getElementById('cfaUai').value = p.uai || '';
+          document.getElementById('cfaSiret').value = p.siret || '';
+          document.getElementById('cfaNumero').value = p.numero || '';
+          document.getElementById('cfaVoie').value = p.voie || '';
+          document.getElementById('cfaComplement').value = p.complement || '';
+          document.getElementById('cfaCp').value = p.code_postal || '';
+          document.getElementById('cfaCommune').value = p.commune || '';
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    async function saveCfaProfile(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/auth/profile', {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            profile: {
+              denomination: document.getElementById('cfaDenomination').value,
+              uai: document.getElementById('cfaUai').value,
+              siret: document.getElementById('cfaSiret').value,
+              numero: document.getElementById('cfaNumero').value,
+              voie: document.getElementById('cfaVoie').value,
+              complement: document.getElementById('cfaComplement').value,
+              code_postal: document.getElementById('cfaCp').value,
+              commune: document.getElementById('cfaCommune').value
+            }
+          })
+        });
+        if (res.ok) showToast('Profil CFA enregistré !');
+        else showToast('Erreur de sauvegarde');
+      } catch (err) { showToast('Erreur de sauvegarde'); }
+    }
+
     // Initial load
     loadContracts();
+    loadCfaProfile();
   </script>
 </body>
 </html>
