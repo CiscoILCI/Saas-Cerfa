@@ -294,23 +294,27 @@
                 <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_1_pourcentage"></div>
                 <div class="form-group"><label>Base</label><select name="remuneration.annee_1_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
             </div>
-            <h3>2ème année</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_2_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_du_annee" placeholder="AAAA" maxlength="4"></div></div>
-                <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_2_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+            <h3 style="cursor:pointer;user-select:none;" onclick="toggleYear(2)">▶ 2ème année</h3>
+            <div id="year-2-content" style="display:none;">
+                <div class="form-row">
+                    <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_2_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_du_annee" placeholder="AAAA" maxlength="4"></div></div>
+                    <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_2_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_2_pourcentage"></div>
+                    <div class="form-group"><label>Base</label><select name="remuneration.annee_2_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+                </div>
             </div>
-            <div class="form-row">
-                <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_2_pourcentage"></div>
-                <div class="form-group"><label>Base</label><select name="remuneration.annee_2_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
-            </div>
-            <h3>3ème année</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_3_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_du_annee" placeholder="AAAA" maxlength="4"></div></div>
-                <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_3_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_au_annee" placeholder="AAAA" maxlength="4"></div></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_3_pourcentage"></div>
-                <div class="form-group"><label>Base</label><select name="remuneration.annee_3_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+            <h3 style="cursor:pointer;user-select:none;" onclick="toggleYear(3)">▶ 3ème année</h3>
+            <div id="year-3-content" style="display:none;">
+                <div class="form-row">
+                    <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_3_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_du_annee" placeholder="AAAA" maxlength="4"></div></div>
+                    <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_3_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_3_pourcentage"></div>
+                    <div class="form-group"><label>Base</label><select name="remuneration.annee_3_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+                </div>
             </div>
         </div>
 
@@ -571,6 +575,18 @@
 
         function generatePdf() {
             window.open('/api/contracts/' + contractId + '/generate-pdf', '_blank');
+        }
+
+        function toggleYear(year) {
+            const content = document.getElementById(`year-${year}-content`);
+            const header = event.target;
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                header.textContent = header.textContent.replace('▶', '▼');
+            } else {
+                content.style.display = 'none';
+                header.textContent = header.textContent.replace('▼', '▶');
+            }
         }
 
         async function changeContractStatus(newStatus) {
