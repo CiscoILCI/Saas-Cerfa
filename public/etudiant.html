@@ -86,7 +86,10 @@
             <div class="success-message" id="successMessage">
                 <h3>✅ Vos informations ont été enregistrées !</h3>
                 <p>L'entreprise doit maintenant compléter sa partie du formulaire.</p>
-                <button class="btn-primary" onclick="window.history.back()">← Retour</button>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button class="btn-primary" style="width:auto;" onclick="showFormForEdit()">✏️ Modifier mes réponses</button>
+                    <button class="btn-primary" style="width:auto;background:var(--gray-400);" onclick="window.history.back()">← Retour</button>
+                </div>
             </div>
 
             <form id="etudiantForm">
@@ -509,13 +512,69 @@
             return data;
         }
 
-        // Vérifier si déjà rempli
+        // Fonction pour pré-remplir le formulaire depuis les données existantes
+        function prefillForm(savedData) {
+            if (!savedData || typeof savedData !== 'object') return;
+            const form = document.getElementById('etudiantForm');
+
+            function fillFields(obj, prefix) {
+                for (const [key, value] of Object.entries(obj)) {
+                    if (value && typeof value === 'object') {
+                        fillFields(value, prefix ? prefix + '.' + key : key);
+                        continue;
+                    }
+                    const fieldName = prefix ? prefix + '.' + key : key;
+
+                    // Radios booléennes (sexe, handicap, sportif, statut_age)
+                    if (value === true || value === false) continue;
+
+                    const input = form.querySelector(`[name="${fieldName}"]`);
+                    if (input) {
+                        if (input.type === 'radio') {
+                            const radio = form.querySelector(`[name="${fieldName}"][value="${value}"]`);
+                            if (radio) radio.checked = true;
+                        } else if (input.type === 'checkbox') {
+                            input.checked = !!value;
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                }
+            }
+
+            fillFields(savedData, '');
+
+            // Restaurer les radios spécifiques
+            if (savedData.apprenti) {
+                const a = savedData.apprenti;
+                if (a.sexe_homme) { const r = form.querySelector('[name="apprenti.sexe"][value="homme"]'); if (r) r.checked = true; }
+                if (a.sexe_femme) { const r = form.querySelector('[name="apprenti.sexe"][value="femme"]'); if (r) r.checked = true; }
+                if (a.handicap_oui) { const r = form.querySelector('[name="apprenti.handicap"][value="oui"]'); if (r) r.checked = true; }
+                if (a.handicap_non) { const r = form.querySelector('[name="apprenti.handicap"][value="non"]'); if (r) r.checked = true; }
+                if (a.sportif_haut_niveau_oui) { const r = form.querySelector('[name="apprenti.sportif_haut_niveau"][value="oui"]'); if (r) r.checked = true; }
+                if (a.sportif_haut_niveau_non) { const r = form.querySelector('[name="apprenti.sportif_haut_niveau"][value="non"]'); if (r) r.checked = true; }
+                if (a.statut_age === 'mineur') { const r = form.querySelector('[name="apprenti.statut_age"][value="mineur"]'); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); } }
+                if (a.statut_age === 'majeur') { const r = form.querySelector('[name="apprenti.statut_age"][value="majeur"]'); if (r) r.checked = true; }
+            }
+        }
+
+        function showFormForEdit() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('etudiantForm').style.display = 'block';
+            document.getElementById('submitBtn').textContent = '📤 Mettre à jour mes informations';
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        // Vérifier si déjà rempli et pré-remplir
         fetch(`/api/contract/by-token/${token}`)
             .then(r => r.json())
             .then(data => {
-                if (data.complete) {
+                if (data.complete && data.data) {
+                    prefillForm(data.data);
                     document.getElementById('etudiantForm').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
+                } else if (data.data) {
+                    prefillForm(data.data);
                 }
             })
             .catch(e => console.error(e));

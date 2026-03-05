@@ -86,7 +86,10 @@
             <div class="success-message" id="successMessage">
                 <h3>✅ Informations enregistrées !</h3>
                 <p>Le contrat est maintenant complet et peut être généré.</p>
-                <button class="btn-primary" onclick="window.history.back()">← Retour</button>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button class="btn-primary" style="width:auto;" onclick="showFormForEdit()">✏️ Modifier mes réponses</button>
+                    <button class="btn-primary" style="width:auto;background:#9ca3af;" onclick="window.history.back()">← Retour</button>
+                </div>
             </div>
 
             <form id="entrepriseForm">
@@ -1000,13 +1003,80 @@
             return data;
         }
 
-        // Vérifier si déjà rempli
+        // Fonction pour pré-remplir le formulaire depuis les données existantes
+        function prefillForm(savedData) {
+            if (!savedData || typeof savedData !== 'object') return;
+            const form = document.getElementById('entrepriseForm');
+
+            function fillFields(obj, prefix) {
+                for (const [key, value] of Object.entries(obj)) {
+                    if (value && typeof value === 'object') {
+                        fillFields(value, prefix ? prefix + '.' + key : key);
+                        continue;
+                    }
+                    const fieldName = prefix ? prefix + '.' + key : key;
+                    if (value === true || value === false) continue;
+
+                    const input = form.querySelector(`[name="${fieldName}"]`);
+                    if (input) {
+                        if (input.type === 'radio') {
+                            const radio = form.querySelector(`[name="${fieldName}"][value="${value}"]`);
+                            if (radio) radio.checked = true;
+                        } else if (input.type === 'checkbox') {
+                            input.checked = !!value;
+                        } else if (input.tagName === 'SELECT') {
+                            input.value = value || '';
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                }
+            }
+
+            fillFields(savedData, '');
+
+            // Restaurer les radios/checkboxes spécifiques
+            if (savedData.employeur) {
+                const e = savedData.employeur;
+                if (e.type_prive) { const r = form.querySelector('[name="employeur.type"][value="prive"]'); if (r) r.checked = true; }
+                if (e.type_public) { const r = form.querySelector('[name="employeur.type"][value="public"]'); if (r) r.checked = true; }
+                if (e.adhesion_chomage) { const r = form.querySelector('[name="employeur.adhesion_chomage"]'); if (r) r.checked = true; }
+            }
+            if (savedData.contrat) {
+                if (savedData.contrat.travail_risque_oui) { const r = form.querySelector('[name="contrat.travail_risque"][value="oui"]'); if (r) r.checked = true; }
+                if (savedData.contrat.travail_risque_non) { const r = form.querySelector('[name="contrat.travail_risque"][value="non"]'); if (r) r.checked = true; }
+            }
+            if (savedData.formation) {
+                if (savedData.formation.cfa_entreprise_oui) { const r = form.querySelector('[name="formation.cfa_entreprise"][value="oui"]'); if (r) r.checked = true; }
+                if (savedData.formation.cfa_entreprise_non) { const r = form.querySelector('[name="formation.cfa_entreprise"][value="non"]'); if (r) r.checked = true; }
+                if (savedData.formation.connait_cfa === 'oui') { const r = form.querySelector('[name="formation.connait_cfa"][value="oui"]'); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); } }
+                if (savedData.formation.connait_cfa === 'non') { const r = form.querySelector('[name="formation.connait_cfa"][value="non"]'); if (r) r.checked = true; }
+            }
+            if (savedData.maitre_apprentissage) {
+                if (savedData.maitre_apprentissage.atteste_criteres_eligibilite) { const r = form.querySelector('[name="maitre_apprentissage.atteste_criteres_eligibilite"]'); if (r) r.checked = true; }
+            }
+            if (savedData.attestation) {
+                if (savedData.attestation.pieces_justificatives) { const r = form.querySelector('[name="attestation.pieces_justificatives"]'); if (r) r.checked = true; }
+            }
+        }
+
+        function showFormForEdit() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('entrepriseForm').style.display = 'block';
+            document.getElementById('submitBtn').textContent = '📤 Mettre à jour les informations';
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        // Vérifier si déjà rempli et pré-remplir
         fetch(`/api/contract/by-token/${token}`)
             .then(r => r.json())
             .then(data => {
-                if (data.complete) {
+                if (data.complete && data.data) {
+                    prefillForm(data.data);
                     document.getElementById('entrepriseForm').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
+                } else if (data.data) {
+                    prefillForm(data.data);
                 }
             })
             .catch(e => console.error(e));

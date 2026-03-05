@@ -442,6 +442,8 @@
       <h3>📋 Revue du contrat <span id="revueContratId"></span></h3>
       <div id="revueContent"></div>
       <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-primary" id="btnEditContract" onclick="toggleEditMode()">✏️ Modifier</button>
+        <button class="btn btn-primary" id="btnSaveContract" style="display:none;background:#2e7d32;" onclick="saveContractEdits()">💾 Sauvegarder</button>
         <button class="btn btn-secondary" onclick="closeRevueModal()">Fermer</button>
       </div>
     </div>
@@ -712,73 +714,148 @@
     }
 
     // =====================
-    // REVUE CONTRAT + STATUTS + HISTORIQUE
+    // REVUE CONTRAT + STATUTS + HISTORIQUE + ÉDITION
     // =====================
+    let currentRevueId = null;
+    let currentRevueData = null;
+    let editMode = false;
+
     async function openRevue(id) {
       try {
         const res = await fetch('/api/contracts/' + id, { headers: authHeaders() });
         const c = await res.json();
-        document.getElementById('revueContratId').textContent = '#' + id.slice(0, 8);
-        let html = '';
-
-        // Statut
-        const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
-        html += `<div style="margin-bottom:16px;"><strong>Statut :</strong> <span class="status-badge status-${c.status}">${statusLabels[c.status] || c.status}</span></div>`;
-
-        // Données étudiant
-        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🎓 Données étudiant</h4>';
-        if (c.etudiant) {
-          html += buildDataTable(c.etudiant);
-        } else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
-        html += '</div>';
-
-        // Données entreprise
-        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏢 Données entreprise</h4>';
-        if (c.entreprise) {
-          html += buildDataTable(c.entreprise);
-        } else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
-        html += '</div>';
-
-        // Données formation (auto-rempli CFA)
-        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏫 Données formation/CFA</h4>';
-        if (c.formation) {
-          html += buildDataTable(c.formation);
-        } else { html += '<p style="color:#888;">Aucune donnée</p>'; }
-        html += '</div>';
-
-        // Historique
-        html += '<div class="card" style="padding:14px;"><h4 style="margin-bottom:8px;">📜 Historique</h4>';
-        if (c.history && c.history.length) {
-          html += '<table style="width:100%;"><thead><tr><th>Date</th><th>Action</th><th>Par</th></tr></thead><tbody>';
-          const actionLabels = { created: 'Création', etudiant_submitted: 'Étudiant soumis', entreprise_submitted: 'Entreprise soumis', updated_by_cfa: 'Modifié par CFA', status_changed: 'Statut changé' };
-          for (const h of c.history.slice().reverse()) {
-            const d = new Date(h.date).toLocaleString('fr-FR');
-            let label = actionLabels[h.action] || h.action;
-            if (h.action === 'status_changed') label += ` (${h.from} → ${h.to})`;
-            html += `<tr><td style="font-size:12px;">${d}</td><td>${label}</td><td>${h.by || '-'}</td></tr>`;
-          }
-          html += '</tbody></table>';
-        } else { html += '<p style="color:#888;">Aucun historique</p>'; }
-        html += '</div>';
-
-        document.getElementById('revueContent').innerHTML = html;
+        currentRevueId = id;
+        currentRevueData = c;
+        editMode = false;
+        document.getElementById('btnEditContract').style.display = '';
+        document.getElementById('btnSaveContract').style.display = 'none';
+        renderRevue(c, false);
         document.getElementById('revueModal').classList.add('active');
       } catch (err) { showToast('Erreur chargement contrat'); console.error(err); }
     }
 
-    function closeRevueModal() { document.getElementById('revueModal').classList.remove('active'); }
+    function renderRevue(c, editable) {
+      document.getElementById('revueContratId').textContent = '#' + currentRevueId.slice(0, 8);
+      let html = '';
 
-    function buildDataTable(obj, prefix) {
+      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
+      html += `<div style="margin-bottom:16px;"><strong>Statut :</strong> <span class="status-badge status-${c.status}">${statusLabels[c.status] || c.status}</span></div>`;
+
+      html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🎓 Données étudiant</h4>';
+      if (c.etudiant) { html += buildDataTable(c.etudiant, 'etudiant', editable); }
+      else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
+      html += '</div>';
+
+      html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏢 Données entreprise</h4>';
+      if (c.entreprise) { html += buildDataTable(c.entreprise, 'entreprise', editable); }
+      else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
+      html += '</div>';
+
+      html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏫 Données formation/CFA</h4>';
+      if (c.formation) { html += buildDataTable(c.formation, 'formation', editable); }
+      else { html += '<p style="color:#888;">Aucune donnée</p>'; }
+      html += '</div>';
+
+      html += '<div class="card" style="padding:14px;"><h4 style="margin-bottom:8px;">📜 Historique</h4>';
+      if (c.history && c.history.length) {
+        html += '<table style="width:100%;"><thead><tr><th>Date</th><th>Action</th><th>Par</th></tr></thead><tbody>';
+        const actionLabels = { created: 'Création', etudiant_submitted: 'Étudiant soumis', entreprise_submitted: 'Entreprise soumis', updated_by_cfa: 'Modifié par CFA', status_changed: 'Statut changé' };
+        for (const h of c.history.slice().reverse()) {
+          const d = new Date(h.date).toLocaleString('fr-FR');
+          let label = actionLabels[h.action] || h.action;
+          if (h.action === 'status_changed') label += ` (${h.from} → ${h.to})`;
+          html += `<tr><td style="font-size:12px;">${d}</td><td>${label}</td><td>${h.by || '-'}</td></tr>`;
+        }
+        html += '</tbody></table>';
+      } else { html += '<p style="color:#888;">Aucun historique</p>'; }
+      html += '</div>';
+
+      document.getElementById('revueContent').innerHTML = html;
+    }
+
+    function closeRevueModal() {
+      document.getElementById('revueModal').classList.remove('active');
+      editMode = false;
+    }
+
+    function buildDataTable(obj, section, editable) {
       if (!obj || typeof obj !== 'object') return '';
       let html = '<table style="width:100%;font-size:13px;"><tbody>';
       for (const [k, v] of Object.entries(obj)) {
-        if (v && typeof v === 'object') continue;
+        if (v && typeof v === 'object') {
+          for (const [k2, v2] of Object.entries(v)) {
+            if (v2 && typeof v2 === 'object') continue;
+            if (v2 === null || v2 === undefined || v2 === '') continue;
+            const fullKey = k + '.' + k2;
+            if (editable && v2 !== true && v2 !== false) {
+              html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${fullKey}</td><td style="padding:3px 4px;"><input type="text" data-section="${section}" data-path="${fullKey}" value="${String(v2).replace(/"/g, '&quot;')}" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:6px;font-size:13px;"></td></tr>`;
+            } else {
+              html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${fullKey}</td><td style="padding:3px 8px;">${v2}</td></tr>`;
+            }
+          }
+          continue;
+        }
         if (v === null || v === undefined || v === '') continue;
-        const key = prefix ? prefix + '.' + k : k;
-        html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${key}</td><td style="padding:3px 8px;">${v}</td></tr>`;
+        if (editable && v !== true && v !== false) {
+          html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${k}</td><td style="padding:3px 4px;"><input type="text" data-section="${section}" data-path="${k}" value="${String(v).replace(/"/g, '&quot;')}" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:6px;font-size:13px;"></td></tr>`;
+        } else {
+          html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${k}</td><td style="padding:3px 8px;">${v}</td></tr>`;
+        }
       }
       html += '</tbody></table>';
       return html;
+    }
+
+    function toggleEditMode() {
+      editMode = true;
+      document.getElementById('btnEditContract').style.display = 'none';
+      document.getElementById('btnSaveContract').style.display = '';
+      renderRevue(currentRevueData, true);
+    }
+
+    async function saveContractEdits() {
+      const inputs = document.querySelectorAll('#revueContent input[data-section]');
+      const updates = { etudiant: null, entreprise: null, formation: null };
+
+      inputs.forEach(input => {
+        const section = input.dataset.section;
+        const path = input.dataset.path;
+        const value = input.value;
+        if (!updates[section]) updates[section] = {};
+
+        const parts = path.split('.');
+        if (parts.length === 2) {
+          if (!updates[section][parts[0]]) updates[section][parts[0]] = {};
+          updates[section][parts[0]][parts[1]] = value;
+        } else {
+          updates[section][path] = value;
+        }
+      });
+
+      // Supprimer les sections null
+      const body = {};
+      if (updates.etudiant) body.etudiant = updates.etudiant;
+      if (updates.entreprise) body.entreprise = updates.entreprise;
+      if (updates.formation) body.formation = updates.formation;
+
+      try {
+        const res = await fetch('/api/contracts/' + currentRevueId, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          showToast('Contrat mis à jour !');
+          editMode = false;
+          document.getElementById('btnEditContract').style.display = '';
+          document.getElementById('btnSaveContract').style.display = 'none';
+          // Recharger les données
+          const res2 = await fetch('/api/contracts/' + currentRevueId, { headers: authHeaders() });
+          currentRevueData = await res2.json();
+          renderRevue(currentRevueData, false);
+          loadContracts();
+        } else { showToast('Erreur de sauvegarde'); }
+      } catch (err) { showToast('Erreur de sauvegarde'); console.error(err); }
     }
 
     async function changeStatus(id, newStatus) {
