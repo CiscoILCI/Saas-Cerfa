@@ -61,6 +61,18 @@
         .error-message { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; font-size: 13px; }
         .success-message { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 16px; display: none; text-align: center; font-size: 14px; }
 
+        .autocomplete-box { position: relative; margin-bottom: 16px; background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%); border: 1.5px solid var(--accent); border-radius: var(--radius); padding: 14px; }
+        .autocomplete-box label { font-weight: 700; font-size: 13px; color: var(--accent); display: block; margin-bottom: 8px; }
+        .autocomplete-box input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 14px; font-family: inherit; }
+        .autocomplete-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+        .autocomplete-results { position: absolute; left: 14px; right: 14px; top: 100%; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 250px; overflow-y: auto; z-index: 100; display: none; }
+        .autocomplete-results .ac-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--gray-100); transition: background 0.1s; }
+        .autocomplete-results .ac-item:last-child { border-bottom: none; }
+        .autocomplete-results .ac-item:hover { background: #eef2ff; }
+        .autocomplete-results .ac-item .ac-name { font-weight: 600; font-size: 14px; color: var(--gray-800); }
+        .autocomplete-results .ac-item .ac-details { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+        .autocomplete-results .ac-empty { padding: 12px 14px; color: var(--gray-400); font-size: 13px; text-align: center; }
+
         @media (max-width: 768px) {
             .form-row, .form-row.triple { grid-template-columns: 1fr; }
             .container { padding: 12px; }
@@ -172,6 +184,11 @@
         <!-- ===== EMPLOYEUR ===== -->
         <div class="form-card" id="sec-employeur">
             <h2>🏢 L'Employeur</h2>
+            <div class="autocomplete-box">
+                <label>🔍 Rechercher une entreprise dans l'annuaire (SIRET ou nom)</label>
+                <input type="text" id="entSearchInput" placeholder="Ex: 12345678901234 ou Dupont SA..." autocomplete="off">
+                <div class="autocomplete-results" id="entSearchResults"></div>
+            </div>
             <div class="form-row"><div class="form-group"><label>Type</label><div class="checkbox-group"><label><input type="radio" name="employeur.type" value="prive"> Privé</label><label><input type="radio" name="employeur.type" value="public"> Public</label></div></div></div>
             <div class="form-row">
                 <div class="form-group"><label>Dénomination / Raison sociale</label><input type="text" name="employeur.denomination"></div>
@@ -390,6 +407,82 @@
 
         function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken }; }
         function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 5000); }
+
+        // Autocomplete entreprise depuis l'annuaire partagé
+        (function() {
+            const input = document.getElementById('entSearchInput');
+            const results = document.getElementById('entSearchResults');
+            let debounceTimer = null;
+
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const q = this.value.trim();
+                if (q.length < 2) { results.style.display = 'none'; return; }
+                debounceTimer = setTimeout(() => searchEntreprises(q), 300);
+            });
+
+            input.addEventListener('blur', function() {
+                setTimeout(() => results.style.display = 'none', 200);
+            });
+
+            async function searchEntreprises(q) {
+                try {
+                    const res = await fetch('/api/entreprises-directory/search?q=' + encodeURIComponent(q), { headers: authHeaders() });
+                    if (!res.ok) { results.style.display = 'none'; return; }
+                    const data = await res.json();
+                    if (data.length === 0) {
+                        results.innerHTML = '<div class="ac-empty">Aucune entreprise trouvée</div>';
+                        results.style.display = 'block';
+                        return;
+                    }
+                    results.innerHTML = data.map(ent => `
+                        <div class="ac-item" data-siret="${ent.siret}">
+                            <div class="ac-name">${ent.denomination || 'Sans nom'} — ${ent.siret}</div>
+                            <div class="ac-details">${ent.adresse_code_postal || ''} ${ent.adresse_commune || ''} ${ent.code_ape ? '· APE: ' + ent.code_ape : ''}</div>
+                        </div>
+                    `).join('');
+                    results.style.display = 'block';
+
+                    results.querySelectorAll('.ac-item').forEach(item => {
+                        item.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            const siret = this.dataset.siret;
+                            const ent = data.find(d => d.siret === siret);
+                            if (ent) fillEntrepriseFromDir(ent);
+                            results.style.display = 'none';
+                            input.value = '';
+                        });
+                    });
+                } catch (err) {
+                    console.error('Erreur recherche annuaire:', err);
+                }
+            }
+
+            function fillEntrepriseFromDir(ent) {
+                const form = document.getElementById('fullForm');
+                const fields = {
+                    'employeur.denomination': ent.denomination,
+                    'employeur.siret': ent.siret,
+                    'employeur.code_ape': ent.code_ape,
+                    'employeur.adresse_numero': ent.adresse_numero,
+                    'employeur.adresse_voie': ent.adresse_voie,
+                    'employeur.adresse_complement': ent.adresse_complement,
+                    'employeur.adresse_code_postal': ent.adresse_code_postal,
+                    'employeur.adresse_commune': ent.adresse_commune,
+                    'employeur.telephone': ent.telephone,
+                    'employeur.courriel': ent.courriel,
+                    'employeur.effectif_entreprise': ent.effectif,
+                    'employeur.idcc': ent.idcc,
+                    'contrat.caisse_retraite_complementaire': ent.caisse_retraite_complementaire
+                };
+                for (const [name, value] of Object.entries(fields)) {
+                    if (!value) continue;
+                    const el = form.querySelector(`[name="${name}"]`);
+                    if (el) el.value = value;
+                }
+                showToast('✅ Données entreprise pré-remplies depuis l\'annuaire');
+            }
+        })();
 
         // Pré-remplissage
         async function loadContract() {

@@ -36,6 +36,7 @@ const CONTRACTS_KEY = 'contracts'; // Hash: contractId -> JSON
 const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
 const USERS_KEY = 'users';         // Hash: email -> JSON { id, email, password, role, createdAt, profile }
 const MA_KEY_PREFIX = 'maitres:';  // Hash per CFA: maitres:{cfaId} -> maId -> JSON
+const ENT_DIR_KEY = 'entreprises_directory'; // Hash: SIRET -> JSON { siret, denomination, code_ape, idcc, effectif, adresse, code_postal, commune, telephone, courriel, ... }
 
 // =====================
 // REDIS HELPERS (via REST API)
@@ -229,6 +230,79 @@ async function deleteMaitre(cfaId, maId) {
     console.error('[REDIS ERROR] deleteMaitre:', e.message);
     return false;
   }
+}
+
+// =====================
+// ENTREPRISES DIRECTORY HELPERS (base partagée)
+// =====================
+async function getEntrepriseFromDir(siret) {
+  try {
+    const data = await redisCall(['HGET', ENT_DIR_KEY, siret]);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('[REDIS ERROR] getEntrepriseFromDir:', e.message);
+    return null;
+  }
+}
+
+async function saveEntrepriseToDir(entData) {
+  if (!entData.siret) return;
+  const siret = entData.siret.replace(/\s/g, '');
+  if (!/^\d{14}$/.test(siret)) return;
+  try {
+    const existing = await getEntrepriseFromDir(siret);
+    const merged = { ...(existing || {}), ...entData, siret, updatedAt: new Date().toISOString() };
+    if (!merged.createdAt) merged.createdAt = new Date().toISOString();
+    await redisCall(['HSET', ENT_DIR_KEY, siret, JSON.stringify(merged)]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveEntrepriseToDir:', e.message);
+  }
+}
+
+async function searchEntreprisesDir(query) {
+  try {
+    const all = await redisCall(['HGETALL', ENT_DIR_KEY]);
+    if (!all || all.length === 0) return [];
+    const results = [];
+    const q = query.toLowerCase();
+    for (let i = 1; i < all.length; i += 2) {
+      const ent = JSON.parse(all[i]);
+      const match = (ent.siret || '').includes(q) ||
+        (ent.denomination || '').toLowerCase().includes(q) ||
+        (ent.commune || '').toLowerCase().includes(q);
+      if (match) results.push(ent);
+      if (results.length >= 20) break;
+    }
+    return results;
+  } catch (e) {
+    console.error('[REDIS ERROR] searchEntreprisesDir:', e.message);
+    return [];
+  }
+}
+
+// Extraire les données entreprise d'un formulaire soumis pour le directory
+function extractEntrepriseDataForDir(entrepriseData) {
+  if (!entrepriseData || !entrepriseData.employeur) return null;
+  const emp = entrepriseData.employeur;
+  const siret = (emp.siret || '').replace(/\s/g, '');
+  if (!siret || !/^\d{14}$/.test(siret)) return null;
+  return {
+    siret,
+    denomination: emp.denomination || '',
+    code_ape: emp.code_ape || '',
+    adresse_numero: emp.adresse_numero || '',
+    adresse_voie: emp.adresse_voie || '',
+    adresse_complement: emp.adresse_complement || '',
+    adresse_code_postal: emp.adresse_code_postal || '',
+    adresse_commune: emp.adresse_commune || '',
+    telephone: emp.telephone || '',
+    courriel: emp.courriel || '',
+    effectif: emp.effectif || '',
+    idcc: emp.idcc || '',
+    code_naf: emp.code_naf || '',
+    caisse_retraite_complementaire: entrepriseData.contrat?.caisse_retraite_complementaire || ''
+  };
 }
 
 // =====================
@@ -483,6 +557,21 @@ module.exports = async function handler(req, res) {
 
       await saveUser(user);
 
+      // Si c'est une entreprise, alimenter la base partagée
+      if (user.role === 'entreprise' && user.profile && user.profile.siret) {
+        const p = user.profile;
+        await saveEntrepriseToDir({
+          siret: (p.siret || '').replace(/\s/g, ''),
+          denomination: p.denomination || '',
+          code_ape: p.code_ape || '',
+          adresse_voie: p.adresse || '',
+          adresse_code_postal: p.code_postal || '',
+          adresse_commune: p.commune || '',
+          telephone: p.telephone || '',
+          courriel: p.email_contact || user.email || ''
+        });
+      }
+
       return sendJSON(res, {
         success: true,
         user: { id: user.id, email: user.email, role: user.role, nom: user.nom, profile: user.profile }
@@ -671,7 +760,41 @@ module.exports = async function handler(req, res) {
       if (!result.contract.history) result.contract.history = [];
       result.contract.history.push({ action: 'entreprise_submitted', date: new Date().toISOString(), by: 'entreprise' });
       await saveContract(result.contract);
+      // Auto-alimenter la base partagée d'entreprises
+      const dirData = extractEntrepriseDataForDir(body);
+      if (dirData) await saveEntrepriseToDir(dirData);
       return sendJSON(res, { success: true, message: 'Données entreprise enregistrées' });
+    }
+
+    // ---------- GET /api/entreprises-directory/search?q=... ----------
+    if (method === 'GET' && url.startsWith('/api/entreprises-directory/search')) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const urlObj = new URL(req.url, `http://${req.headers.host}`);
+      const q = (urlObj.searchParams.get('q') || '').trim();
+      if (!q || q.length < 2) return sendJSON(res, []);
+      const results = await searchEntreprisesDir(q);
+      return sendJSON(res, results);
+    }
+
+    // ---------- GET /api/entreprises-directory/:siret (auth CFA) ----------
+    const dirMatch = matchRoute(url, '/api/entreprises-directory/:siret');
+    if (method === 'GET' && dirMatch && !url.includes('search') && !url.includes('by-siret')) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const ent = await getEntrepriseFromDir(dirMatch.siret);
+      if (!ent) return sendJSON(res, { error: 'Entreprise non trouvée dans l\'annuaire' }, 404);
+      return sendJSON(res, ent);
+    }
+
+    // ---------- GET /api/entreprises-directory/by-siret/:siret (public, lookup exact SIRET) ----------
+    const dirPublicMatch = matchRoute(url, '/api/entreprises-directory/by-siret/:siret');
+    if (method === 'GET' && dirPublicMatch) {
+      const siret = (dirPublicMatch.siret || '').replace(/\s/g, '');
+      if (!siret || !/^\d{14}$/.test(siret)) return sendJSON(res, { error: 'SIRET invalide' }, 400);
+      const ent = await getEntrepriseFromDir(siret);
+      if (!ent) return sendJSON(res, {});
+      return sendJSON(res, ent);
     }
 
     // ---------- GET /api/entreprises (liste des comptes entreprise pour le CFA) ----------
@@ -794,6 +917,11 @@ module.exports = async function handler(req, res) {
       if (!contract.history) contract.history = [];
       contract.history.push({ action: 'updated_by_cfa', date: new Date().toISOString(), by: authUser.email });
       await saveContract(contract);
+      // Auto-alimenter la base partagée si données entreprise modifiées
+      if (body.entreprise) {
+        const dirData = extractEntrepriseDataForDir(contract.entreprise);
+        if (dirData) await saveEntrepriseToDir(dirData);
+      }
       return sendJSON(res, { success: true, contract: { id: contract.id, status: contract.status } });
     }
 
