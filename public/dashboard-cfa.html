@@ -530,7 +530,7 @@
               <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Copier lien</span>
             </td>
             <td style="white-space:nowrap;">
-              <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="openRevue('${c.id}')">👁️ Voir / Modifier</button>
+              <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir / Modifier</button>
               ${c.status === 'ready' ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
               ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','signed')">✅ Signer</button>` : ''}
               ${c.status === 'signed' ? `<button class="btn btn-sm" style="background:#666;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}

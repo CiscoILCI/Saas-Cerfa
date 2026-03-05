@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CERFA SaaS - Édition complète du contrat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1e3a5f; --accent: #667eea; --accent2: #764ba2; --success: #10b981; --danger: #ef4444; --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --radius: 12px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--gray-50); min-height: 100vh; color: var(--gray-800); }
+
+        .navbar { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%); color: #fff; padding: 0 32px; height: 56px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .navbar .brand { font-weight: 700; font-size: 16px; }
+        .navbar .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .navbar .nav-actions a, .navbar .nav-actions button { color: #fff; background: rgba(255,255,255,0.15); border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+        .navbar .nav-actions a:hover, .navbar .nav-actions button:hover { background: rgba(255,255,255,0.25); }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.5em; font-weight: 700; color: var(--primary); }
+        .page-header p { color: var(--gray-500); font-size: 14px; margin-top: 4px; }
+
+        .section-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; position: sticky; top: 56px; background: var(--gray-50); padding: 12px 0; z-index: 40; border-bottom: 1px solid var(--gray-200); }
+        .section-nav a { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--gray-500); text-decoration: none; border: 1px solid var(--gray-200); background: #fff; transition: all 0.15s; }
+        .section-nav a:hover, .section-nav a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .form-card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+        .form-card h2 { font-size: 1.1em; font-weight: 700; color: var(--primary); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--gray-100); display: flex; align-items: center; gap: 8px; }
+        .form-card h3 { font-size: 0.95em; font-weight: 600; color: var(--accent); margin: 16px 0 10px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 5px; color: var(--gray-700); font-size: 12px; }
+        .form-group .help { font-size: 11px; color: var(--gray-400); margin-top: 3px; line-height: 1.4; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; color: var(--gray-800); transition: border-color 0.15s; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        select { cursor: pointer; }
+        .checkbox-group { display: flex; align-items: center; gap: 16px; margin-top: 4px; flex-wrap: wrap; }
+        .checkbox-group label { margin: 0; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+        .date-group { display: grid; grid-template-columns: 55px 55px 75px; gap: 6px; }
+        .date-group input { text-align: center; padding: 9px 4px; }
+
+        .info-box { background: var(--gray-50); border: 1px solid var(--gray-200); padding: 10px 14px; margin-bottom: 16px; border-radius: 8px; }
+        .info-box p { color: var(--gray-600); font-size: 12px; line-height: 1.5; }
+
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .btn-save { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+        .btn-save:hover { box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-pdf { background: var(--success); color: #fff; }
+        .btn-pdf:hover { box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+        .btn-back { background: var(--gray-200); color: var(--gray-700); }
+        .btn-back:hover { background: var(--gray-300); }
+
+        .actions-bottom { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; padding: 20px 0; }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 200; display: none; }
+        .error-message { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; font-size: 13px; }
+        .success-message { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 16px; display: none; text-align: center; font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .form-row, .form-row.triple { grid-template-columns: 1fr; }
+            .container { padding: 12px; }
+            .section-nav { gap: 4px; }
+            .section-nav a { padding: 6px 12px; font-size: 12px; }
+            .date-group { grid-template-columns: 48px 48px 65px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">📋 CERFA SaaS — Édition contrat</div>
+        <div class="nav-actions">
+            <a href="/dashboard-cfa.html">← Retour au dashboard</a>
+            <button onclick="saveAll()">💾 Sauvegarder</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📝 Édition complète du contrat <span id="contractIdLabel"></span></h1>
+            <p>Vérifiez et corrigez toutes les informations avant de générer le PDF CERFA.</p>
+        </div>
+
+        <div class="section-nav">
+            <a href="#sec-apprenti" class="active">🎓 Apprenti</a>
+            <a href="#sec-employeur">🏢 Employeur</a>
+            <a href="#sec-contrat">📄 Contrat</a>
+            <a href="#sec-formation">🏫 Formation</a>
+            <a href="#sec-remuneration">💰 Rémunération</a>
+            <a href="#sec-maitre">👨‍🏫 Maître</a>
+            <a href="#sec-attestation">✅ Attestation</a>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage">✅ Contrat sauvegardé avec succès !</div>
+
+        <form id="fullForm">
+
+        <!-- ===== APPRENTI ===== -->
+        <div class="form-card" id="sec-apprenti">
+            <h2>🎓 L'Apprenti(e)</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Nom de naissance *</label><input type="text" name="apprenti.nom_naissance"></div>
+                <div class="form-group"><label>Nom d'usage</label><input type="text" name="apprenti.nom_usage"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Prénom *</label><input type="text" name="apprenti.prenom"></div>
+                <div class="form-group"><label>Sexe *</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sexe" value="homme"> Homme</label><label><input type="radio" name="apprenti.sexe" value="femme"> Femme</label></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date de naissance *</label><div class="date-group"><input type="text" name="apprenti.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="apprenti.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="apprenti.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>N° Sécurité Sociale (NIR)</label><input type="text" name="apprenti.nir" placeholder="1 23 45 67 890 123 45"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Département de naissance</label><input type="text" name="apprenti.departement_naissance" maxlength="3"></div>
+                <div class="form-group"><label>Commune de naissance</label><input type="text" name="apprenti.commune_naissance"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Nationalité</label><select name="apprenti.nationalite"><option value="1">1 - Française</option><option value="2">2 - UE</option><option value="3">3 - Étranger hors UE</option></select></div>
+                <div class="form-group"><label>Régime social</label><select name="apprenti.regime_social"><option value="1">1 - MSA</option><option value="2">2 - Régime général</option></select></div>
+            </div>
+            <h3>Adresse de l'apprenti</h3>
+            <div class="form-row">
+                <div class="form-group"><label>N°</label><input type="text" name="apprenti.adresse_numero"></div>
+                <div class="form-group"><label>Voie</label><input type="text" name="apprenti.adresse_voie"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="apprenti.adresse_complement"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Code postal</label><input type="text" name="apprenti.adresse_code_postal" maxlength="5"></div>
+                <div class="form-group"><label>Commune</label><input type="text" name="apprenti.adresse_commune"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Téléphone</label><input type="tel" name="apprenti.telephone"></div>
+                <div class="form-group"><label>Courriel</label><input type="email" name="apprenti.courriel"></div>
+            </div>
+            <h3>Situation</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Situation avant contrat</label><select name="apprenti.situation_avant_contrat"><option value="">--</option><option value="1">1 - Scolaire</option><option value="2">2 - Prépa apprentissage</option><option value="3">3 - Étudiant</option><option value="4">4 - Contrat d'apprentissage</option><option value="5">5 - Contrat de professionnalisation</option><option value="6">6 - Contrat aidé</option><option value="7">7 - Formation CFA avant contrat</option><option value="8">8 - Formation CFA sans contrat (rupture)</option><option value="9">9 - Stagiaire formation pro</option><option value="10">10 - Salarié</option><option value="11">11 - Demandeur d'emploi</option><option value="12">12 - Inactif</option></select></div>
+                <div class="form-group"><label>Dernier diplôme préparé</label><select name="apprenti.dernier_diplome"><option value="">--</option><option value="13">13 - Aucun</option><option value="25">25 - DNB</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Diplôme le plus élevé obtenu</label><select name="apprenti.diplome_le_plus_eleve"><option value="">--</option><option value="13">13 - Aucun</option><option value="25">25 - DNB</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
+                <div class="form-group"><label>Intitulé du dernier diplôme</label><input type="text" name="apprenti.intitule_dernier_diplome"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Dernière classe suivie</label><select name="apprenti.derniere_classe"><option value="">--</option><option value="01">01 - Diplôme obtenu</option><option value="11">11 - 1ère année validée</option><option value="12">12 - 1ère année non validée</option><option value="21">21 - 2ème année validée</option><option value="22">22 - 2ème année non validée</option><option value="31">31 - 3ème année validée</option><option value="32">32 - 3ème année non validée</option><option value="40">40 - Collège achevé</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Handicap</label><div class="checkbox-group"><label><input type="radio" name="apprenti.handicap" value="oui"> Oui</label><label><input type="radio" name="apprenti.handicap" value="non"> Non</label></div></div>
+                <div class="form-group"><label>Sportif de haut niveau</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sportif_haut_niveau" value="oui"> Oui</label><label><input type="radio" name="apprenti.sportif_haut_niveau" value="non"> Non</label></div></div>
+            </div>
+            <h3>Représentant légal (si mineur)</h3>
+            <div class="form-row full"><div class="form-group"><label>Nom et prénom</label><input type="text" name="representant_legal.nom_prenom"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>N°</label><input type="text" name="representant_legal.adresse_numero"></div>
+                <div class="form-group"><label>Voie</label><input type="text" name="representant_legal.adresse_voie"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="representant_legal.adresse_complement"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Code postal</label><input type="text" name="representant_legal.adresse_code_postal" maxlength="5"></div>
+                <div class="form-group"><label>Commune</label><input type="text" name="representant_legal.adresse_commune"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Courriel</label><input type="email" name="representant_legal.courriel"></div></div>
+        </div>
+
+        <!-- ===== EMPLOYEUR ===== -->
+        <div class="form-card" id="sec-employeur">
+            <h2>🏢 L'Employeur</h2>
+            <div class="form-row"><div class="form-group"><label>Type</label><div class="checkbox-group"><label><input type="radio" name="employeur.type" value="prive"> Privé</label><label><input type="radio" name="employeur.type" value="public"> Public</label></div></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Dénomination / Raison sociale</label><input type="text" name="employeur.denomination"></div>
+                <div class="form-group"><label>SIRET (14 chiffres)</label><input type="text" name="employeur.siret" maxlength="17"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>N°</label><input type="text" name="employeur.adresse_numero"></div>
+                <div class="form-group"><label>Voie</label><input type="text" name="employeur.adresse_voie"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="employeur.adresse_complement"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Code postal</label><input type="text" name="employeur.adresse_code_postal" maxlength="5"></div>
+                <div class="form-group"><label>Commune</label><input type="text" name="employeur.adresse_commune"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Téléphone</label><input type="tel" name="employeur.telephone"></div>
+                <div class="form-group"><label>Courriel</label><input type="email" name="employeur.courriel"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Type d'employeur (code)</label><select name="employeur.type_employeur"><option value="">--</option><option value="11">11 - Entreprise métiers</option><option value="12">12 - Entreprise RCS</option><option value="13">13 - MSA</option><option value="14">14 - Profession libérale</option><option value="15">15 - Association</option><option value="16">16 - Autre privé</option><option value="21">21 - Service État</option><option value="22">22 - Commune</option><option value="23">23 - Département</option><option value="24">24 - Région</option><option value="25">25 - Hôpital public</option><option value="29">29 - Autre public</option></select></div>
+                <div class="form-group"><label>Employeur spécifique</label><select name="employeur.employeur_specifique"><option value="0">0 - Aucun</option><option value="1">1 - Travail temporaire</option><option value="2">2 - Groupement d'employeurs</option><option value="3">3 - Saisonnier</option><option value="4">4 - Apprentissage familial</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Code APE/NAF</label><input type="text" name="employeur.code_ape"></div>
+                <div class="form-group"><label>Effectif total entreprise</label><input type="number" name="employeur.effectif_entreprise"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Code IDCC convention collective</label><input type="text" name="employeur.code_idcc" maxlength="4"></div>
+                <div class="form-group"><label>Adhésion assurance chômage</label><div class="checkbox-group"><label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui</label></div></div>
+            </div>
+        </div>
+
+        <!-- ===== CONTRAT ===== -->
+        <div class="form-card" id="sec-contrat">
+            <h2>📄 Le Contrat</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Mode contractuel</label><select name="contrat.mode_contractuel"><option value="1">1 - Durée limitée</option><option value="2">2 - CDI</option><option value="3">3 - Travail temporaire</option><option value="4">4 - Saisonnier 2 employeurs</option></select></div>
+                <div class="form-group"><label>Type contrat/avenant</label><select name="contrat.type_contrat"><option value="11">11 - Premier contrat</option><option value="21">21 - Nouveau, nouvel employeur</option><option value="22">22 - Nouveau, même employeur</option><option value="23">23 - Nouveau, diplôme différent</option><option value="31">31 - Avenant: modif juridique</option><option value="35">35 - Avenant: modif diplôme</option><option value="36">36 - Avenant: autres</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Type de dérogation</label><select name="contrat.type_derogation"><option value="">Aucune</option><option value="11">11 - Âge < 16</option><option value="12">12 - Âge > 29</option><option value="21">21 - Réduction durée</option><option value="22">22 - Allongement durée</option><option value="50">50 - Cumul dérogations</option></select></div>
+                <div class="form-group"><label>N° contrat précédent</label><input type="text" name="contrat.numero_contrat_precedent"></div>
+            </div>
+            <div class="form-row triple">
+                <div class="form-group"><label>Date conclusion</label><div class="date-group"><input type="text" name="contrat.date_conclusion_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_conclusion_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_conclusion_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Date début exécution</label><div class="date-group"><input type="text" name="contrat.date_debut_contrat_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_debut_contrat_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_debut_contrat_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Date début formation employeur</label><div class="date-group"><input type="text" name="contrat.date_debut_formation_employeur_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_debut_formation_employeur_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_debut_formation_employeur_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date effet avenant</label><div class="date-group"><input type="text" name="contrat.date_effet_avenant_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_effet_avenant_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_effet_avenant_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Date fin contrat</label><div class="date-group"><input type="text" name="contrat.date_fin_contrat_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_fin_contrat_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_fin_contrat_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Durée hebdo (heures)</label><input type="number" name="contrat.duree_hebdomadaire_heures" value="35"></div>
+                <div class="form-group"><label>Minutes</label><input type="number" name="contrat.duree_hebdomadaire_minutes" value="0" max="59"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Travail sur machines dangereuses</label><div class="checkbox-group"><label><input type="radio" name="contrat.travail_risque" value="oui"> Oui</label><label><input type="radio" name="contrat.travail_risque" value="non"> Non</label></div></div>
+                <div class="form-group"><label>Salaire brut mensuel (€)</label><input type="text" name="contrat.salaire_brut_mensuel"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Caisse retraite complémentaire</label><input type="text" name="contrat.caisse_retraite_complementaire"></div>
+            </div>
+            <h3>Avantages en nature</h3>
+            <div class="form-row triple">
+                <div class="form-group"><label>Nourriture (€/repas)</label><input type="text" name="contrat.nourriture"></div>
+                <div class="form-group"><label>Logement (€/mois)</label><input type="text" name="contrat.logement"></div>
+                <div class="form-group"><label>Autre (€)</label><input type="text" name="contrat.autre"></div>
+            </div>
+        </div>
+
+        <!-- ===== FORMATION / CFA ===== -->
+        <div class="form-card" id="sec-formation">
+            <h2>🏫 Formation / CFA</h2>
+            <div class="form-row"><div class="form-group"><label>CFA d'entreprise</label><div class="checkbox-group"><label><input type="radio" name="formation.cfa_entreprise" value="oui"> Oui</label><label><input type="radio" name="formation.cfa_entreprise" value="non"> Non</label></div></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Dénomination du CFA</label><input type="text" name="formation.denomination_cfa"></div>
+                <div class="form-group"><label>N° UAI du CFA</label><input type="text" name="formation.uai_cfa"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>SIRET du CFA</label><input type="text" name="formation.siret_cfa"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>N°</label><input type="text" name="formation.adresse_cfa_numero"></div>
+                <div class="form-group"><label>Voie</label><input type="text" name="formation.adresse_cfa_voie"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="formation.adresse_cfa_complement"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Code postal</label><input type="text" name="formation.adresse_cfa_code_postal" maxlength="5"></div>
+                <div class="form-group"><label>Commune</label><input type="text" name="formation.adresse_cfa_commune"></div>
+            </div>
+            <div class="form-row"><div class="form-group"><label><input type="checkbox" name="formation.cfa_meme_lieu" value="true"> Le CFA est le lieu de formation principal</label></div></div>
+            <h3>Diplôme visé</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Diplôme visé</label><select name="formation.diplome_vise"><option value="">--</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
+                <div class="form-group"><label>Intitulé précis</label><input type="text" name="formation.intitule_precis"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Code diplôme</label><input type="text" name="formation.code_diplome"></div>
+                <div class="form-group"><label>Code RNCP</label><input type="text" name="formation.code_rncp"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date début formation CFA</label><div class="date-group"><input type="text" name="formation.date_debut_formation_jour" placeholder="JJ" maxlength="2"><input type="text" name="formation.date_debut_formation_mois" placeholder="MM" maxlength="2"><input type="text" name="formation.date_debut_formation_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Date fin épreuves</label><div class="date-group"><input type="text" name="formation.date_fin_formation_jour" placeholder="JJ" maxlength="2"><input type="text" name="formation.date_fin_formation_mois" placeholder="MM" maxlength="2"><input type="text" name="formation.date_fin_formation_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Durée formation (heures)</label><input type="number" name="formation.duree_formation_heures"></div>
+                <div class="form-group"><label>Dont à distance</label><input type="number" name="formation.duree_formation_distance" value="0"></div>
+            </div>
+        </div>
+
+        <!-- ===== RÉMUNÉRATION ===== -->
+        <div class="form-card" id="sec-remuneration">
+            <h2>💰 Rémunération</h2>
+            <div class="info-box"><p>Indiquer le % du SMIC ou SMC pour chaque période. Chaque année peut avoir 2 périodes.</p></div>
+            <h3>1ère année</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_1_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_1_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_1_du_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_1_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_1_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_1_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_1_pourcentage"></div>
+                <div class="form-group"><label>Base</label><select name="remuneration.annee_1_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+            </div>
+            <h3>2ème année</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_2_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_du_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_2_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_2_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_2_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_2_pourcentage"></div>
+                <div class="form-group"><label>Base</label><select name="remuneration.annee_2_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+            </div>
+            <h3>3ème année</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Du</label><div class="date-group"><input type="text" name="remuneration.annee_3_du_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_du_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_du_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Au</label><div class="date-group"><input type="text" name="remuneration.annee_3_au_jour" placeholder="JJ" maxlength="2"><input type="text" name="remuneration.annee_3_au_mois" placeholder="MM" maxlength="2"><input type="text" name="remuneration.annee_3_au_annee" placeholder="AAAA" maxlength="4"></div></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>% SMIC/SMC</label><input type="text" name="remuneration.annee_3_pourcentage"></div>
+                <div class="form-group"><label>Base</label><select name="remuneration.annee_3_base"><option value="SMIC">SMIC</option><option value="SMC">SMC</option></select></div>
+            </div>
+        </div>
+
+        <!-- ===== MAÎTRE D'APPRENTISSAGE ===== -->
+        <div class="form-card" id="sec-maitre">
+            <h2>👨‍🏫 Maître d'Apprentissage</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Nom *</label><input type="text" name="maitre_apprentissage.nom"></div>
+                <div class="form-group"><label>Prénom *</label><input type="text" name="maitre_apprentissage.prenom"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date de naissance</label><div class="date-group"><input type="text" name="maitre_apprentissage.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="maitre_apprentissage.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="maitre_apprentissage.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Courriel</label><input type="email" name="maitre_apprentissage.courriel"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage.emploi_occupe"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Diplôme le plus élevé</label><input type="text" name="maitre_apprentissage.diplome_le_plus_eleve"></div>
+                <div class="form-group"><label>Niveau</label><select name="maitre_apprentissage.niveau_diplome"><option value="">--</option><option value="1">1 - CAP/BEP</option><option value="2">2 - Bac</option><option value="3">3 - Bac+2</option><option value="4">4 - Bac+3/4</option><option value="5">5 - Bac+5+</option></select></div>
+            </div>
+            <h3>Second maître (optionnel)</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Nom</label><input type="text" name="maitre_apprentissage_2.nom"></div>
+                <div class="form-group"><label>Prénom</label><input type="text" name="maitre_apprentissage_2.prenom"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date de naissance</label><div class="date-group"><input type="text" name="maitre_apprentissage_2.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="maitre_apprentissage_2.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="maitre_apprentissage_2.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
+                <div class="form-group"><label>Courriel</label><input type="email" name="maitre_apprentissage_2.courriel"></div>
+            </div>
+            <div class="form-row full"><div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage_2.emploi_occupe"></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Diplôme le plus élevé</label><input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve"></div>
+                <div class="form-group"><label>Niveau</label><select name="maitre_apprentissage_2.niveau_diplome"><option value="">--</option><option value="1">1 - CAP/BEP</option><option value="2">2 - Bac</option><option value="3">3 - Bac+2</option><option value="4">4 - Bac+3/4</option><option value="5">5 - Bac+5+</option></select></div>
+            </div>
+            <div class="form-row full" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-200);">
+                <div class="form-group"><label><input type="checkbox" name="maitre_apprentissage.atteste_criteres_eligibilite" value="true"> L'employeur atteste que le maître d'apprentissage répond aux critères d'éligibilité</label></div>
+            </div>
+        </div>
+
+        <!-- ===== ATTESTATION ===== -->
+        <div class="form-card" id="sec-attestation">
+            <h2>✅ Attestation</h2>
+            <div class="form-row full"><div class="form-group"><label>Fait à</label><input type="text" name="attestation.fait_a" placeholder="Ex: Paris"></div></div>
+            <div class="form-row full"><div class="form-group"><label><input type="checkbox" name="attestation.pieces_justificatives" value="true"> L'employeur atteste disposer de l'ensemble des pièces justificatives</label></div></div>
+        </div>
+
+        </form>
+
+        <div class="actions-bottom">
+            <button class="btn btn-back" onclick="window.location.href='/dashboard-cfa.html'">← Retour au dashboard</button>
+            <button class="btn btn-save" onclick="saveAll()">💾 Sauvegarder toutes les modifications</button>
+            <button class="btn btn-pdf" id="btnPdf" onclick="generatePdf()">📄 Générer le PDF CERFA</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const authToken = localStorage.getItem('auth_token');
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (!authToken || authUser.role !== 'cfa') { window.location.href = '/login.html'; }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const contractId = urlParams.get('id');
+        if (!contractId) { document.querySelector('.container').innerHTML = '<p style="color:red;padding:40px;">❌ Aucun ID de contrat spécifié.</p>'; }
+
+        function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken }; }
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+
+        // Pré-remplissage
+        async function loadContract() {
+            try {
+                const res = await fetch('/api/contracts/' + contractId, { headers: authHeaders() });
+                if (!res.ok) { showToast('Erreur: contrat non trouvé'); return; }
+                const c = await res.json();
+                document.getElementById('contractIdLabel').textContent = '#' + contractId.slice(0, 8);
+
+                const allData = { ...c.etudiant, ...c.entreprise, ...c.formation };
+                prefillForm(allData);
+
+                // Restaurer booleans spécifiques
+                if (c.etudiant) {
+                    const a = c.etudiant.apprenti || {};
+                    setRadio('apprenti.sexe', a.sexe_homme ? 'homme' : a.sexe_femme ? 'femme' : '');
+                    setRadio('apprenti.handicap', a.handicap_oui ? 'oui' : a.handicap_non ? 'non' : '');
+                    setRadio('apprenti.sportif_haut_niveau', a.sportif_haut_niveau_oui ? 'oui' : a.sportif_haut_niveau_non ? 'non' : '');
+                }
+                if (c.entreprise) {
+                    const emp = c.entreprise.employeur || {};
+                    setRadio('employeur.type', emp.type_prive ? 'prive' : emp.type_public ? 'public' : '');
+                    setCheck('employeur.adhesion_chomage', emp.adhesion_chomage);
+                    const ct = c.entreprise.contrat || {};
+                    setRadio('contrat.travail_risque', ct.travail_risque_oui ? 'oui' : ct.travail_risque_non ? 'non' : '');
+                    const fm = c.entreprise.formation || {};
+                    setRadio('formation.cfa_entreprise', fm.cfa_entreprise_oui ? 'oui' : fm.cfa_entreprise_non ? 'non' : '');
+                    setCheck('maitre_apprentissage.atteste_criteres_eligibilite', c.entreprise.maitre_apprentissage?.atteste_criteres_eligibilite);
+                    setCheck('attestation.pieces_justificatives', c.entreprise.attestation?.pieces_justificatives);
+                    setCheck('formation.cfa_meme_lieu', fm.cfa_meme_lieu);
+                }
+                if (c.formation) {
+                    prefillForm({ formation: c.formation });
+                }
+            } catch (err) { console.error(err); showToast('Erreur chargement'); }
+        }
+
+        function prefillForm(data) {
+            if (!data) return;
+            const form = document.getElementById('fullForm');
+            function fill(obj, prefix) {
+                for (const [k, v] of Object.entries(obj)) {
+                    if (v && typeof v === 'object') { fill(v, prefix ? prefix + '.' + k : k); continue; }
+                    if (v === true || v === false) continue;
+                    const name = prefix ? prefix + '.' + k : k;
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        if (input.type === 'radio') {
+                            const r = form.querySelector(`[name="${name}"][value="${v}"]`);
+                            if (r) r.checked = true;
+                        } else if (input.type === 'checkbox') {
+                            input.checked = !!v;
+                        } else {
+                            input.value = v || '';
+                        }
+                    }
+                }
+            }
+            fill(data, '');
+        }
+
+        function setRadio(name, value) {
+            if (!value) return;
+            const r = document.querySelector(`[name="${name}"][value="${value}"]`);
+            if (r) r.checked = true;
+        }
+        function setCheck(name, value) {
+            const c = document.querySelector(`[name="${name}"]`);
+            if (c) c.checked = !!value;
+        }
+
+        // Collecte des données du formulaire
+        function collectFormData() {
+            const form = document.getElementById('fullForm');
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                const parts = key.split('.');
+                if (parts.length === 2) {
+                    if (!data[parts[0]]) data[parts[0]] = {};
+                    data[parts[0]][parts[1]] = value;
+                } else { data[key] = value; }
+            }
+            // Booleans
+            if (!data.apprenti) data.apprenti = {};
+            if (!data.employeur) data.employeur = {};
+            if (!data.contrat) data.contrat = {};
+            if (!data.formation) data.formation = {};
+            if (!data.maitre_apprentissage) data.maitre_apprentissage = {};
+            if (!data.attestation) data.attestation = {};
+
+            const sexe = document.querySelector('[name="apprenti.sexe"]:checked');
+            data.apprenti.sexe_homme = sexe?.value === 'homme';
+            data.apprenti.sexe_femme = sexe?.value === 'femme';
+            const handicap = document.querySelector('[name="apprenti.handicap"]:checked');
+            data.apprenti.handicap_oui = handicap?.value === 'oui';
+            data.apprenti.handicap_non = handicap?.value === 'non';
+            const sportif = document.querySelector('[name="apprenti.sportif_haut_niveau"]:checked');
+            data.apprenti.sportif_haut_niveau_oui = sportif?.value === 'oui';
+            data.apprenti.sportif_haut_niveau_non = sportif?.value === 'non';
+
+            const empType = document.querySelector('[name="employeur.type"]:checked');
+            data.employeur.type_prive = empType?.value === 'prive';
+            data.employeur.type_public = empType?.value === 'public';
+            data.employeur.adhesion_chomage = document.querySelector('[name="employeur.adhesion_chomage"]')?.checked;
+
+            const travail = document.querySelector('[name="contrat.travail_risque"]:checked');
+            data.contrat.travail_risque_oui = travail?.value === 'oui';
+            data.contrat.travail_risque_non = travail?.value === 'non';
+
+            const cfaEnt = document.querySelector('[name="formation.cfa_entreprise"]:checked');
+            data.formation.cfa_entreprise_oui = cfaEnt?.value === 'oui';
+            data.formation.cfa_entreprise_non = cfaEnt?.value === 'non';
+            data.formation.cfa_meme_lieu = document.querySelector('[name="formation.cfa_meme_lieu"]')?.checked;
+
+            data.maitre_apprentissage.atteste_criteres_eligibilite = document.querySelector('[name="maitre_apprentissage.atteste_criteres_eligibilite"]')?.checked;
+            data.attestation.pieces_justificatives = document.querySelector('[name="attestation.pieces_justificatives"]')?.checked;
+
+            // Nettoyer SIRET
+            if (data.employeur.siret) data.employeur.siret = data.employeur.siret.replace(/\s/g, '');
+            if (data.apprenti.nir) data.apprenti.nir = data.apprenti.nir.replace(/\s/g, '');
+
+            return data;
+        }
+
+        // Sauvegarde
+        async function saveAll() {
+            const data = collectFormData();
+            // Séparer en sections pour l'API
+            const etudiant = {};
+            const entreprise = {};
+            const formation = {};
+
+            if (data.apprenti) etudiant.apprenti = data.apprenti;
+            if (data.representant_legal) etudiant.representant_legal = data.representant_legal;
+            if (data.employeur) entreprise.employeur = data.employeur;
+            if (data.contrat) entreprise.contrat = data.contrat;
+            if (data.remuneration) entreprise.remuneration = data.remuneration;
+            if (data.maitre_apprentissage) entreprise.maitre_apprentissage = data.maitre_apprentissage;
+            if (data.maitre_apprentissage_2) entreprise.maitre_apprentissage_2 = data.maitre_apprentissage_2;
+            if (data.attestation) entreprise.attestation = data.attestation;
+            if (data.formation) {
+                entreprise.formation = data.formation;
+                formation.denomination_cfa = data.formation.denomination_cfa || '';
+                formation.uai_cfa = data.formation.uai_cfa || '';
+                formation.siret_cfa = data.formation.siret_cfa || '';
+                formation.adresse_cfa_numero = data.formation.adresse_cfa_numero || '';
+                formation.adresse_cfa_voie = data.formation.adresse_cfa_voie || '';
+                formation.adresse_cfa_complement = data.formation.adresse_cfa_complement || '';
+                formation.adresse_cfa_code_postal = data.formation.adresse_cfa_code_postal || '';
+                formation.adresse_cfa_commune = data.formation.adresse_cfa_commune || '';
+            }
+
+            try {
+                const res = await fetch('/api/contracts/' + contractId, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ etudiant, entreprise, formation })
+                });
+                if (res.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    showToast('✅ Contrat sauvegardé !');
+                    setTimeout(() => document.getElementById('successMessage').style.display = 'none', 3000);
+                } else { showToast('Erreur de sauvegarde'); }
+            } catch (err) { showToast('Erreur de sauvegarde'); console.error(err); }
+        }
+
+        function generatePdf() {
+            window.open('/api/contracts/' + contractId + '/generate-pdf', '_blank');
+        }
+
+        // Smooth scroll nav
+        document.querySelectorAll('.section-nav a').forEach(a => {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.section-nav a').forEach(x => x.classList.remove('active'));
+                a.classList.add('active');
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        loadContract();
+    </script>
+</body>
+</html>
