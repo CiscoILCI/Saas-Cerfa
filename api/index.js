@@ -35,6 +35,7 @@ async function redisCall(command) {
 const CONTRACTS_KEY = 'contracts'; // Hash: contractId -> JSON
 const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
 const USERS_KEY = 'users';         // Hash: email -> JSON { id, email, password, role, createdAt, profile }
+const MA_KEY_PREFIX = 'maitres:';  // Hash per CFA: maitres:{cfaId} -> maId -> JSON
 
 // =====================
 // REDIS HELPERS (via REST API)
@@ -180,6 +181,54 @@ function requireAuth(req, res, roles = []) {
     return null;
   }
   return user;
+}
+
+// =====================
+// MAITRES D'APPRENTISSAGE HELPERS
+// =====================
+async function getMaitres(cfaId) {
+  try {
+    const key = MA_KEY_PREFIX + cfaId;
+    const all = await redisCall(['HGETALL', key]);
+    if (!all || all.length === 0) return [];
+    const maitres = [];
+    for (let i = 1; i < all.length; i += 2) {
+      maitres.push(JSON.parse(all[i]));
+    }
+    return maitres;
+  } catch (e) {
+    console.error('[REDIS ERROR] getMaitres:', e.message);
+    return [];
+  }
+}
+
+async function getMaitre(cfaId, maId) {
+  try {
+    const data = await redisCall(['HGET', MA_KEY_PREFIX + cfaId, maId]);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('[REDIS ERROR] getMaitre:', e.message);
+    return null;
+  }
+}
+
+async function saveMaitre(cfaId, maitre) {
+  try {
+    await redisCall(['HSET', MA_KEY_PREFIX + cfaId, maitre.id, JSON.stringify(maitre)]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveMaitre:', e.message);
+  }
+}
+
+async function deleteMaitre(cfaId, maId) {
+  try {
+    await redisCall(['HDEL', MA_KEY_PREFIX + cfaId, maId]);
+    return true;
+  } catch (e) {
+    console.error('[REDIS ERROR] deleteMaitre:', e.message);
+    return false;
+  }
 }
 
 // =====================
@@ -474,13 +523,28 @@ module.exports = async function handler(req, res) {
       const entrepriseToken = uuid();
       const baseUrl = getBaseUrl(req);
 
+      // Auto-remplissage CFA depuis le profil
+      const cfaUser = await getUserByEmail(authUser.email);
+      const cfaProfile = (cfaUser && cfaUser.profile) || {};
+      const formation = {
+        denomination_cfa: cfaProfile.denomination || '',
+        uai_cfa: cfaProfile.uai || '',
+        siret_cfa: cfaProfile.siret || '',
+        adresse_cfa_numero: cfaProfile.numero || '',
+        adresse_cfa_voie: cfaProfile.voie || '',
+        adresse_cfa_complement: cfaProfile.complement || '',
+        adresse_cfa_code_postal: cfaProfile.code_postal || '',
+        adresse_cfa_commune: cfaProfile.commune || ''
+      };
+
       const contract = {
         id: contractId,
         cfaId: authUser.id,
         createdAt: new Date().toISOString(),
         status: 'pending',
         tokens: { etudiant: etudiantToken, entreprise: entrepriseToken },
-        etudiant: null, entreprise: null, formation: null
+        etudiant: null, entreprise: null, formation,
+        history: [{ action: 'created', date: new Date().toISOString(), by: authUser.email }]
       };
 
       await saveContract(contract);
@@ -519,6 +583,8 @@ module.exports = async function handler(req, res) {
       const body = await parseBody(req);
       result.contract.etudiant = body;
       updateContractStatus(result.contract);
+      if (!result.contract.history) result.contract.history = [];
+      result.contract.history.push({ action: 'etudiant_submitted', date: new Date().toISOString(), by: 'etudiant' });
       await saveContract(result.contract);
       return sendJSON(res, { success: true, message: 'Données étudiant enregistrées' });
     }
@@ -531,6 +597,8 @@ module.exports = async function handler(req, res) {
       const body = await parseBody(req);
       result.contract.entreprise = body;
       updateContractStatus(result.contract);
+      if (!result.contract.history) result.contract.history = [];
+      result.contract.history.push({ action: 'entreprise_submitted', date: new Date().toISOString(), by: 'entreprise' });
       await saveContract(result.contract);
       return sendJSON(res, { success: true, message: 'Données entreprise enregistrées' });
     }
@@ -548,7 +616,7 @@ module.exports = async function handler(req, res) {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const mapping = JSON.parse(fs.readFileSync(MAPPING_FILE, 'utf8'));
-      const mergedData = { ...contract.entreprise, ...contract.etudiant };
+      const mergedData = { ...contract.entreprise, ...contract.etudiant, ...(contract.formation || {}) };
       const flatData = flattenObject(mergedData);
       const flatMap = flattenMapping(mapping);
       let filledCount = 0;
@@ -570,6 +638,131 @@ module.exports = async function handler(req, res) {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="cerfa_contrat_${pdfMatch.id.slice(0, 8)}.pdf"`);
       return res.end(Buffer.from(pdfOut));
+    }
+
+    // ---------- GET /api/contracts/:id ----------
+    const detailMatch = matchRoute(url, '/api/contracts/:id');
+    if (method === 'GET' && detailMatch && !url.includes('generate-pdf')) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(detailMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      return sendJSON(res, {
+        id: contract.id,
+        createdAt: contract.createdAt,
+        status: contract.status,
+        etudiant: contract.etudiant,
+        entreprise: contract.entreprise,
+        formation: contract.formation,
+        history: contract.history || [],
+        tokens: contract.tokens
+      });
+    }
+
+    // ---------- PUT /api/contracts/:id ----------
+    const updateMatch = matchRoute(url, '/api/contracts/:id');
+    if (method === 'PUT' && updateMatch && !url.includes('status')) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(updateMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+
+      const body = await parseBody(req);
+      if (body.etudiant !== undefined) contract.etudiant = { ...contract.etudiant, ...body.etudiant };
+      if (body.entreprise !== undefined) contract.entreprise = { ...contract.entreprise, ...body.entreprise };
+      if (body.formation !== undefined) contract.formation = { ...contract.formation, ...body.formation };
+      updateContractStatus(contract);
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: 'updated_by_cfa', date: new Date().toISOString(), by: authUser.email });
+      await saveContract(contract);
+      return sendJSON(res, { success: true, contract: { id: contract.id, status: contract.status } });
+    }
+
+    // ---------- PUT /api/contracts/:id/status ----------
+    const statusMatch = matchRoute(url, '/api/contracts/:id/status');
+    if (method === 'PUT' && statusMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(statusMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+
+      const body = await parseBody(req);
+      const validStatuses = ['pending', 'partial', 'ready', 'signed', 'archived'];
+      if (!body.status || !validStatuses.includes(body.status)) {
+        return sendJSON(res, { error: 'Statut invalide. Valeurs: ' + validStatuses.join(', ') }, 400);
+      }
+      const oldStatus = contract.status;
+      contract.status = body.status;
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: 'status_changed', from: oldStatus, to: body.status, date: new Date().toISOString(), by: authUser.email });
+      await saveContract(contract);
+      return sendJSON(res, { success: true, oldStatus, newStatus: body.status });
+    }
+
+    // ---------- GET /api/contracts/:id/history ----------
+    const histMatch = matchRoute(url, '/api/contracts/:id/history');
+    if (method === 'GET' && histMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(histMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      return sendJSON(res, contract.history || []);
+    }
+
+    // =====================
+    // ROUTES MAITRES D'APPRENTISSAGE
+    // =====================
+
+    // ---------- GET /api/maitres ----------
+    if (method === 'GET' && url === '/api/maitres') {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const maitres = await getMaitres(authUser.id);
+      return sendJSON(res, maitres);
+    }
+
+    // ---------- POST /api/maitres ----------
+    if (method === 'POST' && url === '/api/maitres') {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const body = await parseBody(req);
+      if (!body.nom || !body.prenom) return sendJSON(res, { error: 'Nom et prénom requis' }, 400);
+      const maitre = {
+        id: uuid(),
+        nom: body.nom,
+        prenom: body.prenom,
+        date_naissance: body.date_naissance || '',
+        courriel: body.courriel || '',
+        emploi_occupe: body.emploi_occupe || '',
+        diplome_le_plus_eleve: body.diplome_le_plus_eleve || '',
+        niveau_diplome: body.niveau_diplome || '',
+        createdAt: new Date().toISOString()
+      };
+      await saveMaitre(authUser.id, maitre);
+      return sendJSON(res, { success: true, maitre });
+    }
+
+    // ---------- PUT /api/maitres/:id ----------
+    const maUpdateMatch = matchRoute(url, '/api/maitres/:id');
+    if (method === 'PUT' && maUpdateMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const maitre = await getMaitre(authUser.id, maUpdateMatch.id);
+      if (!maitre) return sendJSON(res, { error: 'Maître non trouvé' }, 404);
+      const body = await parseBody(req);
+      const updated = { ...maitre, ...body, id: maitre.id };
+      await saveMaitre(authUser.id, updated);
+      return sendJSON(res, { success: true, maitre: updated });
+    }
+
+    // ---------- DELETE /api/maitres/:id ----------
+    const maDelMatch = matchRoute(url, '/api/maitres/:id');
+    if (method === 'DELETE' && maDelMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const deleted = await deleteMaitre(authUser.id, maDelMatch.id);
+      if (deleted) return sendJSON(res, { success: true });
+      return sendJSON(res, { error: 'Maître non trouvé' }, 404);
     }
 
     // ---------- DELETE /api/contracts/:id ----------

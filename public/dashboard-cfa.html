@@ -175,6 +175,8 @@
     .status-pending { background: #fff3e0; color: #e65100; }
     .status-partial { background: #e3f2fd; color: #1565c0; }
     .status-ready { background: #e8f5e9; color: #2e7d32; }
+    .status-signed { background: #e0f2f1; color: #00695c; }
+    .status-archived { background: #f5f5f5; color: #616161; }
     .link-copy {
       cursor: pointer;
       color: #667eea;
@@ -314,6 +316,7 @@
 
     <div class="tab-nav">
       <button class="tab-btn active" onclick="showTab('contrats')">📄 Contrats</button>
+      <button class="tab-btn" onclick="showTab('maitres')">👨‍🏫 Maîtres d'apprentissage</button>
       <button class="tab-btn" onclick="showTab('profil')">🏫 Mon profil CFA</button>
     </div>
 
@@ -353,6 +356,18 @@
     </div>
 
     </div><!-- fin tab-contrats -->
+
+    <!-- TAB MAITRES D'APPRENTISSAGE -->
+    <div id="tab-maitres" class="tab-content">
+      <div class="actions-bar">
+        <button class="btn btn-primary" onclick="showMaModal()">➕ Ajouter un maître</button>
+        <button class="btn btn-secondary" onclick="loadMaitres()">🔄 Rafraîchir</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>👨‍🏫 Maîtres d'apprentissage enregistrés</span></div>
+        <div id="maitresTable"></div>
+      </div>
+    </div><!-- fin tab-maitres -->
 
     <!-- TAB PROFIL CFA -->
     <div id="tab-profil" class="tab-content">
@@ -402,6 +417,36 @@
 
   </div>
 
+  <!-- MODAL MAITRE -->
+  <div id="maModal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="maModalTitle">Ajouter un maître d'apprentissage</h3>
+      <input type="hidden" id="maEditId">
+      <div class="form-group" style="margin-bottom:12px;"><label>Nom</label><input type="text" id="maNom"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Prénom</label><input type="text" id="maPrenom"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Date de naissance (JJ/MM/AAAA)</label><input type="text" id="maDateNaissance" placeholder="01/01/1980"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Email</label><input type="email" id="maCourriel"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Emploi occupé</label><input type="text" id="maEmploi"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Diplôme le plus élevé</label><input type="text" id="maDiplome"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Niveau diplôme</label><input type="text" id="maNiveau"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeMaModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveMaitre()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REVUE CONTRAT -->
+  <div id="revueModal" class="modal-overlay">
+    <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto;">
+      <h3>📋 Revue du contrat <span id="revueContratId"></span></h3>
+      <div id="revueContent"></div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeRevueModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
@@ -449,7 +494,7 @@
         document.getElementById('statTotal').textContent = contracts.length;
         document.getElementById('statPending').textContent = contracts.filter(c => c.status === 'pending').length;
         document.getElementById('statPartial').textContent = contracts.filter(c => c.status === 'partial').length;
-        document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready').length;
+        document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready' || c.status === 'signed').length;
         document.getElementById('contractCount').textContent = contracts.length + ' contrat(s)';
 
         if (contracts.length === 0) {
@@ -462,17 +507,18 @@
           return;
         }
 
+        const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
         let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Statut</th><th>Étudiant</th><th>Entreprise</th><th>Actions</th></tr></thead><tbody>';
         contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         for (const c of contracts) {
           const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
           const statusClass = 'status-' + c.status;
-          const statusLabel = c.status === 'pending' ? 'En attente' : c.status === 'partial' ? 'Partiel' : 'Prêt';
+          const label = statusLabels[c.status] || c.status;
           html += `<tr>
             <td style="font-family:monospace;font-size:12px;">${c.id.slice(0, 8)}</td>
             <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td><span class="status-badge ${statusClass}">${label}</span></td>
             <td>
               ${c.etudiantComplete ? '✅' : '⏳'}
               <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Copier lien</span>
@@ -481,8 +527,11 @@
               ${c.entrepriseComplete ? '✅' : '⏳'}
               <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Copier lien</span>
             </td>
-            <td>
-              ${c.status === 'ready' ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
+            <td style="white-space:nowrap;">
+              <button class="btn btn-secondary btn-sm" onclick="openRevue('${c.id}')">👁️</button>
+              ${c.status === 'ready' ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄</button>` : ''}
+              ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','signed')">✅ Signer</button>` : ''}
+              ${c.status === 'signed' ? `<button class="btn btn-sm" style="background:#666;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
               <button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>
             </td>
           </tr>`;
@@ -582,9 +631,174 @@
       } catch (err) { showToast('Erreur de sauvegarde'); }
     }
 
+    // =====================
+    // MAITRES D'APPRENTISSAGE
+    // =====================
+    async function loadMaitres() {
+      try {
+        const res = await fetch('/api/maitres', { headers: authHeaders() });
+        const maitres = await res.json();
+        const el = document.getElementById('maitresTable');
+        if (!maitres.length) {
+          el.innerHTML = '<div class="empty-state"><div class="icon">👨‍🏫</div><p>Aucun maître enregistré</p></div>';
+          return;
+        }
+        let html = '<table><thead><tr><th>Nom</th><th>Prénom</th><th>Email</th><th>Emploi</th><th>Diplôme</th><th>Actions</th></tr></thead><tbody>';
+        for (const m of maitres) {
+          html += `<tr>
+            <td>${m.nom}</td><td>${m.prenom}</td><td>${m.courriel || '-'}</td>
+            <td>${m.emploi_occupe || '-'}</td><td>${m.diplome_le_plus_eleve || '-'}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="editMaitre('${m.id}')">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteMaitre('${m.id}')">🗑️</button>
+            </td>
+          </tr>`;
+        }
+        html += '</tbody></table>';
+        el.innerHTML = html;
+      } catch (err) { showToast('Erreur chargement maîtres'); }
+    }
+
+    function showMaModal(data) {
+      document.getElementById('maEditId').value = data ? data.id : '';
+      document.getElementById('maModalTitle').textContent = data ? 'Modifier le maître' : "Ajouter un maître d'apprentissage";
+      document.getElementById('maNom').value = data ? data.nom : '';
+      document.getElementById('maPrenom').value = data ? data.prenom : '';
+      document.getElementById('maDateNaissance').value = data ? data.date_naissance : '';
+      document.getElementById('maCourriel').value = data ? data.courriel : '';
+      document.getElementById('maEmploi').value = data ? data.emploi_occupe : '';
+      document.getElementById('maDiplome').value = data ? data.diplome_le_plus_eleve : '';
+      document.getElementById('maNiveau').value = data ? data.niveau_diplome : '';
+      document.getElementById('maModal').classList.add('active');
+    }
+    function closeMaModal() { document.getElementById('maModal').classList.remove('active'); }
+
+    async function editMaitre(id) {
+      try {
+        const res = await fetch('/api/maitres', { headers: authHeaders() });
+        const maitres = await res.json();
+        const m = maitres.find(x => x.id === id);
+        if (m) showMaModal(m);
+      } catch (err) { showToast('Erreur'); }
+    }
+
+    async function saveMaitre() {
+      const id = document.getElementById('maEditId').value;
+      const body = {
+        nom: document.getElementById('maNom').value,
+        prenom: document.getElementById('maPrenom').value,
+        date_naissance: document.getElementById('maDateNaissance').value,
+        courriel: document.getElementById('maCourriel').value,
+        emploi_occupe: document.getElementById('maEmploi').value,
+        diplome_le_plus_eleve: document.getElementById('maDiplome').value,
+        niveau_diplome: document.getElementById('maNiveau').value
+      };
+      if (!body.nom || !body.prenom) { showToast('Nom et prénom requis'); return; }
+      try {
+        const url = id ? '/api/maitres/' + id : '/api/maitres';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
+        if (res.ok) { showToast(id ? 'Maître modifié' : 'Maître ajouté'); closeMaModal(); loadMaitres(); }
+        else showToast('Erreur');
+      } catch (err) { showToast('Erreur'); }
+    }
+
+    async function deleteMaitre(id) {
+      if (!confirm('Supprimer ce maître ?')) return;
+      try {
+        const res = await fetch('/api/maitres/' + id, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok) { showToast('Maître supprimé'); loadMaitres(); }
+      } catch (err) { showToast('Erreur'); }
+    }
+
+    // =====================
+    // REVUE CONTRAT + STATUTS + HISTORIQUE
+    // =====================
+    async function openRevue(id) {
+      try {
+        const res = await fetch('/api/contracts/' + id, { headers: authHeaders() });
+        const c = await res.json();
+        document.getElementById('revueContratId').textContent = '#' + id.slice(0, 8);
+        let html = '';
+
+        // Statut
+        const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
+        html += `<div style="margin-bottom:16px;"><strong>Statut :</strong> <span class="status-badge status-${c.status}">${statusLabels[c.status] || c.status}</span></div>`;
+
+        // Données étudiant
+        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🎓 Données étudiant</h4>';
+        if (c.etudiant) {
+          html += buildDataTable(c.etudiant);
+        } else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
+        html += '</div>';
+
+        // Données entreprise
+        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏢 Données entreprise</h4>';
+        if (c.entreprise) {
+          html += buildDataTable(c.entreprise);
+        } else { html += '<p style="color:#888;">Pas encore rempli</p>'; }
+        html += '</div>';
+
+        // Données formation (auto-rempli CFA)
+        html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🏫 Données formation/CFA</h4>';
+        if (c.formation) {
+          html += buildDataTable(c.formation);
+        } else { html += '<p style="color:#888;">Aucune donnée</p>'; }
+        html += '</div>';
+
+        // Historique
+        html += '<div class="card" style="padding:14px;"><h4 style="margin-bottom:8px;">📜 Historique</h4>';
+        if (c.history && c.history.length) {
+          html += '<table style="width:100%;"><thead><tr><th>Date</th><th>Action</th><th>Par</th></tr></thead><tbody>';
+          const actionLabels = { created: 'Création', etudiant_submitted: 'Étudiant soumis', entreprise_submitted: 'Entreprise soumis', updated_by_cfa: 'Modifié par CFA', status_changed: 'Statut changé' };
+          for (const h of c.history.slice().reverse()) {
+            const d = new Date(h.date).toLocaleString('fr-FR');
+            let label = actionLabels[h.action] || h.action;
+            if (h.action === 'status_changed') label += ` (${h.from} → ${h.to})`;
+            html += `<tr><td style="font-size:12px;">${d}</td><td>${label}</td><td>${h.by || '-'}</td></tr>`;
+          }
+          html += '</tbody></table>';
+        } else { html += '<p style="color:#888;">Aucun historique</p>'; }
+        html += '</div>';
+
+        document.getElementById('revueContent').innerHTML = html;
+        document.getElementById('revueModal').classList.add('active');
+      } catch (err) { showToast('Erreur chargement contrat'); console.error(err); }
+    }
+
+    function closeRevueModal() { document.getElementById('revueModal').classList.remove('active'); }
+
+    function buildDataTable(obj, prefix) {
+      if (!obj || typeof obj !== 'object') return '';
+      let html = '<table style="width:100%;font-size:13px;"><tbody>';
+      for (const [k, v] of Object.entries(obj)) {
+        if (v && typeof v === 'object') continue;
+        if (v === null || v === undefined || v === '') continue;
+        const key = prefix ? prefix + '.' + k : k;
+        html += `<tr><td style="padding:3px 8px;color:#666;font-weight:600;width:40%;">${key}</td><td style="padding:3px 8px;">${v}</td></tr>`;
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+
+    async function changeStatus(id, newStatus) {
+      const labels = { signed: 'signer', archived: 'archiver' };
+      if (!confirm(`Voulez-vous ${labels[newStatus] || newStatus} ce contrat ?`)) return;
+      try {
+        const res = await fetch('/api/contracts/' + id + '/status', {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) { showToast('Statut mis à jour'); loadContracts(); }
+        else showToast('Erreur');
+      } catch (err) { showToast('Erreur'); }
+    }
+
     // Initial load
     loadContracts();
     loadCfaProfile();
+    loadMaitres();
   </script>
 </body>
 </html>
