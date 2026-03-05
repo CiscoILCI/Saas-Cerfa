@@ -604,12 +604,32 @@ module.exports = async function handler(req, res) {
       const result = await getContractByToken(tokenMatch.token);
       if (!result) return sendJSON(res, { error: 'Token invalide' }, 404);
       const { contract, type } = result;
-      return sendJSON(res, {
+      const response = {
         type,
         contractId: contract.id,
         data: contract[type],
         complete: !!contract[type]
-      });
+      };
+      // Si type entreprise et pas encore de données, tenter pré-remplissage depuis profil inscrit
+      if (type === 'entreprise' && !contract[type] && contract.entrepriseEmail) {
+        const entUser = await getUserByEmail(contract.entrepriseEmail);
+        if (entUser && entUser.profile) {
+          const ep = entUser.profile;
+          response.profilePrefill = {
+            employeur: {
+              denomination: ep.denomination || '',
+              siret: (ep.siret || '').replace(/\s/g, ''),
+              code_ape: ep.code_ape || '',
+              adresse_voie: ep.adresse || '',
+              adresse_code_postal: ep.code_postal || '',
+              adresse_commune: ep.commune || '',
+              telephone: ep.telephone || '',
+              courriel: ep.email_contact || ''
+            }
+          };
+        }
+      }
+      return sendJSON(res, response);
     }
 
     // ---------- POST /api/etudiant/:token ----------
@@ -618,6 +638,11 @@ module.exports = async function handler(req, res) {
       const result = await getContractByToken(etuMatch.token);
       if (!result || result.type !== 'etudiant') return sendJSON(res, { error: 'Token invalide' }, 404);
       const body = await parseBody(req);
+      // Validation NIR
+      if (body.apprenti?.nir) {
+        const nir = body.apprenti.nir.replace(/\s/g, '');
+        if (nir && !/^\d{13,15}$/.test(nir)) return sendJSON(res, { error: 'NIR invalide (13 à 15 chiffres)' }, 400);
+      }
       result.contract.etudiant = body;
       updateContractStatus(result.contract);
       if (!result.contract.history) result.contract.history = [];
@@ -632,6 +657,15 @@ module.exports = async function handler(req, res) {
       const result = await getContractByToken(entMatch.token);
       if (!result || result.type !== 'entreprise') return sendJSON(res, { error: 'Token invalide' }, 404);
       const body = await parseBody(req);
+      // Validation SIRET
+      if (body.employeur?.siret) {
+        const siret = body.employeur.siret.replace(/\s/g, '');
+        if (siret && !/^\d{14}$/.test(siret)) return sendJSON(res, { error: 'SIRET invalide (14 chiffres requis)' }, 400);
+      }
+      // Validation email
+      if (body.employeur?.courriel) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.employeur.courriel)) return sendJSON(res, { error: 'Email employeur invalide' }, 400);
+      }
       result.contract.entreprise = body;
       updateContractStatus(result.contract);
       if (!result.contract.history) result.contract.history = [];
@@ -668,6 +702,11 @@ module.exports = async function handler(req, res) {
         }
         return false;
       });
+      // Récupérer les noms des CFA
+      const allUsers = await getAllUsers();
+      const cfaMap = {};
+      allUsers.filter(u => u.role === 'cfa').forEach(u => { cfaMap[u.id] = u.nom || u.profile?.denomination || u.email; });
+
       const result = myContracts.map(c => ({
         id: c.id,
         createdAt: c.createdAt,
@@ -677,6 +716,7 @@ module.exports = async function handler(req, res) {
         apprentiNom: c.etudiant?.apprenti?.nom_naissance || '',
         apprentiPrenom: c.etudiant?.apprenti?.prenom || '',
         formationIntitule: c.entreprise?.formation?.intitule_precis || c.formation?.intitule_precis || '',
+        cfaNom: cfaMap[c.cfaId] || 'CFA inconnu',
         lienFormulaire: c.tokens ? `/entreprise.html?token=${c.tokens.entreprise}` : null
       }));
       return sendJSON(res, result);

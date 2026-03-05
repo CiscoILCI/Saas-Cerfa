@@ -1077,6 +1077,9 @@
                     document.getElementById('successMessage').style.display = 'block';
                 } else if (data.data) {
                     prefillForm(data.data);
+                } else if (data.profilePrefill) {
+                    // Pré-remplir depuis le profil de l'entreprise inscrite
+                    prefillForm(data.profilePrefill);
                 }
             })
             .catch(e => console.error(e));

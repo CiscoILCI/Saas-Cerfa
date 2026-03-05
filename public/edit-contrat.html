@@ -83,6 +83,7 @@
         <div class="page-header">
             <h1>📝 Édition complète du contrat <span id="contractIdLabel"></span></h1>
             <p>Vérifiez et corrigez toutes les informations avant de générer le PDF CERFA.</p>
+            <div id="statusBar" style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"></div>
         </div>
 
         <div class="section-nav">
@@ -384,7 +385,7 @@
         if (!contractId) { document.querySelector('.container').innerHTML = '<p style="color:red;padding:40px;">❌ Aucun ID de contrat spécifié.</p>'; }
 
         function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken }; }
-        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 5000); }
 
         // Pré-remplissage
         async function loadContract() {
@@ -419,6 +420,22 @@
                 if (c.formation) {
                     prefillForm({ formation: c.formation });
                 }
+
+                // Afficher statut + boutons contextuels
+                const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+                const statusColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', completed: '#4a148c' };
+                const statusBgs = { pending: '#fff3e0', partial: '#e3f2fd', ready: '#e8f5e9', validated: '#e0f2f1', completed: '#ede7f6' };
+                const bar = document.getElementById('statusBar');
+                let barHtml = `<span style="display:inline-block;padding:6px 14px;border-radius:12px;font-size:13px;font-weight:700;background:${statusBgs[c.status]||'#f5f5f5'};color:${statusColors[c.status]||'#333'};">${statusLabels[c.status]||c.status}</span>`;
+                barHtml += `<span style="font-size:13px;color:#888;">Étudiant: ${c.etudiant ? '✅' : '⏳'} · Entreprise: ${c.entreprise ? '✅' : '⏳'}</span>`;
+                if (c.status === 'ready') barHtml += `<button onclick="changeContractStatus('validated')" style="padding:6px 14px;border:none;border-radius:8px;background:#2e7d32;color:#fff;font-weight:600;font-size:13px;cursor:pointer;">✅ Valider le contrat</button>`;
+                if (c.status === 'validated') barHtml += `<button onclick="changeContractStatus('completed')" style="padding:6px 14px;border:none;border-radius:8px;background:#1b5e20;color:#fff;font-weight:600;font-size:13px;cursor:pointer;">🏁 Finaliser</button>`;
+                bar.innerHTML = barHtml;
+
+                // Afficher/masquer bouton PDF
+                const btnPdf = document.getElementById('btnPdf');
+                if (btnPdf) btnPdf.style.display = ['ready','validated'].includes(c.status) ? '' : 'none';
+
             } catch (err) { console.error(err); showToast('Erreur chargement'); }
         }
 
@@ -554,6 +571,23 @@
 
         function generatePdf() {
             window.open('/api/contracts/' + contractId + '/generate-pdf', '_blank');
+        }
+
+        async function changeContractStatus(newStatus) {
+            const labels = { validated: 'valider', completed: 'finaliser' };
+            if (!confirm(`Voulez-vous ${labels[newStatus] || newStatus} ce contrat ?`)) return;
+            try {
+                const res = await fetch('/api/contracts/' + contractId + '/status', {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res.ok) {
+                    showToast('✅ Statut mis à jour !');
+                    loadContract();
+                    loadHistory();
+                } else { showToast('Erreur de changement de statut'); }
+            } catch (err) { showToast('Erreur'); console.error(err); }
         }
 
         // Smooth scroll nav
