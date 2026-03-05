@@ -292,6 +292,8 @@ function matchRoute(url, pattern) {
 }
 
 function updateContractStatus(contract) {
+  // Ne pas écraser les statuts avancés (validated, completed)
+  if (['validated', 'completed'].includes(contract.status)) return;
   if (contract.etudiant && contract.entreprise) {
     contract.status = 'ready';
   } else if (contract.etudiant || contract.entreprise) {
@@ -518,6 +520,7 @@ module.exports = async function handler(req, res) {
       const authUser = requireAuth(req, res, ['cfa']);
       if (!authUser) return;
 
+      const body = await parseBody(req);
       const contractId = uuid();
       const etudiantToken = uuid();
       const entrepriseToken = uuid();
@@ -537,15 +540,49 @@ module.exports = async function handler(req, res) {
         adresse_cfa_commune: cfaProfile.commune || ''
       };
 
+      // Lien avec une entreprise inscrite (optionnel)
+      let entrepriseEmail = body.entrepriseEmail || null;
+      let prefilledEntreprise = null;
+      if (body.entrepriseId) {
+        // Chercher l'entreprise par ID dans les users
+        const allUsers = await getAllUsers();
+        const entUser = allUsers.find(u => u.id === body.entrepriseId && u.role === 'entreprise');
+        if (entUser) {
+          entrepriseEmail = entUser.email;
+          // Pré-remplir les données entreprise depuis le profil
+          const ep = entUser.profile || {};
+          if (ep.denomination || ep.siret) {
+            prefilledEntreprise = {
+              employeur: {
+                denomination: ep.denomination || '',
+                siret: (ep.siret || '').replace(/\s/g, ''),
+                code_ape: ep.code_ape || '',
+                adresse_voie: ep.adresse || '',
+                adresse_code_postal: ep.code_postal || '',
+                adresse_commune: ep.commune || '',
+                telephone: ep.telephone || '',
+                courriel: ep.email_contact || ''
+              }
+            };
+          }
+        }
+      }
+
       const contract = {
         id: contractId,
         cfaId: authUser.id,
+        entrepriseEmail: entrepriseEmail,
         createdAt: new Date().toISOString(),
         status: 'pending',
         tokens: { etudiant: etudiantToken, entreprise: entrepriseToken },
-        etudiant: null, entreprise: null, formation,
+        etudiant: null, entreprise: prefilledEntreprise, formation,
         history: [{ action: 'created', date: new Date().toISOString(), by: authUser.email }]
       };
+
+      if (prefilledEntreprise) {
+        contract.status = 'partial';
+        contract.history.push({ action: 'entreprise_prefilled', date: new Date().toISOString(), by: 'system' });
+      }
 
       await saveContract(contract);
       await saveTokenMapping(etudiantToken, contractId, 'etudiant');
@@ -603,13 +640,55 @@ module.exports = async function handler(req, res) {
       return sendJSON(res, { success: true, message: 'Données entreprise enregistrées' });
     }
 
+    // ---------- GET /api/entreprises (liste des comptes entreprise pour le CFA) ----------
+    if (method === 'GET' && url === '/api/entreprises') {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const allUsers = await getAllUsers();
+      const entreprises = allUsers.filter(u => u.role === 'entreprise').map(u => ({
+        id: u.id, email: u.email, nom: u.nom, profile: u.profile || {}
+      }));
+      return sendJSON(res, entreprises);
+    }
+
+    // ---------- GET /api/entreprise/contracts (contrats liés à l'entreprise connectée) ----------
+    if (method === 'GET' && url === '/api/entreprise/contracts') {
+      const authUser = requireAuth(req, res, ['entreprise']);
+      if (!authUser) return;
+      const user = await getUserByEmail(authUser.email);
+      const profile = (user && user.profile) || {};
+      const allContracts = await getAllContracts();
+      // Matcher par email OU par SIRET du profil entreprise
+      const myContracts = allContracts.filter(c => {
+        if (c.entrepriseEmail && c.entrepriseEmail.toLowerCase() === authUser.email.toLowerCase()) return true;
+        if (profile.siret && c.entreprise && c.entreprise.employeur) {
+          const contractSiret = (c.entreprise.employeur.siret || '').replace(/\s/g, '');
+          const profileSiret = (profile.siret || '').replace(/\s/g, '');
+          if (contractSiret && profileSiret && contractSiret === profileSiret) return true;
+        }
+        return false;
+      });
+      const result = myContracts.map(c => ({
+        id: c.id,
+        createdAt: c.createdAt,
+        status: c.status,
+        etudiantComplete: !!c.etudiant,
+        entrepriseComplete: !!c.entreprise,
+        apprentiNom: c.etudiant?.apprenti?.nom_naissance || '',
+        apprentiPrenom: c.etudiant?.apprenti?.prenom || '',
+        formationIntitule: c.entreprise?.formation?.intitule_precis || c.formation?.intitule_precis || '',
+        lienFormulaire: c.tokens ? `/entreprise.html?token=${c.tokens.entreprise}` : null
+      }));
+      return sendJSON(res, result);
+    }
+
     // ---------- GET /api/contracts/:id/generate-pdf ----------
     const pdfMatch = matchRoute(url, '/api/contracts/:id/generate-pdf');
     if (method === 'GET' && pdfMatch) {
       const contract = await getContract(pdfMatch.id);
       if (!contract) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
-      if (contract.status !== 'ready') {
-        return sendJSON(res, { error: 'Le contrat n\'est pas complet', etudiantComplete: !!contract.etudiant, entrepriseComplete: !!contract.entreprise }, 400);
+      if (!['ready', 'validated'].includes(contract.status)) {
+        return sendJSON(res, { error: 'Le contrat n\'est pas complet', status: contract.status, etudiantComplete: !!contract.etudiant, entrepriseComplete: !!contract.entreprise }, 400);
       }
 
       const pdfBytes = fs.readFileSync(CERFA_TEMPLATE);
@@ -687,7 +766,7 @@ module.exports = async function handler(req, res) {
       if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
 
       const body = await parseBody(req);
-      const validStatuses = ['pending', 'partial', 'ready', 'signed', 'archived'];
+      const validStatuses = ['pending', 'partial', 'ready', 'validated', 'completed'];
       if (!body.status || !validStatuses.includes(body.status)) {
         return sendJSON(res, { error: 'Statut invalide. Valeurs: ' + validStatuses.join(', ') }, 400);
       }

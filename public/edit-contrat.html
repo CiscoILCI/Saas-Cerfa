@@ -93,6 +93,7 @@
             <a href="#sec-remuneration">💰 Rémunération</a>
             <a href="#sec-maitre">👨‍🏫 Maître</a>
             <a href="#sec-attestation">✅ Attestation</a>
+            <a href="#sec-historique">📜 Historique</a>
         </div>
 
         <div class="error-message" id="errorMessage"></div>
@@ -356,6 +357,14 @@
 
         </form>
 
+        <!-- ===== HISTORIQUE ===== -->
+        <div class="form-card" id="sec-historique">
+            <h2>📜 Historique des modifications</h2>
+            <div id="historyContent" style="font-size:13px;color:var(--gray-600);">
+                <p style="color:var(--gray-400);">Chargement...</p>
+            </div>
+        </div>
+
         <div class="actions-bottom">
             <button class="btn btn-back" onclick="window.location.href='/dashboard-cfa.html'">← Retour au dashboard</button>
             <button class="btn btn-save" onclick="saveAll()">💾 Sauvegarder toutes les modifications</button>
@@ -558,7 +567,36 @@
             });
         });
 
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/contracts/' + contractId + '/history', { headers: authHeaders() });
+                if (!res.ok) return;
+                const history = await res.json();
+                const el = document.getElementById('historyContent');
+                if (!history.length) { el.innerHTML = '<p style="color:var(--gray-400);">Aucune modification enregistrée.</p>'; return; }
+                const actionLabels = {
+                    created: '🆕 Contrat créé',
+                    etudiant_submitted: '🎓 Données étudiant soumises',
+                    entreprise_submitted: '🏢 Données entreprise soumises',
+                    entreprise_prefilled: '💾 Entreprise pré-remplie depuis profil',
+                    updated_by_cfa: '✏️ Modifié par le CFA',
+                    status_changed: '🔄 Changement de statut'
+                };
+                el.innerHTML = '<div style="border-left:3px solid var(--accent);padding-left:16px;">' +
+                    history.slice().reverse().map(h => {
+                        const date = new Date(h.date).toLocaleString('fr-FR');
+                        const label = actionLabels[h.action] || h.action;
+                        const extra = h.from && h.to ? ` (${h.from} → ${h.to})` : '';
+                        return `<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+                            <strong>${label}${extra}</strong><br>
+                            <span style="font-size:11px;color:var(--gray-400);">${date} — par ${h.by || 'système'}</span>
+                        </div>`;
+                    }).join('') + '</div>';
+            } catch(e) { console.error(e); }
+        }
+
         loadContract();
+        loadHistory();
     </script>
 </body>
 </html>

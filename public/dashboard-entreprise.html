@@ -241,10 +241,10 @@
       }
     }
 
-    // Load contracts (via tokens — for now show from general list)
     async function loadContracts() {
       try {
-        const res = await fetch('/api/contracts', { headers: authHeaders() });
+        const res = await fetch('/api/entreprise/contracts', { headers: authHeaders() });
+        if (!res.ok) { console.error('Erreur chargement contrats'); return; }
         const contracts = await res.json();
         const el = document.getElementById('contractsList');
 
@@ -255,13 +255,22 @@
 
         el.innerHTML = contracts.map(c => {
           const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
-          const statusLabel = c.status === 'pending' ? 'En attente' : c.status === 'partial' ? 'Partiel' : 'Prêt';
+          const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+          const statusLabel = statusMap[c.status] || c.status;
+          const statusClass = c.status === 'validated' ? 'status-ready' : c.status === 'completed' ? 'status-ready' : 'status-' + c.status;
+          const apprenti = c.apprentiPrenom ? `${c.apprentiPrenom} ${c.apprentiNom}` : 'Apprenti non renseigné';
+          const formation = c.formationIntitule || 'Formation non renseignée';
           return `<div class="contract-item">
             <div class="contract-info">
-              <div class="id">#${c.id.slice(0,8)}</div>
-              <div class="date">Créé le ${date}</div>
+              <div class="id" style="margin-bottom:2px;">#${c.id.slice(0,8)}</div>
+              <div class="date"><strong>${apprenti}</strong> — ${formation}</div>
+              <div class="date">Créé le ${date} · Étudiant: ${c.etudiantComplete ? '✅' : '⏳'} · Entreprise: ${c.entrepriseComplete ? '✅' : '⏳'}</div>
             </div>
-            <span class="status-badge status-${c.status}">${statusLabel}</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status-badge ${statusClass}">${statusLabel}</span>
+              ${c.lienFormulaire && !c.entrepriseComplete ? `<a href="${c.lienFormulaire}" style="font-size:12px;color:#667eea;font-weight:600;text-decoration:none;">📝 Remplir</a>` : ''}
+              ${c.lienFormulaire && c.entrepriseComplete ? `<a href="${c.lienFormulaire}" style="font-size:12px;color:#667eea;font-weight:600;text-decoration:none;">✏️ Modifier</a>` : ''}
+            </div>
           </div>`;
         }).join('');
       } catch (err) {

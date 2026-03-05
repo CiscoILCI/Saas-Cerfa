@@ -175,8 +175,8 @@
     .status-pending { background: #fff3e0; color: #e65100; }
     .status-partial { background: #e3f2fd; color: #1565c0; }
     .status-ready { background: #e8f5e9; color: #2e7d32; }
-    .status-signed { background: #e0f2f1; color: #00695c; }
-    .status-archived { background: #f5f5f5; color: #616161; }
+    .status-validated { background: #e0f2f1; color: #00695c; }
+    .status-completed { background: #ede7f6; color: #4a148c; }
     .link-copy {
       cursor: pointer;
       color: #667eea;
@@ -449,6 +449,27 @@
     </div>
   </div>
 
+  <!-- MODAL NOUVEAU CONTRAT -->
+  <div id="newContractModal" class="modal-overlay">
+    <div class="modal" style="max-width:500px;">
+      <h3>➕ Nouveau contrat</h3>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">Sélectionnez une entreprise inscrite ou saisissez un email pour lui envoyer le lien.</p>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Entreprise inscrite</label>
+        <select id="selectEntreprise" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;"></select>
+      </div>
+      <div style="text-align:center;color:#888;font-size:12px;margin-bottom:12px;">— ou —</div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Email de l'entreprise (optionnel)</label>
+        <input type="email" id="inputEntrepriseEmail" placeholder="contact@entreprise.fr" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeNewContractModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="confirmCreateContract()">✅ Créer le contrat</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
@@ -496,7 +517,7 @@
         document.getElementById('statTotal').textContent = contracts.length;
         document.getElementById('statPending').textContent = contracts.filter(c => c.status === 'pending').length;
         document.getElementById('statPartial').textContent = contracts.filter(c => c.status === 'partial').length;
-        document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready' || c.status === 'signed').length;
+        document.getElementById('statReady').textContent = contracts.filter(c => c.status === 'ready' || c.status === 'validated').length;
         document.getElementById('contractCount').textContent = contracts.length + ' contrat(s)';
 
         if (contracts.length === 0) {
@@ -509,7 +530,7 @@
           return;
         }
 
-        const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
+        const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
         let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Statut</th><th>Étudiant</th><th>Entreprise</th><th>Actions</th></tr></thead><tbody>';
         contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -531,10 +552,10 @@
             </td>
             <td style="white-space:nowrap;">
               <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir / Modifier</button>
-              ${c.status === 'ready' ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
-              ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','signed')">✅ Signer</button>` : ''}
-              ${c.status === 'signed' ? `<button class="btn btn-sm" style="background:#666;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
-              <button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>
+              ${['ready','validated'].includes(c.status) ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
+              ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','validated')">✅ Valider</button>` : ''}
+              ${c.status === 'validated' ? `<button class="btn btn-sm" style="background:#1b5e20;color:#fff;" onclick="changeStatus('${c.id}','completed')">🏁 Finaliser</button>` : ''}
+              ${!['validated','completed'].includes(c.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>` : ''}
             </td>
           </tr>`;
         }
@@ -547,15 +568,48 @@
       }
     }
 
-    async function createContract() {
+    let entreprisesList = [];
+
+    async function loadEntreprises() {
       try {
+        const res = await fetch('/api/entreprises', { headers: authHeaders() });
+        if (res.ok) entreprisesList = await res.json();
+      } catch(e) { console.error(e); }
+    }
+
+    function createContract() {
+      // Ouvrir le modal de sélection d'entreprise
+      const modal = document.getElementById('newContractModal');
+      const sel = document.getElementById('selectEntreprise');
+      sel.innerHTML = '<option value="">— Aucune (envoi par lien) —</option>';
+      entreprisesList.forEach(e => {
+        const label = e.profile?.denomination ? `${e.profile.denomination} (${e.email})` : e.email;
+        sel.innerHTML += `<option value="${e.id}">${label}</option>`;
+      });
+      document.getElementById('inputEntrepriseEmail').value = '';
+      modal.style.display = 'flex';
+    }
+
+    function closeNewContractModal() {
+      document.getElementById('newContractModal').style.display = 'none';
+    }
+
+    async function confirmCreateContract() {
+      const entrepriseId = document.getElementById('selectEntreprise').value;
+      const entrepriseEmail = document.getElementById('inputEntrepriseEmail').value.trim();
+      try {
+        const body = {};
+        if (entrepriseId) body.entrepriseId = entrepriseId;
+        else if (entrepriseEmail) body.entrepriseEmail = entrepriseEmail;
         const res = await fetch('/api/contracts', {
           method: 'POST',
-          headers: authHeaders()
+          headers: authHeaders(),
+          body: JSON.stringify(body)
         });
         const data = await res.json();
         if (data.success) {
           showToast('Contrat créé !');
+          closeNewContractModal();
           loadContracts();
         }
       } catch (err) {
@@ -859,7 +913,7 @@
     }
 
     async function changeStatus(id, newStatus) {
-      const labels = { signed: 'signer', archived: 'archiver' };
+      const labels = { validated: 'valider', completed: 'finaliser' };
       if (!confirm(`Voulez-vous ${labels[newStatus] || newStatus} ce contrat ?`)) return;
       try {
         const res = await fetch('/api/contracts/' + id + '/status', {
@@ -876,6 +930,7 @@
     loadContracts();
     loadCfaProfile();
     loadMaitres();
+    loadEntreprises();
   </script>
 </body>
 </html>
