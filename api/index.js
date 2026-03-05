@@ -444,8 +444,12 @@ module.exports = async function handler(req, res) {
 
     // ---------- GET /api/contracts ----------
     if (method === 'GET' && url === '/api/contracts') {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+
       const baseUrl = getBaseUrl(req);
-      const contracts = await getAllContracts();
+      const allContracts = await getAllContracts();
+      const contracts = allContracts.filter(c => c.cfaId === authUser.id);
       const result = contracts.map(c => ({
         id: c.id,
         createdAt: c.createdAt,
@@ -462,6 +466,9 @@ module.exports = async function handler(req, res) {
 
     // ---------- POST /api/contracts ----------
     if (method === 'POST' && url === '/api/contracts') {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+
       const contractId = uuid();
       const etudiantToken = uuid();
       const entrepriseToken = uuid();
@@ -469,6 +476,7 @@ module.exports = async function handler(req, res) {
 
       const contract = {
         id: contractId,
+        cfaId: authUser.id,
         createdAt: new Date().toISOString(),
         status: 'pending',
         tokens: { etudiant: etudiantToken, entreprise: entrepriseToken },
@@ -567,9 +575,17 @@ module.exports = async function handler(req, res) {
     // ---------- DELETE /api/contracts/:id ----------
     const delMatch = matchRoute(url, '/api/contracts/:id');
     if (method === 'DELETE' && delMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+
+      const contract = await getContract(delMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) {
+        return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      }
+
       const deleted = await deleteContractFromDB(delMatch.id);
       if (deleted) return sendJSON(res, { success: true });
-      return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      return sendJSON(res, { error: 'Erreur de suppression' }, 500);
     }
 
     // ---------- 404 ----------
