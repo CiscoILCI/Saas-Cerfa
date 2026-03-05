@@ -6,83 +6,66 @@
   <title>CERFA SaaS - Dashboard Entreprise</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
     .navbar {
       background: linear-gradient(135deg, #2d5a87 0%, #1e3a5f 100%);
-      color: #fff;
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+      height: 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-    .navbar .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .navbar .brand { font-size: 18px; font-weight: 700; }
     .navbar .user-info { display: flex; align-items: center; gap: 16px; font-size: 14px; }
     .navbar .role-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
     .btn-logout { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
     .btn-logout:hover { background: rgba(255,255,255,0.25); }
 
-    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
-    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1e3a5f; }
-    .page-subtitle { font-size: 14px; color: #888; margin-bottom: 24px; }
+    .container { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: #1e3a5f; }
+    .page-subtitle { font-size: 14px; color: #888; margin-bottom: 20px; }
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      padding: 24px;
-      margin-bottom: 20px;
-    }
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e0e0e0; }
+    .tab-btn { padding: 12px 24px; border: none; background: none; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .tab-btn:hover { color: #333; }
+    .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: #fff; border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 28px; font-weight: 800; color: #1e3a5f; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 2px; font-weight: 600; text-transform: uppercase; }
+
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
     .card h3 { font-size: 16px; color: #1e3a5f; margin-bottom: 16px; }
 
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .profile-grid .full { grid-column: 1 / -1; }
     .form-group { margin-bottom: 0; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
-    .form-group input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-    }
+    .form-group input { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; }
     .form-group input:focus { border-color: #667eea; }
 
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
     .btn-primary:hover { opacity: 0.9; }
     .btn-secondary { background: #fff; color: #333; border: 2px solid #e0e0e0; }
 
-    .contract-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 0;
-      border-bottom: 1px solid #f0f0f0;
+    .contract-card {
+      background: #fff; border: 2px solid #f0f0f0; border-radius: 12px; padding: 20px; margin-bottom: 14px;
+      transition: all 0.2s; cursor: pointer;
     }
-    .contract-item:last-child { border-bottom: none; }
-    .contract-info { flex: 1; }
-    .contract-info .id { font-family: monospace; font-size: 12px; color: #888; }
-    .contract-info .date { font-size: 13px; color: #555; }
-    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .contract-card:hover { border-color: #667eea; box-shadow: 0 4px 12px rgba(102,126,234,0.12); }
+    .contract-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .contract-header-left { flex: 1; }
+    .contract-id { font-family: monospace; font-size: 12px; color: #888; }
+    .contract-cfa { font-size: 13px; color: #667eea; font-weight: 600; }
+    .contract-title { font-size: 15px; font-weight: 700; color: #1e3a5f; margin-top: 4px; }
+    .contract-meta { font-size: 12px; color: #888; margin-top: 2px; }
+
+    .progress-bar { background: #f0f0f0; border-radius: 6px; height: 8px; margin: 12px 0 6px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+    .progress-label { font-size: 11px; color: #888; display: flex; justify-content: space-between; }
+
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     .status-pending { background: #fff3e0; color: #e65100; }
     .status-partial { background: #e3f2fd; color: #1565c0; }
     .status-ready { background: #e8f5e9; color: #2e7d32; }
@@ -93,27 +76,40 @@
     .profile-complete { background: #d1fae5; color: #065f46; }
     .profile-incomplete { background: #fef3c7; color: #92400e; }
 
-    .btn-action {
-      display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-      text-decoration: none; color: #fff; transition: all 0.2s; border: none; cursor: pointer;
-    }
+    .contract-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .btn-action { display: inline-block; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; color: #fff; transition: all 0.2s; border: none; cursor: pointer; }
     .btn-fill { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .btn-fill:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(102,126,234,0.4); }
+    .btn-fill:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
     .btn-edit { background: #f59e0b; }
     .btn-edit:hover { background: #d97706; }
+    .btn-detail { background: #e3f2fd; color: #1565c0; }
+    .btn-detail:hover { background: #bbdefb; }
 
-    .empty-state { text-align: center; padding: 32px; color: #888; }
-    .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+    .empty-state { text-align: center; padding: 48px; color: #888; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: #333; color: #fff; padding: 12px 20px;
-      border-radius: 8px; font-size: 14px; z-index: 200; display: none;
-    }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+    .modal { background: #fff; border-radius: 16px; padding: 28px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal h3 { font-size: 18px; color: #1e3a5f; margin-bottom: 16px; }
+    .modal-section { margin-bottom: 16px; }
+    .modal-section h4 { font-size: 13px; color: #667eea; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+    .modal-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+    .modal-row .label { color: #888; }
+    .modal-row .value { font-weight: 600; color: #333; text-align: right; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    .history-item { padding: 10px 0 10px 20px; border-left: 3px solid #667eea; }
+    .history-item:last-child { border-left-color: #e0e0e0; }
+    .history-action { font-size: 13px; font-weight: 600; color: #333; }
+    .history-meta { font-size: 11px; color: #888; margin-top: 2px; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 14px 24px; border-radius: 10px; font-size: 14px; z-index: 200; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
 
     @media (max-width: 600px) {
       .profile-grid { grid-template-columns: 1fr; }
       .container { padding: 16px; }
+      .tabs { overflow-x: auto; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -129,56 +125,68 @@
 
   <div class="container">
     <h1 class="page-title">Mon espace Entreprise</h1>
-    <p class="page-subtitle">Gérez votre profil et consultez vos contrats d'apprentissage</p>
+    <p class="page-subtitle">Gérez votre profil et suivez vos contrats d'apprentissage</p>
 
-    <!-- PROFIL -->
-    <div class="card">
-      <h3>🏢 Mon profil entreprise <span id="profileBadge"></span></h3>
-      <form id="profileForm" onsubmit="saveProfile(event)">
-        <div class="profile-grid">
-          <div class="form-group full">
-            <label>Dénomination / Raison sociale</label>
-            <input type="text" id="profDenomination" placeholder="Ex: ACME SAS">
-          </div>
-          <div class="form-group">
-            <label>N° SIRET</label>
-            <input type="text" id="profSiret" placeholder="14 chiffres" maxlength="14">
-          </div>
-          <div class="form-group">
-            <label>Code APE</label>
-            <input type="text" id="profCodeApe" placeholder="Ex: 6201Z">
-          </div>
-          <div class="form-group full">
-            <label>Adresse</label>
-            <input type="text" id="profAdresse" placeholder="Numéro et voie">
-          </div>
-          <div class="form-group">
-            <label>Code postal</label>
-            <input type="text" id="profCp" placeholder="75001" maxlength="5">
-          </div>
-          <div class="form-group">
-            <label>Commune</label>
-            <input type="text" id="profCommune" placeholder="Paris">
-          </div>
-          <div class="form-group">
-            <label>Téléphone</label>
-            <input type="tel" id="profTel" placeholder="01 23 45 67 89">
-          </div>
-          <div class="form-group">
-            <label>Email de contact</label>
-            <input type="email" id="profEmail" placeholder="contact@entreprise.fr">
-          </div>
-        </div>
-        <div style="margin-top:16px;">
-          <button type="submit" class="btn btn-primary">💾 Enregistrer le profil</button>
-        </div>
-      </form>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('contrats', this)">📄 Mes contrats</button>
+      <button class="tab-btn" onclick="showTab('profil', this)">🏢 Mon profil</button>
     </div>
 
-    <!-- CONTRATS -->
-    <div class="card">
-      <h3>📄 Mes contrats d'apprentissage</h3>
+    <!-- TAB CONTRATS -->
+    <div id="tab-contrats" class="tab-content active">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">En attente</div></div>
+        <div class="stat-card"><div class="stat-value" id="statReady">0</div><div class="stat-label">Prêts / Validés</div></div>
+        <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Terminés</div></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="searchInput" placeholder="🔍 Rechercher..." oninput="filterContracts()" style="flex:1;min-width:180px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;">
+        <select id="filterStatus" onchange="filterContracts()" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;background:#fff;">
+          <option value="">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="partial">Partiel</option>
+          <option value="ready">Prêt</option>
+          <option value="validated">Validé</option>
+          <option value="completed">Terminé</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadContracts()" style="padding:10px 16px;">🔄</button>
+      </div>
+
       <div id="contractsList"></div>
+    </div>
+
+    <!-- TAB PROFIL -->
+    <div id="tab-profil" class="tab-content">
+      <div class="card">
+        <h3>🏢 Mon profil entreprise <span id="profileBadge"></span></h3>
+        <form id="profileForm" onsubmit="saveProfile(event)">
+          <div class="profile-grid">
+            <div class="form-group full"><label>Dénomination / Raison sociale</label><input type="text" id="profDenomination" placeholder="Ex: ACME SAS"></div>
+            <div class="form-group"><label>N° SIRET</label><input type="text" id="profSiret" placeholder="14 chiffres" maxlength="14"></div>
+            <div class="form-group"><label>Code APE</label><input type="text" id="profCodeApe" placeholder="Ex: 6201Z"></div>
+            <div class="form-group full"><label>Adresse</label><input type="text" id="profAdresse" placeholder="Numéro et voie"></div>
+            <div class="form-group"><label>Code postal</label><input type="text" id="profCp" placeholder="75001" maxlength="5"></div>
+            <div class="form-group"><label>Commune</label><input type="text" id="profCommune" placeholder="Paris"></div>
+            <div class="form-group"><label>Téléphone</label><input type="tel" id="profTel" placeholder="01 23 45 67 89"></div>
+            <div class="form-group"><label>Email de contact</label><input type="email" id="profEmail" placeholder="contact@entreprise.fr"></div>
+          </div>
+          <div style="margin-top:16px;"><button type="submit" class="btn btn-primary">💾 Enregistrer le profil</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL -->
+  <div id="detailModal" class="modal-overlay">
+    <div class="modal">
+      <h3>📋 Détail du contrat <span id="modalContratId"></span></h3>
+      <div id="modalContent"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeDetailModal()">Fermer</button>
+        <a id="modalFormLink" href="#" class="btn-action btn-fill" style="display:none;">📝 Formulaire</a>
+      </div>
     </div>
   </div>
 
@@ -187,40 +195,29 @@
   <script>
     let authToken = localStorage.getItem('auth_token');
     let authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-
-    if (!authToken || authUser.role !== 'entreprise') {
-      window.location.href = '/login.html';
-    }
+    if (!authToken || authUser.role !== 'entreprise') { window.location.href = '/login.html'; }
     document.getElementById('userName').textContent = authUser.nom || authUser.email;
 
-    function authHeaders() {
-      return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
+    let allContracts = [];
+
+    function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken }; }
+    function logout() { localStorage.removeItem('auth_token'); localStorage.removeItem('auth_user'); window.location.href = '/login.html'; }
+    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 5000); }
+
+    function showTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
     }
 
-    function logout() {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      window.location.href = '/login.html';
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 5000);
-    }
-
+    // ===== PROFIL =====
     function updateProfileBadge() {
       const fields = ['profDenomination', 'profSiret', 'profAdresse', 'profCp', 'profCommune'];
       const filled = fields.filter(f => document.getElementById(f).value.trim()).length;
       const badge = document.getElementById('profileBadge');
-      if (filled === fields.length) {
-        badge.className = 'profile-badge profile-complete';
-        badge.textContent = '✅ Complet';
-      } else {
-        badge.className = 'profile-badge profile-incomplete';
-        badge.textContent = `⚠️ ${filled}/${fields.length} champs`;
-      }
+      if (filled === fields.length) { badge.className = 'profile-badge profile-complete'; badge.textContent = '✅ Complet'; }
+      else { badge.className = 'profile-badge profile-incomplete'; badge.textContent = `⚠️ ${filled}/${fields.length} champs`; }
     }
 
     async function loadProfile() {
@@ -239,84 +236,151 @@
           document.getElementById('profEmail').value = p.email_contact || '';
         }
         updateProfileBadge();
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
 
     async function saveProfile(e) {
       e.preventDefault();
-      // Validation SIRET
       const siret = document.getElementById('profSiret').value.replace(/\s/g, '');
-      if (siret && !/^\d{14}$/.test(siret)) {
-        showToast('❌ SIRET invalide : 14 chiffres requis');
-        document.getElementById('profSiret').focus();
-        return;
-      }
+      if (siret && !/^\d{14}$/.test(siret)) { showToast('❌ SIRET invalide : 14 chiffres requis'); document.getElementById('profSiret').focus(); return; }
       try {
         const res = await fetch('/api/auth/profile', {
-          method: 'PUT',
-          headers: authHeaders(),
-          body: JSON.stringify({
-            profile: {
-              denomination: document.getElementById('profDenomination').value,
-              siret: siret,
-              code_ape: document.getElementById('profCodeApe').value,
-              adresse: document.getElementById('profAdresse').value,
-              code_postal: document.getElementById('profCp').value,
-              commune: document.getElementById('profCommune').value,
-              telephone: document.getElementById('profTel').value,
-              email_contact: document.getElementById('profEmail').value
-            }
-          })
+          method: 'PUT', headers: authHeaders(),
+          body: JSON.stringify({ profile: {
+            denomination: document.getElementById('profDenomination').value, siret,
+            code_ape: document.getElementById('profCodeApe').value, adresse: document.getElementById('profAdresse').value,
+            code_postal: document.getElementById('profCp').value, commune: document.getElementById('profCommune').value,
+            telephone: document.getElementById('profTel').value, email_contact: document.getElementById('profEmail').value
+          }})
         });
-        if (res.ok) {
-          showToast('✅ Profil enregistré !');
-          updateProfileBadge();
-        }
-      } catch (err) {
-        showToast('Erreur de sauvegarde');
-      }
+        if (res.ok) { showToast('✅ Profil enregistré !'); updateProfileBadge(); }
+      } catch (err) { showToast('Erreur de sauvegarde'); }
     }
 
+    // ===== CONTRATS =====
     async function loadContracts() {
       try {
         const res = await fetch('/api/entreprise/contracts', { headers: authHeaders() });
-        if (!res.ok) { console.error('Erreur chargement contrats'); return; }
-        const contracts = await res.json();
-        const el = document.getElementById('contractsList');
-
-        if (!contracts.length) {
-          el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Aucun contrat en cours</p><p style="font-size:13px;margin-top:4px;">Votre CFA vous enverra un lien pour remplir votre formulaire.</p></div>';
-          return;
-        }
-
-        el.innerHTML = contracts.map(c => {
-          const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
-          const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
-          const statusLabel = statusMap[c.status] || c.status;
-          const statusClass = c.status === 'validated' ? 'status-ready' : c.status === 'completed' ? 'status-ready' : 'status-' + c.status;
-          const apprenti = c.apprentiPrenom ? `${c.apprentiPrenom} ${c.apprentiNom}` : 'Apprenti non renseigné';
-          const formation = c.formationIntitule || 'Formation non renseignée';
-          const cfaLabel = c.cfaNom || '';
-          return `<div class="contract-item" style="flex-wrap:wrap;gap:12px;">
-            <div class="contract-info">
-              <div class="id" style="margin-bottom:2px;">#${c.id.slice(0,8)}${cfaLabel ? ` · <span style="font-family:inherit;color:#667eea;">${cfaLabel}</span>` : ''}</div>
-              <div class="date"><strong>${apprenti}</strong> — ${formation}</div>
-              <div class="date">Créé le ${date} · Étudiant: ${c.etudiantComplete ? '✅' : '⏳'} · Entreprise: ${c.entrepriseComplete ? '✅' : '⏳'}</div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
-              <span class="status-badge ${statusClass}">${statusLabel}</span>
-              ${c.lienFormulaire && !c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-fill">📝 Remplir le formulaire</a>` : ''}
-              ${c.lienFormulaire && c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-edit">✏️ Modifier</a>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-      } catch (err) {
-        console.error(err);
-      }
+        if (!res.ok) return;
+        allContracts = await res.json();
+        document.getElementById('statTotal').textContent = allContracts.length;
+        document.getElementById('statPending').textContent = allContracts.filter(c => ['pending','partial'].includes(c.status)).length;
+        document.getElementById('statReady').textContent = allContracts.filter(c => ['ready','validated'].includes(c.status)).length;
+        document.getElementById('statCompleted').textContent = allContracts.filter(c => c.status === 'completed').length;
+        renderContracts(allContracts);
+      } catch (err) { console.error(err); }
     }
 
+    function filterContracts() {
+      const search = (document.getElementById('searchInput').value || '').toLowerCase();
+      const status = document.getElementById('filterStatus').value;
+      let filtered = allContracts;
+      if (status) filtered = filtered.filter(c => c.status === status);
+      if (search) filtered = filtered.filter(c =>
+        c.id.toLowerCase().includes(search) ||
+        (c.apprentiNom || '').toLowerCase().includes(search) ||
+        (c.apprentiPrenom || '').toLowerCase().includes(search) ||
+        (c.formationIntitule || '').toLowerCase().includes(search) ||
+        (c.cfaNom || '').toLowerCase().includes(search)
+      );
+      renderContracts(filtered);
+    }
+
+    function renderContracts(contracts) {
+      const el = document.getElementById('contractsList');
+      if (!contracts.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Aucun contrat trouvé</p><p style="font-size:13px;margin-top:4px;">Votre CFA vous enverra un lien pour remplir votre formulaire.</p></div>`;
+        return;
+      }
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+      const progressMap = { pending: 10, partial: 40, ready: 70, validated: 85, completed: 100 };
+      const progressColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', completed: '#7c3aed' };
+
+      el.innerHTML = contracts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(c => {
+        const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+        const apprenti = c.apprentiPrenom ? `${c.apprentiPrenom} ${c.apprentiNom}` : 'Apprenti non renseigné';
+        const formation = c.formationIntitule || 'Formation non renseignée';
+        const progress = progressMap[c.status] || 0;
+        const pColor = progressColors[c.status] || '#888';
+        return `<div class="contract-card" onclick="openDetail('${c.id}')">
+          <div class="contract-header">
+            <div class="contract-header-left">
+              <span class="contract-id">#${c.id.slice(0,8)}</span>
+              ${c.cfaNom ? `<span class="contract-cfa"> · ${c.cfaNom}</span>` : ''}
+              <div class="contract-title">${apprenti} — ${formation}</div>
+              <div class="contract-meta">Créé le ${date} · Étudiant: ${c.etudiantComplete ? '✅' : '⏳'} · Entreprise: ${c.entrepriseComplete ? '✅' : '⏳'}</div>
+            </div>
+            <span class="status-badge status-${c.status}">${statusMap[c.status] || c.status}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:${pColor};"></div></div>
+          <div class="progress-label"><span>Progression</span><span>${progress}%</span></div>
+          <div class="contract-actions" onclick="event.stopPropagation();">
+            ${c.lienFormulaire && !c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-fill">📝 Remplir le formulaire</a>` : ''}
+            ${c.lienFormulaire && c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-edit">✏️ Modifier mes réponses</a>` : ''}
+            <button class="btn-action btn-detail" onclick="openDetail('${c.id}')">🔍 Détails</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ===== DETAIL MODAL =====
+    function openDetail(contractId) {
+      const c = allContracts.find(x => x.id === contractId);
+      if (!c) return;
+      document.getElementById('modalContratId').textContent = '#' + contractId.slice(0,8);
+
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+      let html = '';
+
+      html += `<div class="modal-section"><h4>📋 Informations générales</h4>
+        <div class="modal-row"><span class="label">ID complet</span><span class="value" style="font-family:monospace;font-size:11px;">${c.id}</span></div>
+        <div class="modal-row"><span class="label">CFA</span><span class="value">${c.cfaNom || 'Non renseigné'}</span></div>
+        <div class="modal-row"><span class="label">Statut</span><span class="value"><span class="status-badge status-${c.status}">${statusMap[c.status]||c.status}</span></span></div>
+        <div class="modal-row"><span class="label">Date de création</span><span class="value">${new Date(c.createdAt).toLocaleString('fr-FR')}</span></div>
+        <div class="modal-row"><span class="label">Formulaire étudiant</span><span class="value">${c.etudiantComplete ? '✅ Rempli' : '⏳ En attente'}</span></div>
+        <div class="modal-row"><span class="label">Formulaire entreprise</span><span class="value">${c.entrepriseComplete ? '✅ Rempli' : '⏳ En attente'}</span></div>
+      </div>`;
+
+      if (c.apprentiPrenom || c.apprentiNom) {
+        html += `<div class="modal-section"><h4>🎓 Apprenti</h4>
+          <div class="modal-row"><span class="label">Nom</span><span class="value">${c.apprentiPrenom || ''} ${c.apprentiNom || ''}</span></div>
+        </div>`;
+      }
+      if (c.formationIntitule) {
+        html += `<div class="modal-section"><h4>🏫 Formation</h4>
+          <div class="modal-row"><span class="label">Intitulé</span><span class="value">${c.formationIntitule}</span></div>
+        </div>`;
+      }
+
+      html += `<div class="modal-section"><h4>📜 Historique</h4><div id="modalHistory"></div></div>`;
+      document.getElementById('modalContent').innerHTML = html;
+
+      // Historique reconstitué
+      let items = [];
+      items.push({ icon: '🆕', action: 'Contrat créé', date: c.createdAt });
+      if (c.etudiantComplete) items.push({ icon: '🎓', action: 'Données étudiant remplies', date: null });
+      if (c.entrepriseComplete) items.push({ icon: '🏢', action: 'Données entreprise remplies', date: null });
+      if (c.status === 'validated') items.push({ icon: '✅', action: 'Contrat validé par le CFA', date: null });
+      if (c.status === 'completed') items.push({ icon: '🏁', action: 'Contrat finalisé', date: null });
+      document.getElementById('modalHistory').innerHTML = items.length ? items.map(h =>
+        `<div class="history-item"><div class="history-action">${h.icon} ${h.action}</div>${h.date ? `<div class="history-meta">${new Date(h.date).toLocaleString('fr-FR')}</div>` : ''}</div>`
+      ).join('') : '<p style="color:#888;font-size:13px;">Aucun historique disponible</p>';
+
+      // Bouton formulaire
+      const formLink = document.getElementById('modalFormLink');
+      if (c.lienFormulaire) {
+        formLink.style.display = '';
+        formLink.href = c.lienFormulaire;
+        formLink.textContent = c.entrepriseComplete ? '✏️ Modifier' : '📝 Remplir';
+        formLink.className = c.entrepriseComplete ? 'btn-action btn-edit' : 'btn-action btn-fill';
+      } else { formLink.style.display = 'none'; }
+
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+    // ===== INIT =====
     loadProfile();
     loadContracts();
   </script>
