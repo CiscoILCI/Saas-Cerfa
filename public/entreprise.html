@@ -377,22 +377,9 @@
                 <div class="form-section">
                     <h2>Rémunération</h2>
                     <div class="info-box" style="line-height:1.6;">
-                        <p>💰 <strong>La rémunération de l'apprenti est déterminée par son âge et l'année d'exécution du contrat</strong>, en pourcentage du SMIC (1 823,03 € brut/mois au 01/01/2026) ou du Salaire Minimum Conventionnel (SMC) si plus favorable.</p>
-                        <table style="width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:0.78em;">
-                            <thead><tr style="background:#eef2ff;">
-                                <th style="padding:6px 8px;text-align:left;border:1px solid #ddd;">Année</th>
-                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">Moins de 18 ans</th>
-                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">18-20 ans</th>
-                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">21-25 ans</th>
-                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">26 ans et +</th>
-                            </tr></thead>
-                            <tbody>
-                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">1ère année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">27%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">43%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">53%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
-                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">2ème année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">39%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">51%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">61%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
-                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">3ème année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">55%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">67%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">78%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
-                            </tbody>
-                        </table>
-                        <p style="font-size:0.85em;color:#666;margin-top:4px;">📌 Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire. Chaque année peut avoir 2 périodes si le taux change en cours d'année.</p>
+                        <p>💰 <strong>La rémunération de l'apprenti est déterminée par son âge et l'année d'exécution du contrat</strong>, en pourcentage du SMIC ou du Salaire Minimum Conventionnel (SMC) si plus favorable.</p>
+                        <p style="font-size:0.82em;color:#666;margin-top:6px;">📌 Le SMIC est récupéré en temps réel via l'API officielle de l'URSSAF. Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire.</p>
+                        <p id="smic-status" style="font-size:0.8em;margin-top:6px;color:#3730a3;">⏳ Chargement du SMIC depuis l'API URSSAF...</p>
                     </div>
                     <div style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;padding:16px;margin-bottom:16px;">
                         <p style="font-weight:700;font-size:0.85em;color:#3730a3;margin-bottom:10px;">🧮 Calculateur de salaire brut</p>
@@ -1191,26 +1178,60 @@
         }
 
         // Grille salaire apprentissage (art. D6222-26 à D6222-33 Code du travail)
-        // SMIC brut mensuel au 01/01/2026
-        const SMIC_BRUT_MENSUEL = 1823.07;
-        // grille[annee][trancheAge] = pourcentage
+        // grille[annee][trancheAge] = pourcentage du SMIC
         const grilleApprentissage = [
             [27, 43, 53, 100], // 1ère année : <18, 18-20, 21-25, 26+
             [39, 51, 61, 100], // 2ème année
             [55, 67, 78, 100]  // 3ème année
         ];
+        let smicBrutMensuel = null;
         let lastCalcMontant = null;
+
+        // Récupération du SMIC en temps réel via l'API officielle URSSAF
+        (async function fetchSmic() {
+            const statusEl = document.getElementById('smic-status');
+            try {
+                const resp = await fetch('https://mon-entreprise.urssaf.fr/api/v1/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expressions: ['SMIC'] })
+                });
+                const data = await resp.json();
+                if (data.evaluate && data.evaluate[0] && data.evaluate[0].nodeValue) {
+                    smicBrutMensuel = Math.round(data.evaluate[0].nodeValue * 100) / 100;
+                    statusEl.innerHTML = '✅ SMIC brut mensuel en vigueur : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong> <span style="color:#888;">(source : API URSSAF mon-entreprise.fr)</span>';
+                    statusEl.style.color = '#065f46';
+                } else {
+                    throw new Error('Réponse API invalide');
+                }
+            } catch (err) {
+                console.error('Erreur API URSSAF SMIC:', err);
+                smicBrutMensuel = 1823.07;
+                statusEl.innerHTML = '⚠️ API URSSAF indisponible — SMIC par défaut : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong>';
+                statusEl.style.color = '#92400e';
+            }
+        })();
 
         function calcSalaire() {
             const ageIdx = document.getElementById('calc-age').value;
             const anneeIdx = document.getElementById('calc-annee').value;
             const resultDiv = document.getElementById('calc-result');
             if (ageIdx === '' || anneeIdx === '') { resultDiv.style.display = 'none'; return; }
+            if (!smicBrutMensuel) {
+                resultDiv.innerHTML = '<p style="font-size:0.82em;color:#92400e;">⏳ Chargement du SMIC en cours, réessayez dans un instant...</p>';
+                resultDiv.style.display = 'block';
+                return;
+            }
             const pct = grilleApprentissage[parseInt(anneeIdx)][parseInt(ageIdx)];
-            const montant = Math.round((SMIC_BRUT_MENSUEL * pct / 100) * 100) / 100;
+            const montant = Math.round((smicBrutMensuel * pct / 100) * 100) / 100;
             lastCalcMontant = montant;
             document.getElementById('calc-taux').textContent = pct + '%';
             document.getElementById('calc-montant').textContent = montant.toFixed(2) + ' €/mois';
+            resultDiv.innerHTML = `<p style="font-size:0.82em;color:#374151;line-height:1.6;">
+                Taux applicable : <strong>${pct}%</strong> du SMIC (${smicBrutMensuel.toFixed(2)} €)<br>
+                Salaire brut minimum : <strong style="color:#059669;font-size:1.1em;">${montant.toFixed(2)} €/mois</strong>
+            </p>
+            <button type="button" onclick="applySalaire()" style="margin-top:8px;background:#4f46e5;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:0.8em;font-weight:600;cursor:pointer;font-family:inherit;">Appliquer ce montant ↓</button>`;
             resultDiv.style.display = 'block';
         }
 
