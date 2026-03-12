@@ -260,21 +260,50 @@ async function saveEntrepriseToDir(entData) {
   }
 }
 
+function normalizeStr(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
 async function searchEntreprisesDir(query) {
   try {
     const all = await redisCall(['HGETALL', ENT_DIR_KEY]);
     if (!all || all.length === 0) return [];
-    const results = [];
-    const q = query.toLowerCase();
+    // Découper la requête en mots (multi-mots : tous doivent matcher)
+    const terms = normalizeStr(query).split(/\s+/).filter(t => t.length > 0);
+    if (terms.length === 0) return [];
+    const scored = [];
     for (let i = 1; i < all.length; i += 2) {
       const ent = JSON.parse(all[i]);
-      const match = (ent.siret || '').includes(q) ||
-        (ent.denomination || '').toLowerCase().includes(q) ||
-        (ent.commune || '').toLowerCase().includes(q);
-      if (match) results.push(ent);
-      if (results.length >= 20) break;
+      // Construire les champs de recherche normalisés
+      const fields = {
+        siret: (ent.siret || ''),
+        denomination: normalizeStr(ent.denomination),
+        commune: normalizeStr(ent.adresse_commune),
+        code_postal: (ent.adresse_code_postal || ''),
+        code_ape: normalizeStr(ent.code_ape),
+        code_naf: normalizeStr(ent.code_naf)
+      };
+      const searchable = `${fields.siret} ${fields.denomination} ${fields.commune} ${fields.code_postal} ${fields.code_ape} ${fields.code_naf}`;
+      // Tous les termes doivent matcher quelque part
+      const allMatch = terms.every(t => searchable.includes(t));
+      if (!allMatch) continue;
+      // Scoring : priorité dénomination > SIRET exact > commune > reste
+      let score = 0;
+      for (const t of terms) {
+        if (fields.denomination.startsWith(t)) score += 10;
+        else if (fields.denomination.includes(t)) score += 5;
+        if (fields.siret.startsWith(t)) score += 8;
+        else if (fields.siret.includes(t)) score += 3;
+        if (fields.commune.startsWith(t)) score += 4;
+        else if (fields.commune.includes(t)) score += 2;
+        if (fields.code_postal.startsWith(t)) score += 3;
+        if (fields.code_ape.includes(t)) score += 2;
+      }
+      scored.push({ ent, score });
     }
-    return results;
+    // Trier par score décroissant et limiter à 20
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 20).map(s => s.ent);
   } catch (e) {
     console.error('[REDIS ERROR] searchEntreprisesDir:', e.message);
     return [];

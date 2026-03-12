@@ -430,6 +430,8 @@
                 setTimeout(() => results.style.display = 'none', 200);
             });
 
+            function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
             async function searchEntreprises(q) {
                 try {
                     const res = await fetch('/api/entreprises-directory/search?q=' + encodeURIComponent(q), { headers: authHeaders() });
@@ -440,10 +442,10 @@
                         results.style.display = 'block';
                         return;
                     }
-                    results.innerHTML = data.map(ent => `
-                        <div class="ac-item" data-siret="${ent.siret}">
-                            <div class="ac-name">${ent.denomination || 'Sans nom'} — ${ent.siret}</div>
-                            <div class="ac-details">${ent.adresse_code_postal || ''} ${ent.adresse_commune || ''} ${ent.code_ape ? '· APE: ' + ent.code_ape : ''}</div>
+                    results.innerHTML = data.map((ent, idx) => `
+                        <div class="ac-item" data-idx="${idx}">
+                            <div class="ac-name">${escHtml(ent.denomination) || 'Sans nom'} — ${escHtml(ent.siret)}</div>
+                            <div class="ac-details">${escHtml(ent.adresse_code_postal)} ${escHtml(ent.adresse_commune)} ${ent.code_ape ? '· APE: ' + escHtml(ent.code_ape) : ''}</div>
                         </div>
                     `).join('');
                     results.style.display = 'block';
@@ -451,8 +453,7 @@
                     results.querySelectorAll('.ac-item').forEach(item => {
                         item.addEventListener('mousedown', function(e) {
                             e.preventDefault();
-                            const siret = this.dataset.siret;
-                            const ent = data.find(d => d.siret === siret);
+                            const ent = data[parseInt(this.dataset.idx)];
                             if (ent) fillEntrepriseFromDir(ent);
                             results.style.display = 'none';
                             input.value = '';
