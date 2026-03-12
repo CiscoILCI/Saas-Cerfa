@@ -81,12 +81,12 @@
         <div class="header">
             <div class="badge">ContratFlow</div>
             <h1>Formulaire Entreprise</h1>
-            <p>Renseignez les informations de l'employeur, du contrat et de la formation</p>
+            <p>Renseignez les informations de l'employeur, du contrat et du maître d'apprentissage</p>
         </div>
         
         <div class="form-content">
             <div class="info-box">
-                <p>📝 Ce formulaire permet de compléter les informations de l'employeur, du contrat, de la formation et du maître d'apprentissage.</p>
+                <p>📝 Ce formulaire permet de compléter les informations de l'employeur, du contrat, de la rémunération et du maître d'apprentissage. Les informations de formation seront renseignées par le CFA.</p>
             </div>
 
             <div class="error-message" id="errorMessage"></div>
@@ -683,162 +683,7 @@
                     </div>
                 </div>
 
-                <!-- FORMATION -->
-                <div class="form-section">
-                    <h2>La Formation</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>CFA d'entreprise ?</label>
-                            <div class="checkbox-group">
-                                <label><input type="radio" name="formation.cfa_entreprise" value="oui"> Oui</label>
-                                <label><input type="radio" name="formation.cfa_entreprise" value="non" checked> Non</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Connaissez-vous les informations du CFA ? *</label>
-                            <div class="checkbox-group">
-                                <label><input type="radio" name="formation.connait_cfa" value="oui" id="connait-cfa-oui"> Oui</label>
-                                <label><input type="radio" name="formation.connait_cfa" value="non" id="connait-cfa-non" checked> Non</label>
-                            </div>
-                            <span class="help">Si non, ces informations pourront être complétées ultérieurement par le CFA</span>
-                        </div>
-                    </div>
-
-                    <div id="cfa-details-section" style="display: none;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Dénomination du CFA</label>
-                                <input type="text" name="formation.denomination_cfa">
-                            </div>
-                            <div class="form-group">
-                                <label>N° UAI du CFA</label>
-                                <input type="text" name="formation.uai_cfa" placeholder="Ex: 0123456A">
-                                <span class="help">Code établissement (8 caractères)</span>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>SIRET du CFA</label>
-                                <input type="text" name="formation.siret_cfa">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>N°</label>
-                                <input type="text" name="formation.adresse_cfa_numero">
-                            </div>
-                            <div class="form-group">
-                                <label>Voie</label>
-                                <input type="text" name="formation.adresse_cfa_voie">
-                            </div>
-                        </div>
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label>Complément d'adresse</label>
-                                <input type="text" name="formation.adresse_cfa_complement">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Code postal</label>
-                                <input type="text" name="formation.adresse_cfa_code_postal" maxlength="5">
-                            </div>
-                            <div class="form-group">
-                                <label>Commune</label>
-                                <input type="text" name="formation.adresse_cfa_commune">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Diplôme ou titre visé *</label>
-                            <select name="formation.diplome_vise" required>
-                                <option value="">-- Sélectionnez --</option>
-                                <optgroup label="Aucun diplôme ni titre">
-                                    <option value="13">13 - Aucun diplôme ni titre professionnel</option>
-                                    <option value="26">26 - Certificat de formation générale (CFG)</option>
-                                    <option value="25">25 - Diplôme national du brevet (DNB)</option>
-                                </optgroup>
-                                <optgroup label="Niveau CAP/BEP">
-                                    <option value="33">33 - CAP</option>
-                                    <option value="34">34 - BEP</option>
-                                    <option value="35">35 - Certificat de spécialisation (ex-Mention complémentaire)</option>
-                                    <option value="38">38 - Autre diplôme ou titre de niveau CAP/BEP</option>
-                                </optgroup>
-                                <optgroup label="Niveau Bac">
-                                    <option value="41">41 - Baccalauréat professionnel</option>
-                                    <option value="42">42 - Baccalauréat général</option>
-                                    <option value="43">43 - Baccalauréat technologique</option>
-                                    <option value="44">44 - Diplôme de spécialisation professionnelle</option>
-                                    <option value="49">49 - Autre diplôme ou titre de niveau bac</option>
-                                </optgroup>
-                                <optgroup label="Niveau Bac+2">
-                                    <option value="54">54 - Brevet de Technicien Supérieur (BTS)</option>
-                                    <option value="55">55 - Diplôme Universitaire de Technologie (DUT)</option>
-                                    <option value="58">58 - Autre diplôme ou titre de niveau bac+2</option>
-                                </optgroup>
-                                <optgroup label="Niveau Bac+3/4">
-                                    <option value="62">62 - Licence professionnelle</option>
-                                    <option value="63">63 - Licence générale</option>
-                                    <option value="64">64 - Bachelor universitaire de technologie (BUT)</option>
-                                    <option value="69">69 - Autre diplôme ou titre de niveau bac+3 ou 4</option>
-                                </optgroup>
-                                <optgroup label="Niveau Bac+5 et plus">
-                                    <option value="73">73 - Master</option>
-                                    <option value="75">75 - Diplôme d'ingénieur</option>
-                                    <option value="76">76 - Diplôme d'école de commerce</option>
-                                    <option value="79">79 - Autre diplôme ou titre de niveau bac+5 ou plus</option>
-                                    <option value="80">80 - Doctorat</option>
-                                </optgroup>
-                            </select>
-                            <span class="help">Code du type de diplôme préparé dans le cadre de ce contrat</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Intitulé précis *</label>
-                            <input type="text" name="formation.intitule_precis" placeholder="Ex: Développeur Web et Web Mobile" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code du diplôme</label>
-                            <input type="text" name="formation.code_diplome" placeholder="Ex: 32321303">
-                        </div>
-                        <div class="form-group">
-                            <label>Code RNCP</label>
-                            <input type="text" name="formation.code_rncp" placeholder="Ex: RNCP31114">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Date de début de formation en CFA *</label>
-                            <div class="date-group">
-                                <input type="text" name="formation.date_debut_formation_jour" placeholder="JJ" maxlength="2" required>
-                                <input type="text" name="formation.date_debut_formation_mois" placeholder="MM" maxlength="2" required>
-                                <input type="text" name="formation.date_debut_formation_annee" placeholder="AAAA" maxlength="4" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Date prévue de fin des épreuves *</label>
-                            <div class="date-group">
-                                <input type="text" name="formation.date_fin_formation_jour" placeholder="JJ" maxlength="2" required>
-                                <input type="text" name="formation.date_fin_formation_mois" placeholder="MM" maxlength="2" required>
-                                <input type="text" name="formation.date_fin_formation_annee" placeholder="AAAA" maxlength="4" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Durée de la formation (heures) *</label>
-                            <input type="number" name="formation.duree_formation_heures" placeholder="Ex: 400" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Dont heures à distance</label>
-                            <input type="number" name="formation.duree_formation_distance" value="0">
-                        </div>
-                    </div>
-                </div>
+                <!-- FORMATION : remplie par le CFA, pas par l'entreprise -->
 
                 <!-- MAÎTRE D'APPRENTISSAGE -->
                 <div class="form-section">
@@ -1017,24 +862,6 @@
             });
         });
 
-        // Gestion affichage/masquage section CFA selon si l'entreprise connaît les infos
-        const connaîtCfaOuiRadio = document.getElementById('connait-cfa-oui');
-        const connaîtCfaNonRadio = document.getElementById('connait-cfa-non');
-        const cfaDetailsSection = document.getElementById('cfa-details-section');
-
-        function updateCfaVisibility() {
-            if (connaîtCfaOuiRadio.checked) {
-                cfaDetailsSection.style.display = 'block';
-            } else {
-                cfaDetailsSection.style.display = 'none';
-            }
-        }
-
-        if (connaîtCfaOuiRadio && connaîtCfaNonRadio) {
-            connaîtCfaOuiRadio.addEventListener('change', updateCfaVisibility);
-            connaîtCfaNonRadio.addEventListener('change', updateCfaVisibility);
-        }
-
         // Formatage code postal (5 chiffres)
         const cpInputs = document.querySelectorAll('input[name$="code_postal"]');
         cpInputs.forEach(input => {
@@ -1163,12 +990,6 @@
             if (savedData.contrat) {
                 if (savedData.contrat.travail_risque_oui) { const r = form.querySelector('[name="contrat.travail_risque"][value="oui"]'); if (r) r.checked = true; }
                 if (savedData.contrat.travail_risque_non) { const r = form.querySelector('[name="contrat.travail_risque"][value="non"]'); if (r) r.checked = true; }
-            }
-            if (savedData.formation) {
-                if (savedData.formation.cfa_entreprise_oui) { const r = form.querySelector('[name="formation.cfa_entreprise"][value="oui"]'); if (r) r.checked = true; }
-                if (savedData.formation.cfa_entreprise_non) { const r = form.querySelector('[name="formation.cfa_entreprise"][value="non"]'); if (r) r.checked = true; }
-                if (savedData.formation.connait_cfa === 'oui') { const r = form.querySelector('[name="formation.connait_cfa"][value="oui"]'); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); } }
-                if (savedData.formation.connait_cfa === 'non') { const r = form.querySelector('[name="formation.connait_cfa"][value="non"]'); if (r) r.checked = true; }
             }
             if (savedData.maitre_apprentissage) {
                 if (savedData.maitre_apprentissage.atteste_criteres_eligibilite) { const r = form.querySelector('[name="maitre_apprentissage.atteste_criteres_eligibilite"]'); if (r) r.checked = true; }
@@ -1341,15 +1162,6 @@
             const travailRisque = document.querySelector('input[name="contrat.travail_risque"]:checked');
             data.contrat.travail_risque_oui = travailRisque?.value === 'oui';
             data.contrat.travail_risque_non = travailRisque?.value === 'non';
-
-            const cfaEntreprise = document.querySelector('input[name="formation.cfa_entreprise"]:checked');
-            data.formation.cfa_entreprise_oui = cfaEntreprise?.value === 'oui';
-            data.formation.cfa_entreprise_non = cfaEntreprise?.value === 'non';
-
-            const connaîtCfa = document.querySelector('input[name="formation.connait_cfa"]:checked');
-            data.formation.connait_cfa = connaîtCfa?.value || 'non';
-            data.formation.connait_cfa_oui = connaîtCfa?.value === 'oui';
-            data.formation.connait_cfa_non = connaîtCfa?.value === 'non';
 
             const attesteMaitre = document.querySelector('input[name="maitre_apprentissage.atteste_criteres_eligibilite"]');
             data.maitre_apprentissage.atteste_criteres_eligibilite = attesteMaitre?.checked;
