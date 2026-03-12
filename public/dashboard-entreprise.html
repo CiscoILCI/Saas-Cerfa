@@ -129,6 +129,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('contrats', this)">📄 Mes contrats</button>
+      <button class="tab-btn" onclick="showTab('maitres', this)">👨‍🏫 Maîtres d'apprentissage</button>
       <button class="tab-btn" onclick="showTab('profil', this)">🏢 Mon profil</button>
     </div>
 
@@ -157,6 +158,18 @@
       <div id="contractsList"></div>
     </div>
 
+    <!-- TAB MAITRES D'APPRENTISSAGE -->
+    <div id="tab-maitres" class="tab-content">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="showMaModal()">➕ Ajouter un maître</button>
+        <button class="btn btn-secondary" onclick="loadMaitres()">🔄 Rafraîchir</button>
+      </div>
+      <div class="card">
+        <h3>👨‍🏫 Maîtres d'apprentissage enregistrés</h3>
+        <div id="maitresTable"></div>
+      </div>
+    </div>
+
     <!-- TAB PROFIL -->
     <div id="tab-profil" class="tab-content">
       <div class="card">
@@ -174,6 +187,25 @@
           </div>
           <div style="margin-top:16px;"><button type="submit" class="btn btn-primary">💾 Enregistrer le profil</button></div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MAITRE -->
+  <div id="maModal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="maModalTitle">Ajouter un maître d'apprentissage</h3>
+      <input type="hidden" id="maEditId">
+      <div class="form-group" style="margin-bottom:12px;"><label>Nom *</label><input type="text" id="maNom"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Prénom *</label><input type="text" id="maPrenom"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Date de naissance (JJ/MM/AAAA)</label><input type="text" id="maDateNaissance" placeholder="01/01/1980"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Email</label><input type="email" id="maCourriel"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Emploi occupé</label><input type="text" id="maEmploi"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Diplôme le plus élevé</label><input type="text" id="maDiplome"></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Niveau diplôme</label><input type="text" id="maNiveau"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeMaModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveMaitre()">💾 Enregistrer</button>
       </div>
     </div>
   </div>
@@ -255,6 +287,83 @@
         });
         if (res.ok) { showToast('✅ Profil enregistré !'); updateProfileBadge(); }
       } catch (err) { showToast('Erreur de sauvegarde'); }
+    }
+
+    // ===== MAITRES D'APPRENTISSAGE =====
+    async function loadMaitres() {
+      try {
+        const res = await fetch('/api/maitres', { headers: authHeaders() });
+        const maitres = await res.json();
+        const el = document.getElementById('maitresTable');
+        if (!maitres.length) {
+          el.innerHTML = '<div class="empty-state"><div class="icon">👨‍🏫</div><p>Aucun maître enregistré</p><p style="font-size:13px;margin-top:4px;">Ajoutez vos maîtres d\'apprentissage pour les réutiliser dans les contrats.</p></div>';
+          return;
+        }
+        el.innerHTML = maitres.map(m => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;">
+            <div>
+              <div style="font-weight:600;font-size:14px;">${m.prenom} ${m.nom}</div>
+              <div style="font-size:12px;color:#888;">${m.emploi_occupe || ''} ${m.diplome_le_plus_eleve ? '· ' + m.diplome_le_plus_eleve : ''} ${m.courriel ? '· ' + m.courriel : ''}</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="editMaitre('${m.id}')">✏️</button>
+              <button class="btn" style="padding:6px 12px;font-size:12px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;" onclick="deleteMaitre('${m.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) { showToast('Erreur chargement maîtres'); console.error(err); }
+    }
+
+    function showMaModal(data) {
+      document.getElementById('maEditId').value = data ? data.id : '';
+      document.getElementById('maModalTitle').textContent = data ? 'Modifier le maître' : "Ajouter un maître d'apprentissage";
+      document.getElementById('maNom').value = data ? data.nom : '';
+      document.getElementById('maPrenom').value = data ? data.prenom : '';
+      document.getElementById('maDateNaissance').value = data ? data.date_naissance : '';
+      document.getElementById('maCourriel').value = data ? data.courriel : '';
+      document.getElementById('maEmploi').value = data ? data.emploi_occupe : '';
+      document.getElementById('maDiplome').value = data ? data.diplome_le_plus_eleve : '';
+      document.getElementById('maNiveau').value = data ? data.niveau_diplome : '';
+      document.getElementById('maModal').style.display = 'flex';
+    }
+    function closeMaModal() { document.getElementById('maModal').style.display = 'none'; }
+
+    async function editMaitre(id) {
+      try {
+        const res = await fetch('/api/maitres', { headers: authHeaders() });
+        const maitres = await res.json();
+        const m = maitres.find(x => x.id === id);
+        if (m) showMaModal(m);
+      } catch (err) { showToast('Erreur'); }
+    }
+
+    async function saveMaitre() {
+      const id = document.getElementById('maEditId').value;
+      const body = {
+        nom: document.getElementById('maNom').value,
+        prenom: document.getElementById('maPrenom').value,
+        date_naissance: document.getElementById('maDateNaissance').value,
+        courriel: document.getElementById('maCourriel').value,
+        emploi_occupe: document.getElementById('maEmploi').value,
+        diplome_le_plus_eleve: document.getElementById('maDiplome').value,
+        niveau_diplome: document.getElementById('maNiveau').value
+      };
+      if (!body.nom || !body.prenom) { showToast('Nom et prénom requis'); return; }
+      try {
+        const url = id ? '/api/maitres/' + id : '/api/maitres';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
+        if (res.ok) { showToast(id ? 'Maître modifié' : 'Maître ajouté'); closeMaModal(); loadMaitres(); }
+        else showToast('Erreur');
+      } catch (err) { showToast('Erreur'); }
+    }
+
+    async function deleteMaitre(id) {
+      if (!confirm('Supprimer ce maître ?')) return;
+      try {
+        const res = await fetch('/api/maitres/' + id, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok) { showToast('Maître supprimé'); loadMaitres(); }
+      } catch (err) { showToast('Erreur'); }
     }
 
     // ===== CONTRATS =====
@@ -383,6 +492,7 @@
     // ===== INIT =====
     loadProfile();
     loadContracts();
+    loadMaitres();
   </script>
 </body>
 </html>

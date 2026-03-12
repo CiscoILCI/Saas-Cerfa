@@ -962,7 +962,7 @@ module.exports = async function handler(req, res) {
 
     // ---------- GET /api/maitres ----------
     if (method === 'GET' && url === '/api/maitres') {
-      const authUser = requireAuth(req, res, ['cfa']);
+      const authUser = requireAuth(req, res, ['entreprise']);
       if (!authUser) return;
       const maitres = await getMaitres(authUser.id);
       return sendJSON(res, maitres);
@@ -970,7 +970,7 @@ module.exports = async function handler(req, res) {
 
     // ---------- POST /api/maitres ----------
     if (method === 'POST' && url === '/api/maitres') {
-      const authUser = requireAuth(req, res, ['cfa']);
+      const authUser = requireAuth(req, res, ['entreprise']);
       if (!authUser) return;
       const body = await parseBody(req);
       if (!body.nom || !body.prenom) return sendJSON(res, { error: 'Nom et prénom requis' }, 400);
@@ -992,7 +992,7 @@ module.exports = async function handler(req, res) {
     // ---------- PUT /api/maitres/:id ----------
     const maUpdateMatch = matchRoute(url, '/api/maitres/:id');
     if (method === 'PUT' && maUpdateMatch) {
-      const authUser = requireAuth(req, res, ['cfa']);
+      const authUser = requireAuth(req, res, ['entreprise']);
       if (!authUser) return;
       const maitre = await getMaitre(authUser.id, maUpdateMatch.id);
       if (!maitre) return sendJSON(res, { error: 'Maître non trouvé' }, 404);
@@ -1005,7 +1005,7 @@ module.exports = async function handler(req, res) {
     // ---------- DELETE /api/maitres/:id ----------
     const maDelMatch = matchRoute(url, '/api/maitres/:id');
     if (method === 'DELETE' && maDelMatch) {
-      const authUser = requireAuth(req, res, ['cfa']);
+      const authUser = requireAuth(req, res, ['entreprise']);
       if (!authUser) return;
       const deleted = await deleteMaitre(authUser.id, maDelMatch.id);
       if (deleted) return sendJSON(res, { success: true });

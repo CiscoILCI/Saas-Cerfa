@@ -162,27 +162,30 @@ Le fichier `mapping_complet_v2.json` fait correspondre les clés de données aux
 
 ## Roadmap SaaS
 
-### Phase 1 - Authentification et comptes utilisateurs
+### Phase 1 - Authentification et comptes utilisateurs ✅
 
-- [ ] Système d'authentification (inscription / connexion)
-- [ ] Trois rôles : **Admin**, **CFA**, **Entreprise**
-- [ ] Gestion des sessions (JWT ou cookies sécurisés)
-- [ ] Page de connexion / inscription
-- [ ] Middleware d'authentification sur les routes API
+- [x] Système d'authentification (inscription / connexion) - JWT + bcrypt
+- [x] Deux rôles : **CFA**, **Entreprise** (Admin non nécessaire pour MVP)
+- [x] Gestion des sessions (JWT dans localStorage)
+- [x] Page de connexion / inscription (login.html)
+- [x] Middleware d'authentification sur les routes API (requireAuth)
 
-### Phase 2 - Profils et données persistantes
+### Phase 2 - Profils et données persistantes ✅
 
-- [ ] **Profil CFA** : dénomination, UAI, SIRET, adresse (pré-rempli dans les contrats)
-- [ ] **Profil Entreprise** : dénomination, SIRET, adresse, type employeur (pré-rempli dans les contrats)
-- [ ] Remplissage automatique des formulaires depuis le profil client
-- [ ] Édition du profil utilisateur
+- [x] **Profil CFA** : dénomination, UAI, SIRET, adresse (pré-rempli dans les contrats)
+- [x] **Profil Entreprise** : dénomination, SIRET, adresse, code APE, contacts (pré-rempli dans les contrats)
+- [x] Remplissage automatique des formulaires depuis le profil client
+- [x] Édition du profil utilisateur (dashboard-cfa.html, dashboard-entreprise.html)
+- [x] **Annuaire partagé d'entreprises** : auto-alimenté, recherche, autocomplete
 
-### Phase 3 - Gestion avancée des contrats
+### Phase 3 - Gestion avancée des contrats ✅
 
-- [ ] **Statuts de formulaire** : possibilité de bloquer la soumission (brouillon, ouvert, fermé)
-- [ ] **Revue avant PDF** : reprendre et modifier les informations du contrat avant génération
-- [ ] Historique des contrats par CFA / Entreprise
-- [ ] Tableau de bord personnalisé par rôle
+- [x] **Statuts de contrat** : pending → partial → ready → validated → completed
+- [x] **Revue avant PDF** : edit-contrat.html avec modification complète avant génération
+- [x] Historique des contrats (GET /api/contracts/:id/history)
+- [x] Tableau de bord personnalisé par rôle (dashboard-cfa.html, dashboard-entreprise.html)
+- [x] Recherche et filtrage des contrats
+- [x] Export CSV des contrats (CFA)
 
 ### Phase 4 - Fonctionnalités SaaS avancées
 
