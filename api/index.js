@@ -590,17 +590,33 @@ module.exports = async function handler(req, res) {
       const baseUrl = getBaseUrl(req);
       const allContracts = await getAllContracts();
       const contracts = allContracts.filter(c => c.cfaId === authUser.id);
-      const result = contracts.map(c => ({
-        id: c.id,
-        createdAt: c.createdAt,
-        status: c.status,
-        etudiantComplete: !!c.etudiant,
-        entrepriseComplete: !!c.entreprise,
-        liens: {
-          etudiant: `${baseUrl}/etudiant.html?token=${c.tokens.etudiant}`,
-          entreprise: `${baseUrl}/entreprise.html?token=${c.tokens.entreprise}`
-        }
-      }));
+      const typeContratLabels = {
+        '11': 'Premier contrat', '21': 'Renouvellement', '22': 'Renouvellement',
+        '31': 'Avenant', '32': 'Avenant', '33': 'Avenant', '34': 'Avenant', '35': 'Avenant', '36': 'Avenant', '37': 'Avenant'
+      };
+      const result = contracts.map(c => {
+        const etu = c.etudiant || {};
+        const app = etu.apprenti || {};
+        const ent = c.entreprise || {};
+        const emp = ent.employeur || {};
+        const ctr = ent.contrat || {};
+        return {
+          id: c.id,
+          createdAt: c.createdAt,
+          status: c.status,
+          etudiantComplete: !!c.etudiant,
+          entrepriseComplete: !!c.entreprise,
+          apprentiNom: app.nom_naissance || '',
+          apprentiPrenom: app.prenom || '',
+          entrepriseDenom: emp.denomination || '',
+          typeContrat: typeContratLabels[ctr.type_contrat] || '',
+          typeContratCode: ctr.type_contrat || '',
+          liens: {
+            etudiant: `${baseUrl}/etudiant.html?token=${c.tokens.etudiant}`,
+            entreprise: `${baseUrl}/entreprise.html?token=${c.tokens.entreprise}`
+          }
+        };
+      });
       return sendJSON(res, result);
     }
 

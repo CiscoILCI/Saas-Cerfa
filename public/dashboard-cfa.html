@@ -518,8 +518,10 @@
       if (statusFilter) filtered = filtered.filter(c => c.status === statusFilter);
       if (search) filtered = filtered.filter(c =>
         c.id.toLowerCase().includes(search) ||
-        (c.liens?.etudiant || '').toLowerCase().includes(search) ||
-        (c.liens?.entreprise || '').toLowerCase().includes(search)
+        (c.apprentiNom || '').toLowerCase().includes(search) ||
+        (c.apprentiPrenom || '').toLowerCase().includes(search) ||
+        (c.entrepriseDenom || '').toLowerCase().includes(search) ||
+        (c.typeContrat || '').toLowerCase().includes(search)
       );
       renderContracts(filtered);
     }
@@ -536,7 +538,7 @@
       }
 
       const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
-      let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Statut</th><th>Étudiant</th><th>Entreprise</th><th>Actions</th></tr></thead><tbody>';
+      let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Apprenti</th><th>Entreprise</th><th>Statut</th><th>Liens</th><th>Actions</th></tr></thead><tbody>';
       contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       for (const c of contracts) {
@@ -544,17 +546,19 @@
         const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const statusClass = 'status-' + c.status;
         const label = statusLabels[c.status] || c.status;
+        const apprentiName = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '<span style="color:#aaa;font-size:11px;">En attente</span>';
+        const entrepriseName = c.entrepriseDenom || '<span style="color:#aaa;font-size:11px;">En attente</span>';
+        const typeLabel = c.typeContrat || '<span style="color:#aaa;font-size:11px;">—</span>';
         html += `<tr>
           <td style="font-family:monospace;font-size:12px;">${c.id.slice(0, 8)}</td>
-          <td>${date}</td>
+          <td style="font-size:12px;white-space:nowrap;">${date}</td>
+          <td style="font-size:12px;">${typeLabel}</td>
+          <td style="font-size:13px;font-weight:600;">${apprentiName}</td>
+          <td style="font-size:13px;">${entrepriseName}</td>
           <td><span class="status-badge ${statusClass}">${label}</span></td>
-          <td>
-            ${c.etudiantComplete ? '✅' : '⏳'}
-            <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Copier lien</span>
-          </td>
-          <td>
-            ${c.entrepriseComplete ? '✅' : '⏳'}
-            <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Copier lien</span>
+          <td style="white-space:nowrap;">
+            ${c.etudiantComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Étudiant</span>
+            ${c.entrepriseComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Entreprise</span>
           </td>
           <td style="white-space:nowrap;">
             <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir / Modifier</button>
@@ -572,11 +576,12 @@
     function exportCSV() {
       if (!allContracts.length) { showToast('Aucun contrat à exporter'); return; }
       const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
-      const header = 'ID;Date;Statut;Étudiant;Entreprise;Lien Étudiant;Lien Entreprise';
+      const header = 'ID;Date;Type;Apprenti;Entreprise;Statut;Étudiant rempli;Entreprise rempli;Lien Étudiant;Lien Entreprise';
       const rows = allContracts.map(c => {
         const d = new Date(c.createdAt);
         const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        return `${c.id};${date};${statusLabels[c.status]||c.status};${c.etudiantComplete?'Oui':'Non'};${c.entrepriseComplete?'Oui':'Non'};${c.liens?.etudiant||''};${c.liens?.entreprise||''}`;
+        const apprenti = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '';
+        return `${c.id};${date};${c.typeContrat||''};${apprenti};${c.entrepriseDenom||''};${statusLabels[c.status]||c.status};${c.etudiantComplete?'Oui':'Non'};${c.entrepriseComplete?'Oui':'Non'};${c.liens?.etudiant||''};${c.liens?.entreprise||''}`;
       });
       const csv = '\uFEFF' + header + '\n' + rows.join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
