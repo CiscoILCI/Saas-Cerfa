@@ -349,10 +349,6 @@
                             </div>
                             <span class="help">Uniquement si apprenti mineur</span>
                         </div>
-                        <div class="form-group">
-                            <label>Salaire brut mensuel à l'embauche (€)</label>
-                            <input type="text" name="contrat.salaire_brut_mensuel" placeholder="Ex: 1000.00">
-                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -380,8 +376,30 @@
                 <!-- RÉMUNÉRATION -->
                 <div class="form-section">
                     <h2>Rémunération</h2>
-                    <div class="info-box">
-                        <p>💰 Indiquer le % du SMIC ou SMC pour chaque période. Chaque année peut avoir 2 périodes si le taux change (ex: anniversaire de l'apprenti).</p>
+                    <div class="info-box" style="line-height:1.6;">
+                        <p>💰 <strong>La rémunération de l'apprenti est déterminée par son âge et l'année d'exécution du contrat</strong>, en pourcentage du SMIC (1 823,03 € brut/mois au 01/01/2026) ou du Salaire Minimum Conventionnel (SMC) si plus favorable.</p>
+                        <table style="width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:0.78em;">
+                            <thead><tr style="background:#eef2ff;">
+                                <th style="padding:6px 8px;text-align:left;border:1px solid #ddd;">Année</th>
+                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">Moins de 18 ans</th>
+                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">18-20 ans</th>
+                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">21-25 ans</th>
+                                <th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">26 ans et +</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">1ère année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">27%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">43%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">53%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
+                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">2ème année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">39%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">51%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">61%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
+                                <tr><td style="padding:5px 8px;border:1px solid #ddd;">3ème année</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">55%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">67%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">78%</td><td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">100%</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="font-size:0.85em;color:#666;margin-top:4px;">📌 Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire. Chaque année peut avoir 2 périodes si le taux change en cours d'année.</p>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Salaire brut mensuel à l'embauche (€)</label>
+                            <input type="text" name="contrat.salaire_brut_mensuel" placeholder="Ex: 1000.00">
+                            <span class="help">Montant calculé selon le % du SMIC correspondant à l'âge et l'année de contrat de l'apprenti</span>
+                        </div>
                     </div>
                     <h3 style="margin-bottom: 10px; color: #667eea; font-size: 1em;">1ère année</h3>
                     <div class="form-row">
