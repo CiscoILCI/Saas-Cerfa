@@ -394,11 +394,42 @@
                         </table>
                         <p style="font-size:0.85em;color:#666;margin-top:4px;">📌 Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire. Chaque année peut avoir 2 périodes si le taux change en cours d'année.</p>
                     </div>
+                    <div style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;padding:16px;margin-bottom:16px;">
+                        <p style="font-weight:700;font-size:0.85em;color:#3730a3;margin-bottom:10px;">🧮 Calculateur de salaire brut</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tranche d'âge de l'apprenti *</label>
+                                <select id="calc-age" onchange="calcSalaire()">
+                                    <option value="">-- Sélectionnez --</option>
+                                    <option value="0">Moins de 18 ans</option>
+                                    <option value="1">18-20 ans</option>
+                                    <option value="2">21-25 ans</option>
+                                    <option value="3">26 ans et plus</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Année d'exécution du contrat *</label>
+                                <select id="calc-annee" onchange="calcSalaire()">
+                                    <option value="">-- Sélectionnez --</option>
+                                    <option value="0">1ère année</option>
+                                    <option value="1">2ème année</option>
+                                    <option value="2">3ème année</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="calc-result" style="display:none;background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:12px;margin-top:6px;">
+                            <p style="font-size:0.82em;color:#374151;line-height:1.6;">
+                                Taux applicable : <strong id="calc-taux"></strong> du SMIC<br>
+                                Salaire brut minimum : <strong id="calc-montant" style="color:#059669;font-size:1.1em;"></strong>
+                            </p>
+                            <button type="button" onclick="applySalaire()" style="margin-top:8px;background:#4f46e5;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:0.8em;font-weight:600;cursor:pointer;font-family:inherit;">Appliquer ce montant ↓</button>
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Salaire brut mensuel à l'embauche (€)</label>
-                            <input type="text" name="contrat.salaire_brut_mensuel" placeholder="Ex: 1000.00">
-                            <span class="help">Montant calculé selon le % du SMIC correspondant à l'âge et l'année de contrat de l'apprenti</span>
+                            <input type="text" id="salaire-brut" name="contrat.salaire_brut_mensuel" placeholder="Ex: 1000.00">
+                            <span class="help">Vous pouvez utiliser le calculateur ci-dessus ou saisir un montant manuellement</span>
                         </div>
                     </div>
                     <h3 style="margin-bottom: 10px; color: #667eea; font-size: 1em;">1ère année</h3>
@@ -1156,6 +1187,38 @@
             }
             if (savedData.attestation) {
                 if (savedData.attestation.pieces_justificatives) { const r = form.querySelector('[name="attestation.pieces_justificatives"]'); if (r) r.checked = true; }
+            }
+        }
+
+        // Grille salaire apprentissage (art. D6222-26 à D6222-33 Code du travail)
+        // SMIC brut mensuel au 01/01/2026
+        const SMIC_BRUT_MENSUEL = 1823.07;
+        // grille[annee][trancheAge] = pourcentage
+        const grilleApprentissage = [
+            [27, 43, 53, 100], // 1ère année : <18, 18-20, 21-25, 26+
+            [39, 51, 61, 100], // 2ème année
+            [55, 67, 78, 100]  // 3ème année
+        ];
+        let lastCalcMontant = null;
+
+        function calcSalaire() {
+            const ageIdx = document.getElementById('calc-age').value;
+            const anneeIdx = document.getElementById('calc-annee').value;
+            const resultDiv = document.getElementById('calc-result');
+            if (ageIdx === '' || anneeIdx === '') { resultDiv.style.display = 'none'; return; }
+            const pct = grilleApprentissage[parseInt(anneeIdx)][parseInt(ageIdx)];
+            const montant = Math.round((SMIC_BRUT_MENSUEL * pct / 100) * 100) / 100;
+            lastCalcMontant = montant;
+            document.getElementById('calc-taux').textContent = pct + '%';
+            document.getElementById('calc-montant').textContent = montant.toFixed(2) + ' €/mois';
+            resultDiv.style.display = 'block';
+        }
+
+        function applySalaire() {
+            if (lastCalcMontant !== null) {
+                document.getElementById('salaire-brut').value = lastCalcMontant.toFixed(2);
+                document.getElementById('salaire-brut').style.borderColor = '#10b981';
+                setTimeout(() => { document.getElementById('salaire-brut').style.borderColor = ''; }, 2000);
             }
         }
 
