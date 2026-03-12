@@ -484,7 +484,7 @@ module.exports = async function handler(req, res) {
         role,
         nom: nom || '',
         createdAt: new Date().toISOString(),
-        profile: {}
+        profile: nom ? { denomination: nom } : {}
       };
 
       await saveUser(user);

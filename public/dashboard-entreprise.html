@@ -406,7 +406,8 @@
       const progressColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', completed: '#7c3aed' };
 
       el.innerHTML = contracts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(c => {
-        const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+        const _d = new Date(c.createdAt);
+        const date = _d.toLocaleDateString('fr-FR') + ' ' + _d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const apprenti = c.apprentiPrenom ? `${c.apprentiPrenom} ${c.apprentiNom}` : 'Apprenti non renseigné';
         const formation = c.formationIntitule || 'Formation non renseignée';
         const progress = progressMap[c.status] || 0;

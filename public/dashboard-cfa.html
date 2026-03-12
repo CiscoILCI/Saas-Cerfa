@@ -540,7 +540,8 @@
       contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       for (const c of contracts) {
-        const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+        const d = new Date(c.createdAt);
+        const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const statusClass = 'status-' + c.status;
         const label = statusLabels[c.status] || c.status;
         html += `<tr>
@@ -573,7 +574,8 @@
       const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
       const header = 'ID;Date;Statut;Étudiant;Entreprise;Lien Étudiant;Lien Entreprise';
       const rows = allContracts.map(c => {
-        const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+        const d = new Date(c.createdAt);
+        const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         return `${c.id};${date};${statusLabels[c.status]||c.status};${c.etudiantComplete?'Oui':'Non'};${c.entrepriseComplete?'Oui':'Non'};${c.liens?.etudiant||''};${c.liens?.entreprise||''}`;
       });
       const csv = '\uFEFF' + header + '\n' + rows.join('\n');
