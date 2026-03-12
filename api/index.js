@@ -976,6 +976,52 @@ module.exports = async function handler(req, res) {
     // ROUTES MAITRES D'APPRENTISSAGE
     // =====================
 
+    // ---------- GET /api/maitres/by-token/:token (public, via token entreprise) ----------
+    const maByTokenGet = matchRoute(url, '/api/maitres/by-token/:token');
+    if (method === 'GET' && maByTokenGet) {
+      const result = await getContractByToken(maByTokenGet.token);
+      if (!result || result.type !== 'entreprise') return sendJSON(res, { error: 'Token invalide' }, 404);
+      const contract = result.contract;
+      // Trouver l'entreprise inscrite liée au contrat
+      let entrepriseUserId = null;
+      if (contract.entrepriseEmail) {
+        const entUser = await getUserByEmail(contract.entrepriseEmail);
+        if (entUser) entrepriseUserId = entUser.id;
+      }
+      if (!entrepriseUserId) return sendJSON(res, []);
+      const maitres = await getMaitres(entrepriseUserId);
+      return sendJSON(res, maitres);
+    }
+
+    // ---------- POST /api/maitres/by-token/:token (public, ajouter un maître via formulaire) ----------
+    const maByTokenPost = matchRoute(url, '/api/maitres/by-token/:token');
+    if (method === 'POST' && maByTokenPost) {
+      const result = await getContractByToken(maByTokenPost.token);
+      if (!result || result.type !== 'entreprise') return sendJSON(res, { error: 'Token invalide' }, 404);
+      const contract = result.contract;
+      let entrepriseUserId = null;
+      if (contract.entrepriseEmail) {
+        const entUser = await getUserByEmail(contract.entrepriseEmail);
+        if (entUser) entrepriseUserId = entUser.id;
+      }
+      if (!entrepriseUserId) return sendJSON(res, { error: 'Aucune entreprise inscrite liée à ce contrat' }, 400);
+      const body = await parseBody(req);
+      if (!body.nom || !body.prenom) return sendJSON(res, { error: 'Nom et prénom requis' }, 400);
+      const maitre = {
+        id: uuid(),
+        nom: body.nom,
+        prenom: body.prenom,
+        date_naissance: body.date_naissance || '',
+        courriel: body.courriel || '',
+        emploi_occupe: body.emploi_occupe || '',
+        diplome_le_plus_eleve: body.diplome_le_plus_eleve || '',
+        niveau_diplome: body.niveau_diplome || '',
+        createdAt: new Date().toISOString()
+      };
+      await saveMaitre(entrepriseUserId, maitre);
+      return sendJSON(res, { success: true, maitre });
+    }
+
     // ---------- GET /api/maitres ----------
     if (method === 'GET' && url === '/api/maitres') {
       const authUser = requireAuth(req, res, ['entreprise']);

@@ -691,100 +691,133 @@
                     <div class="info-box">
                         <p>ℹ️ Le maître d'apprentissage doit justifier de compétences professionnelles (diplôme et/ou expérience) dans le domaine du diplôme préparé.</p>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nom *</label>
-                            <input type="text" name="maitre_apprentissage.nom" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Prénom *</label>
-                            <input type="text" name="maitre_apprentissage.prenom" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Date de naissance</label>
-                            <div class="date-group">
-                                <input type="text" name="maitre_apprentissage.date_naissance_jour" placeholder="JJ" maxlength="2">
-                                <input type="text" name="maitre_apprentissage.date_naissance_mois" placeholder="MM" maxlength="2">
-                                <input type="text" name="maitre_apprentissage.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                    <div id="ma-selector-box" style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;padding:16px;margin-bottom:16px;">
+                        <p style="font-weight:700;font-size:0.85em;color:#3730a3;margin-bottom:10px;">👤 Sélectionnez un maître d'apprentissage existant ou ajoutez-en un nouveau</p>
+                        <p id="ma-loading" style="font-size:0.8em;color:#3730a3;">⏳ Chargement des maîtres d'apprentissage...</p>
+                        <div id="ma-selector-content" style="display:none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Maître d'apprentissage principal *</label>
+                                    <select id="ma-select-1" onchange="selectMaitre(1)">
+                                        <option value="">-- Sélectionnez --</option>
+                                        <option value="__new__">➕ Ajouter un nouveau maître</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Second maître (optionnel)</label>
+                                    <select id="ma-select-2" onchange="selectMaitre(2)">
+                                        <option value="">-- Aucun --</option>
+                                        <option value="__new__">➕ Ajouter un nouveau maître</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Courriel</label>
-                            <input type="email" name="maitre_apprentissage.courriel">
-                        </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Emploi occupé *</label>
-                            <input type="text" name="maitre_apprentissage.emploi_occupe" placeholder="Ex: Directeur technique" required>
+                    <div id="ma1-fields">
+                        <h3 id="ma1-title" style="margin-bottom: 10px; color: #667eea; font-size: 1em;">Maître d'apprentissage principal</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="maitre_apprentissage.nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="maitre_apprentissage.prenom" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Diplôme ou titre le plus élevé obtenu *</label>
-                            <input type="text" name="maitre_apprentissage.diplome_le_plus_eleve" placeholder="Ex: Master Informatique" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date de naissance</label>
+                                <div class="date-group">
+                                    <input type="text" name="maitre_apprentissage.date_naissance_jour" placeholder="JJ" maxlength="2">
+                                    <input type="text" name="maitre_apprentissage.date_naissance_mois" placeholder="MM" maxlength="2">
+                                    <input type="text" name="maitre_apprentissage.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Courriel</label>
+                                <input type="email" name="maitre_apprentissage.courriel">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Niveau de diplôme *</label>
-                            <select name="maitre_apprentissage.niveau_diplome" required>
-                                <option value="">-- Sélectionnez --</option>
-                                <option value="1">1 - Niveau CAP/BEP</option>
-                                <option value="2">2 - Niveau Bac</option>
-                                <option value="3">3 - Niveau Bac+2</option>
-                                <option value="4">4 - Niveau Bac+3/4</option>
-                                <option value="5">5 - Niveau Bac+5 et plus</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Emploi occupé *</label>
+                                <input type="text" name="maitre_apprentissage.emploi_occupe" placeholder="Ex: Directeur technique" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Diplôme ou titre le plus élevé obtenu *</label>
+                                <input type="text" name="maitre_apprentissage.diplome_le_plus_eleve" placeholder="Ex: Master Informatique" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Niveau de diplôme *</label>
+                                <select name="maitre_apprentissage.niveau_diplome" required>
+                                    <option value="">-- Sélectionnez --</option>
+                                    <option value="1">1 - Niveau CAP/BEP</option>
+                                    <option value="2">2 - Niveau Bac</option>
+                                    <option value="3">3 - Niveau Bac+2</option>
+                                    <option value="4">4 - Niveau Bac+3/4</option>
+                                    <option value="5">5 - Niveau Bac+5 et plus</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="ma1-save-btn" style="display:none;margin-bottom:12px;">
+                            <button type="button" onclick="saveNewMaitre(1)" style="background:#4f46e5;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:0.8em;font-weight:600;cursor:pointer;font-family:inherit;">💾 Enregistrer ce maître dans la base</button>
                         </div>
                     </div>
                     
-                    <h3 style="margin-top: 20px; margin-bottom: 15px; color: #888; font-size: 1em;">Second maître d'apprentissage (optionnel)</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nom</label>
-                            <input type="text" name="maitre_apprentissage_2.nom">
-                        </div>
-                        <div class="form-group">
-                            <label>Prénom</label>
-                            <input type="text" name="maitre_apprentissage_2.prenom">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Date de naissance</label>
-                            <div class="date-group">
-                                <input type="text" name="maitre_apprentissage_2.date_naissance_jour" placeholder="JJ" maxlength="2">
-                                <input type="text" name="maitre_apprentissage_2.date_naissance_mois" placeholder="MM" maxlength="2">
-                                <input type="text" name="maitre_apprentissage_2.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                    <div id="ma2-fields" style="display:none;">
+                        <h3 id="ma2-title" style="margin-top: 20px; margin-bottom: 10px; color: #888; font-size: 1em;">Second maître d'apprentissage</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom</label>
+                                <input type="text" name="maitre_apprentissage_2.nom">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="maitre_apprentissage_2.prenom">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Courriel</label>
-                            <input type="email" name="maitre_apprentissage_2.courriel">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date de naissance</label>
+                                <div class="date-group">
+                                    <input type="text" name="maitre_apprentissage_2.date_naissance_jour" placeholder="JJ" maxlength="2">
+                                    <input type="text" name="maitre_apprentissage_2.date_naissance_mois" placeholder="MM" maxlength="2">
+                                    <input type="text" name="maitre_apprentissage_2.date_naissance_annee" placeholder="AAAA" maxlength="4">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Courriel</label>
+                                <input type="email" name="maitre_apprentissage_2.courriel">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Emploi occupé</label>
-                            <input type="text" name="maitre_apprentissage_2.emploi_occupe">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Emploi occupé</label>
+                                <input type="text" name="maitre_apprentissage_2.emploi_occupe">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Diplôme ou titre le plus élevé obtenu</label>
-                            <input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Diplôme ou titre le plus élevé obtenu</label>
+                                <input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve">
+                            </div>
+                            <div class="form-group">
+                                <label>Niveau de diplôme</label>
+                                <select name="maitre_apprentissage_2.niveau_diplome">
+                                    <option value="">-- Sélectionnez --</option>
+                                    <option value="1">1 - Niveau CAP/BEP</option>
+                                    <option value="2">2 - Niveau Bac</option>
+                                    <option value="3">3 - Niveau Bac+2</option>
+                                    <option value="4">4 - Niveau Bac+3/4</option>
+                                    <option value="5">5 - Niveau Bac+5 et plus</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Niveau de diplôme</label>
-                            <select name="maitre_apprentissage_2.niveau_diplome">
-                                <option value="">-- Sélectionnez --</option>
-                                <option value="1">1 - Niveau CAP/BEP</option>
-                                <option value="2">2 - Niveau Bac</option>
-                                <option value="3">3 - Niveau Bac+2</option>
-                                <option value="4">4 - Niveau Bac+3/4</option>
-                                <option value="5">5 - Niveau Bac+5 et plus</option>
-                            </select>
+                        <div id="ma2-save-btn" style="display:none;margin-bottom:12px;">
+                            <button type="button" onclick="saveNewMaitre(2)" style="background:#4f46e5;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:0.8em;font-weight:600;cursor:pointer;font-family:inherit;">💾 Enregistrer ce maître dans la base</button>
                         </div>
                     </div>
 
@@ -996,6 +1029,151 @@
             }
             if (savedData.attestation) {
                 if (savedData.attestation.pieces_justificatives) { const r = form.querySelector('[name="attestation.pieces_justificatives"]'); if (r) r.checked = true; }
+            }
+        }
+
+        // ========= MAITRES D'APPRENTISSAGE : chargement depuis la base =========
+        let maitresData = [];
+
+        (async function loadMaitres() {
+            const loadingEl = document.getElementById('ma-loading');
+            const selectorContent = document.getElementById('ma-selector-content');
+            try {
+                const resp = await fetch(`/api/maitres/by-token/${token}`);
+                if (resp.ok) {
+                    maitresData = await resp.json();
+                }
+            } catch (e) {
+                console.error('Erreur chargement maîtres:', e);
+            }
+            if (maitresData.length > 0) {
+                const sel1 = document.getElementById('ma-select-1');
+                const sel2 = document.getElementById('ma-select-2');
+                maitresData.forEach((m, i) => {
+                    const label = `${m.prenom} ${m.nom}` + (m.emploi_occupe ? ` — ${m.emploi_occupe}` : '');
+                    const opt1 = new Option(label, i);
+                    const opt2 = new Option(label, i);
+                    sel1.insertBefore(opt1, sel1.querySelector('[value="__new__"]'));
+                    sel2.insertBefore(opt2, sel2.querySelector('[value="__new__"]'));
+                });
+                loadingEl.style.display = 'none';
+                selectorContent.style.display = 'block';
+            } else {
+                loadingEl.innerHTML = 'ℹ️ Aucun maître enregistré — remplissez les champs ci-dessous.';
+                loadingEl.style.color = '#666';
+            }
+        })();
+
+        function fillMaitreFields(num, m) {
+            const prefix = num === 1 ? 'maitre_apprentissage' : 'maitre_apprentissage_2';
+            const form = document.getElementById('entrepriseForm');
+            if (!form) return;
+            form.querySelector(`[name="${prefix}.nom"]`).value = m.nom || '';
+            form.querySelector(`[name="${prefix}.prenom"]`).value = m.prenom || '';
+            form.querySelector(`[name="${prefix}.courriel"]`).value = m.courriel || '';
+            form.querySelector(`[name="${prefix}.emploi_occupe"]`).value = m.emploi_occupe || '';
+            form.querySelector(`[name="${prefix}.diplome_le_plus_eleve"]`).value = m.diplome_le_plus_eleve || '';
+            const niveauSel = form.querySelector(`[name="${prefix}.niveau_diplome"]`);
+            if (niveauSel) niveauSel.value = m.niveau_diplome || '';
+            // Date de naissance (format JJ/MM/AAAA ou AAAA-MM-JJ)
+            if (m.date_naissance) {
+                let parts;
+                if (m.date_naissance.includes('-')) parts = m.date_naissance.split('-').reverse();
+                else if (m.date_naissance.includes('/')) parts = m.date_naissance.split('/');
+                if (parts && parts.length === 3) {
+                    form.querySelector(`[name="${prefix}.date_naissance_jour"]`).value = parts[0];
+                    form.querySelector(`[name="${prefix}.date_naissance_mois"]`).value = parts[1];
+                    form.querySelector(`[name="${prefix}.date_naissance_annee"]`).value = parts[2];
+                }
+            }
+        }
+
+        function clearMaitreFields(num) {
+            const prefix = num === 1 ? 'maitre_apprentissage' : 'maitre_apprentissage_2';
+            const form = document.getElementById('entrepriseForm');
+            if (!form) return;
+            ['nom', 'prenom', 'courriel', 'emploi_occupe', 'diplome_le_plus_eleve'].forEach(f => {
+                const el = form.querySelector(`[name="${prefix}.${f}"]`);
+                if (el) el.value = '';
+            });
+            const niveauSel = form.querySelector(`[name="${prefix}.niveau_diplome"]`);
+            if (niveauSel) niveauSel.value = '';
+            ['jour', 'mois', 'annee'].forEach(f => {
+                const el = form.querySelector(`[name="${prefix}.date_naissance_${f}"]`);
+                if (el) el.value = '';
+            });
+        }
+
+        function selectMaitre(num) {
+            const sel = document.getElementById(`ma-select-${num}`);
+            const val = sel.value;
+            const fieldsDiv = document.getElementById(`ma${num}-fields`);
+            const saveBtn = document.getElementById(`ma${num}-save-btn`);
+
+            if (num === 2) {
+                fieldsDiv.style.display = (val === '' ? 'none' : 'block');
+            }
+
+            if (val === '__new__') {
+                clearMaitreFields(num);
+                saveBtn.style.display = 'block';
+            } else if (val !== '') {
+                const m = maitresData[parseInt(val)];
+                if (m) fillMaitreFields(num, m);
+                saveBtn.style.display = 'none';
+            } else {
+                if (num === 2) clearMaitreFields(num);
+                saveBtn.style.display = 'none';
+            }
+        }
+
+        async function saveNewMaitre(num) {
+            const prefix = num === 1 ? 'maitre_apprentissage' : 'maitre_apprentissage_2';
+            const form = document.getElementById('entrepriseForm');
+            const nom = form.querySelector(`[name="${prefix}.nom"]`).value.trim();
+            const prenom = form.querySelector(`[name="${prefix}.prenom"]`).value.trim();
+            if (!nom || !prenom) { alert('Nom et prénom requis pour enregistrer le maître.'); return; }
+            const jour = form.querySelector(`[name="${prefix}.date_naissance_jour"]`).value;
+            const mois = form.querySelector(`[name="${prefix}.date_naissance_mois"]`).value;
+            const annee = form.querySelector(`[name="${prefix}.date_naissance_annee"]`).value;
+            const dateNaissance = jour && mois && annee ? `${jour}/${mois}/${annee}` : '';
+            const body = {
+                nom, prenom,
+                date_naissance: dateNaissance,
+                courriel: form.querySelector(`[name="${prefix}.courriel"]`).value || '',
+                emploi_occupe: form.querySelector(`[name="${prefix}.emploi_occupe"]`).value || '',
+                diplome_le_plus_eleve: form.querySelector(`[name="${prefix}.diplome_le_plus_eleve"]`).value || '',
+                niveau_diplome: form.querySelector(`[name="${prefix}.niveau_diplome"]`).value || ''
+            };
+            try {
+                const resp = await fetch(`/api/maitres/by-token/${token}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    maitresData.push(data.maitre);
+                    // Ajouter aux dropdowns
+                    const label = `${prenom} ${nom}` + (body.emploi_occupe ? ` — ${body.emploi_occupe}` : '');
+                    const idx = maitresData.length - 1;
+                    [1, 2].forEach(n => {
+                        const s = document.getElementById(`ma-select-${n}`);
+                        const opt = new Option(label, idx);
+                        s.insertBefore(opt, s.querySelector('[value="__new__"]'));
+                    });
+                    document.getElementById(`ma-select-${num}`).value = idx;
+                    document.getElementById(`ma${num}-save-btn`).style.display = 'none';
+                    // Afficher le sélecteur si c'était masqué
+                    document.getElementById('ma-loading').style.display = 'none';
+                    document.getElementById('ma-selector-content').style.display = 'block';
+                    alert('Maître enregistré dans la base !');
+                } else {
+                    alert('Erreur : ' + (data.error || 'Impossible de sauvegarder'));
+                }
+            } catch (e) {
+                console.error('Erreur sauvegarde maître:', e);
+                alert('Erreur de connexion au serveur');
             }
         }
 
