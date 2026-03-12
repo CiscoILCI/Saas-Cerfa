@@ -376,10 +376,11 @@
                 <!-- RÉMUNÉRATION -->
                 <div class="form-section">
                     <h2>Rémunération</h2>
-                    <div class="info-box" style="line-height:1.6;">
+                    <div id="remuneration-info" class="info-box" style="line-height:1.6;">
                         <p>💰 <strong>La rémunération de l'apprenti est déterminée par son âge et l'année d'exécution du contrat</strong>, en pourcentage du SMIC ou du Salaire Minimum Conventionnel (SMC) si plus favorable.</p>
-                        <p style="font-size:0.82em;color:#666;margin-top:6px;">📌 Le SMIC est récupéré en temps réel via l'API officielle de l'URSSAF. Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire.</p>
-                        <p id="smic-status" style="font-size:0.8em;margin-top:6px;color:#3730a3;">⏳ Chargement du SMIC depuis l'API URSSAF...</p>
+                        <p id="smic-status" style="font-size:0.8em;margin-top:8px;color:#3730a3;">⏳ Chargement des données depuis l'API officielle URSSAF...</p>
+                        <div id="grille-dynamique"></div>
+                        <p style="font-size:0.82em;color:#666;margin-top:6px;">📌 Le changement de taux lié à l'âge s'applique le 1er jour du mois suivant l'anniversaire. Chaque année peut avoir 2 périodes si le taux change en cours d'année.</p>
                     </div>
                     <div style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;padding:16px;margin-bottom:16px;">
                         <p style="font-weight:700;font-size:0.85em;color:#3730a3;margin-bottom:10px;">🧮 Calculateur de salaire brut</p>
@@ -1188,8 +1189,29 @@
         let lastCalcMontant = null;
 
         // Récupération du SMIC en temps réel via l'API officielle URSSAF
+        const trancheLabels = ['Moins de 18 ans', '18-20 ans', '21-25 ans', '26 ans et +'];
+        const anneeLabels = ['1ère année', '2ème année', '3ème année'];
+
+        function buildGrilleTable(smic) {
+            let html = '<table style="width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:0.78em;">';
+            html += '<thead><tr style="background:#eef2ff;"><th style="padding:6px 8px;text-align:left;border:1px solid #ddd;">Année</th>';
+            trancheLabels.forEach(t => { html += '<th style="padding:6px 8px;text-align:center;border:1px solid #ddd;">' + t + '</th>'; });
+            html += '</tr></thead><tbody>';
+            grilleApprentissage.forEach((row, i) => {
+                html += '<tr><td style="padding:5px 8px;border:1px solid #ddd;font-weight:600;">' + anneeLabels[i] + '</td>';
+                row.forEach(pct => {
+                    const montant = Math.round((smic * pct / 100) * 100) / 100;
+                    html += '<td style="padding:5px 8px;text-align:center;border:1px solid #ddd;">' + pct + '%<br><span style="color:#059669;font-size:0.9em;">' + montant.toFixed(2) + ' €</span></td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+
         (async function fetchSmic() {
             const statusEl = document.getElementById('smic-status');
+            const grilleEl = document.getElementById('grille-dynamique');
             try {
                 const resp = await fetch('https://mon-entreprise.urssaf.fr/api/v1/evaluate', {
                     method: 'POST',
@@ -1210,6 +1232,7 @@
                 statusEl.innerHTML = '⚠️ API URSSAF indisponible — SMIC par défaut : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong>';
                 statusEl.style.color = '#92400e';
             }
+            grilleEl.innerHTML = buildGrilleTable(smicBrutMensuel);
         })();
 
         function calcSalaire() {
