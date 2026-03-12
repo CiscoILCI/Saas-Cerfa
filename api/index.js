@@ -629,6 +629,7 @@ module.exports = async function handler(req, res) {
         const ent = c.entreprise || {};
         const emp = ent.employeur || {};
         const ctr = ent.contrat || {};
+        const form = c.formation || ent.formation || {};
         return {
           id: c.id,
           createdAt: c.createdAt,
@@ -638,6 +639,8 @@ module.exports = async function handler(req, res) {
           apprentiNom: app.nom_naissance || '',
           apprentiPrenom: app.prenom || '',
           entrepriseDenom: emp.denomination || '',
+          entrepriseCommune: emp.adresse_commune || '',
+          formationIntitule: form.intitule_precis || form.diplome || '',
           typeContrat: typeContratLabels[ctr.type_contrat] || '',
           typeContratCode: ctr.type_contrat || '',
           liens: {

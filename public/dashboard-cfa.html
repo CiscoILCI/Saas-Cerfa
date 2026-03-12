@@ -347,16 +347,58 @@
       <button class="btn btn-secondary" onclick="exportCSV()">📁 Export CSV</button>
     </div>
 
-    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
-      <input type="text" id="searchInput" placeholder="🔍 Rechercher (ID, étudiant, entreprise...)" oninput="filterContracts()" style="flex:1;min-width:200px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;">
-      <select id="filterStatus" onchange="filterContracts()" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;background:#fff;">
-        <option value="">Tous les statuts</option>
-        <option value="pending">En attente</option>
-        <option value="partial">Partiel</option>
-        <option value="ready">Prêt</option>
-        <option value="validated">Validé</option>
-        <option value="completed">Terminé</option>
-      </select>
+    <div id="filters-bar" style="background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:16px;margin-bottom:16px;">
+      <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="searchInput" placeholder="🔍 Recherche libre (nom, entreprise, formation, ville, ID...)" oninput="filterContracts()" style="flex:1;min-width:220px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;">
+        <button class="btn btn-secondary btn-sm" onclick="toggleAdvancedFilters()" id="btnAdvFilters" style="white-space:nowrap;">🔽 Filtres avancés</button>
+        <button class="btn btn-sm" onclick="resetFilters()" style="background:#ff4757;color:#fff;white-space:nowrap;">✖ Réinitialiser</button>
+      </div>
+      <div id="advancedFilters" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:8px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Statut</label>
+            <select id="filterStatus" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+              <option value="">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="partial">Partiel</option>
+              <option value="ready">Prêt</option>
+              <option value="validated">Validé</option>
+              <option value="completed">Terminé</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Remplissage</label>
+            <select id="filterCompletion" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+              <option value="">Tous</option>
+              <option value="both">Étudiant + Entreprise remplis</option>
+              <option value="etu_only">Étudiant rempli uniquement</option>
+              <option value="ent_only">Entreprise rempli uniquement</option>
+              <option value="none">Aucun rempli</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Entreprise</label>
+            <select id="filterEntreprise" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+              <option value="">Toutes les entreprises</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Formation</label>
+            <select id="filterFormation" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+              <option value="">Toutes les formations</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Date début (depuis)</label>
+            <input type="date" id="filterDateFrom" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Date fin (jusqu'à)</label>
+            <input type="date" id="filterDateTo" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;">
+          </div>
+        </div>
+        <div id="activeFiltersInfo" style="margin-top:10px;font-size:12px;color:#667eea;font-weight:600;display:none;"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -504,6 +546,7 @@
         document.getElementById('statReady').textContent = allContracts.filter(c => c.status === 'ready' || c.status === 'validated').length;
         document.getElementById('contractCount').textContent = allContracts.length + ' contrat(s)';
 
+        populateFilterDropdowns();
         renderContracts(allContracts);
       } catch (err) {
         console.error(err);
@@ -511,18 +554,104 @@
       }
     }
 
+    function normalizeStr(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
+
+    function populateFilterDropdowns() {
+      // Entreprises uniques
+      const entSel = document.getElementById('filterEntreprise');
+      const currentEnt = entSel.value;
+      entSel.innerHTML = '<option value="">Toutes les entreprises</option>';
+      const entreprises = [...new Set(allContracts.map(c => c.entrepriseDenom).filter(Boolean))].sort();
+      entreprises.forEach(e => { entSel.innerHTML += `<option value="${e}">${e}</option>`; });
+      if (currentEnt) entSel.value = currentEnt;
+
+      // Formations uniques
+      const formSel = document.getElementById('filterFormation');
+      const currentForm = formSel.value;
+      formSel.innerHTML = '<option value="">Toutes les formations</option>';
+      const formations = [...new Set(allContracts.map(c => c.formationIntitule).filter(Boolean))].sort();
+      formations.forEach(f => { formSel.innerHTML += `<option value="${f}">${f}</option>`; });
+      if (currentForm) formSel.value = currentForm;
+    }
+
+    function toggleAdvancedFilters() {
+      const panel = document.getElementById('advancedFilters');
+      const btn = document.getElementById('btnAdvFilters');
+      if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        btn.textContent = '🔼 Masquer filtres';
+      } else {
+        panel.style.display = 'none';
+        btn.textContent = '🔽 Filtres avancés';
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterStatus').value = '';
+      document.getElementById('filterCompletion').value = '';
+      document.getElementById('filterEntreprise').value = '';
+      document.getElementById('filterFormation').value = '';
+      document.getElementById('filterDateFrom').value = '';
+      document.getElementById('filterDateTo').value = '';
+      document.getElementById('activeFiltersInfo').style.display = 'none';
+      filterContracts();
+    }
+
     function filterContracts() {
-      const search = (document.getElementById('searchInput').value || '').toLowerCase();
+      const rawSearch = document.getElementById('searchInput').value || '';
+      const terms = normalizeStr(rawSearch).split(/\s+/).filter(t => t.length > 0);
       const statusFilter = document.getElementById('filterStatus').value;
+      const completionFilter = document.getElementById('filterCompletion').value;
+      const entrepriseFilter = document.getElementById('filterEntreprise').value;
+      const formationFilter = document.getElementById('filterFormation').value;
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+
       let filtered = allContracts;
+
+      // Filtre statut
       if (statusFilter) filtered = filtered.filter(c => c.status === statusFilter);
-      if (search) filtered = filtered.filter(c =>
-        c.id.toLowerCase().includes(search) ||
-        (c.apprentiNom || '').toLowerCase().includes(search) ||
-        (c.apprentiPrenom || '').toLowerCase().includes(search) ||
-        (c.entrepriseDenom || '').toLowerCase().includes(search) ||
-        (c.typeContrat || '').toLowerCase().includes(search)
-      );
+
+      // Filtre remplissage
+      if (completionFilter === 'both') filtered = filtered.filter(c => c.etudiantComplete && c.entrepriseComplete);
+      else if (completionFilter === 'etu_only') filtered = filtered.filter(c => c.etudiantComplete && !c.entrepriseComplete);
+      else if (completionFilter === 'ent_only') filtered = filtered.filter(c => !c.etudiantComplete && c.entrepriseComplete);
+      else if (completionFilter === 'none') filtered = filtered.filter(c => !c.etudiantComplete && !c.entrepriseComplete);
+
+      // Filtre entreprise
+      if (entrepriseFilter) filtered = filtered.filter(c => c.entrepriseDenom === entrepriseFilter);
+
+      // Filtre formation
+      if (formationFilter) filtered = filtered.filter(c => c.formationIntitule === formationFilter);
+
+      // Filtre dates
+      if (dateFrom) filtered = filtered.filter(c => c.createdAt >= dateFrom);
+      if (dateTo) filtered = filtered.filter(c => c.createdAt <= dateTo + 'T23:59:59');
+
+      // Recherche texte multi-mots (tous les termes doivent matcher quelque part)
+      if (terms.length > 0) {
+        filtered = filtered.filter(c => {
+          const searchable = normalizeStr(
+            `${c.id} ${c.apprentiNom} ${c.apprentiPrenom} ${c.entrepriseDenom} ${c.entrepriseCommune || ''} ${c.formationIntitule || ''} ${c.typeContrat}`
+          );
+          return terms.every(t => searchable.includes(t));
+        });
+      }
+
+      // Afficher le résumé des filtres actifs
+      const activeCount = [statusFilter, completionFilter, entrepriseFilter, formationFilter, dateFrom, dateTo].filter(Boolean).length + (terms.length > 0 ? 1 : 0);
+      const infoEl = document.getElementById('activeFiltersInfo');
+      if (activeCount > 0) {
+        infoEl.textContent = `🎯 ${filtered.length} résultat(s) sur ${allContracts.length} — ${activeCount} filtre(s) actif(s)`;
+        infoEl.style.display = 'block';
+      } else {
+        infoEl.style.display = 'none';
+      }
+
+      document.getElementById('contractCount').textContent = filtered.length + ' / ' + allContracts.length + ' contrat(s)';
       renderContracts(filtered);
     }
 
