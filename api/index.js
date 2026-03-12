@@ -395,8 +395,8 @@ function matchRoute(url, pattern) {
 }
 
 function updateContractStatus(contract) {
-  // Ne pas écraser les statuts avancés (validated, completed)
-  if (['validated', 'completed'].includes(contract.status)) return;
+  // Ne pas écraser les statuts avancés (validated, completed, archived)
+  if (['validated', 'completed', 'archived'].includes(contract.status)) return;
   if (contract.etudiant && contract.entreprise) {
     contract.status = 'ready';
   } else if (contract.etudiant || contract.entreprise) {
@@ -404,6 +404,47 @@ function updateContractStatus(contract) {
   } else {
     contract.status = 'pending';
   }
+}
+
+// Extraire la date de fin du contrat (ISO string) depuis les données entreprise
+function getContractEndDate(contract) {
+  const ctr = contract.entreprise?.contrat || {};
+  const j = ctr.date_fin_contrat_jour;
+  const m = ctr.date_fin_contrat_mois;
+  const a = ctr.date_fin_contrat_annee;
+  if (!j || !m || !a) return null;
+  const d = new Date(`${a}-${m.padStart(2,'0')}-${j.padStart(2,'0')}T23:59:59`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Extraire la date de début du contrat (ISO string)
+function getContractStartDate(contract) {
+  const ctr = contract.entreprise?.contrat || {};
+  const j = ctr.date_debut_contrat_jour;
+  const m = ctr.date_debut_contrat_mois;
+  const a = ctr.date_debut_contrat_annee;
+  if (!j || !m || !a) return null;
+  const d = new Date(`${a}-${m.padStart(2,'0')}-${j.padStart(2,'0')}T00:00:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Archivage automatique des contrats échus
+async function autoArchiveContracts(contracts) {
+  const now = new Date();
+  let archived = 0;
+  for (const c of contracts) {
+    if (c.status === 'archived') continue;
+    const endDate = getContractEndDate(c);
+    if (endDate && endDate < now) {
+      const oldStatus = c.status;
+      c.status = 'archived';
+      if (!c.history) c.history = [];
+      c.history.push({ action: 'auto_archived', from: oldStatus, date: new Date().toISOString(), by: 'system', reason: 'Contrat arrivé à échéance' });
+      await saveContract(c);
+      archived++;
+    }
+  }
+  return archived;
 }
 
 function flattenObject(obj, prefix = '') {
@@ -619,6 +660,11 @@ module.exports = async function handler(req, res) {
       const baseUrl = getBaseUrl(req);
       const allContracts = await getAllContracts();
       const contracts = allContracts.filter(c => c.cfaId === authUser.id);
+
+      // Auto-archivage des contrats échus
+      await autoArchiveContracts(contracts);
+
+      const now = new Date();
       const typeContratLabels = {
         '11': 'Premier contrat', '21': 'Renouvellement', '22': 'Renouvellement',
         '31': 'Avenant', '32': 'Avenant', '33': 'Avenant', '34': 'Avenant', '35': 'Avenant', '36': 'Avenant', '37': 'Avenant'
@@ -630,6 +676,20 @@ module.exports = async function handler(req, res) {
         const emp = ent.employeur || {};
         const ctr = ent.contrat || {};
         const form = c.formation || ent.formation || {};
+
+        // Dates du contrat
+        const startDate = getContractStartDate(c);
+        const endDate = getContractEndDate(c);
+        let daysRemaining = null;
+        let lifecycleAlert = null;
+        if (endDate) {
+          daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+          if (daysRemaining < 0) lifecycleAlert = 'expired';
+          else if (daysRemaining <= 30) lifecycleAlert = 'urgent';
+          else if (daysRemaining <= 60) lifecycleAlert = 'warning';
+          else if (daysRemaining <= 90) lifecycleAlert = 'soon';
+        }
+
         return {
           id: c.id,
           createdAt: c.createdAt,
@@ -643,6 +703,10 @@ module.exports = async function handler(req, res) {
           formationIntitule: form.intitule_precis || form.diplome || '',
           typeContrat: typeContratLabels[ctr.type_contrat] || '',
           typeContratCode: ctr.type_contrat || '',
+          dateDebut: startDate ? startDate.toISOString().slice(0,10) : null,
+          dateFin: endDate ? endDate.toISOString().slice(0,10) : null,
+          daysRemaining,
+          lifecycleAlert,
           liens: {
             etudiant: `${baseUrl}/etudiant.html?token=${c.tokens.etudiant}`,
             entreprise: `${baseUrl}/entreprise.html?token=${c.tokens.entreprise}`
@@ -982,7 +1046,7 @@ module.exports = async function handler(req, res) {
       if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
 
       const body = await parseBody(req);
-      const validStatuses = ['pending', 'partial', 'ready', 'validated', 'completed'];
+      const validStatuses = ['pending', 'partial', 'ready', 'validated', 'completed', 'archived'];
       if (!body.status || !validStatuses.includes(body.status)) {
         return sendJSON(res, { error: 'Statut invalide. Valeurs: ' + validStatuses.join(', ') }, 400);
       }

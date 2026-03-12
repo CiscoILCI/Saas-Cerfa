@@ -177,6 +177,10 @@
     .status-ready { background: #e8f5e9; color: #2e7d32; }
     .status-validated { background: #e0f2f1; color: #00695c; }
     .status-completed { background: #ede7f6; color: #4a148c; }
+    .status-archived { background: #eceff1; color: #546e7a; }
+    .alert-urgent { background: #ffebee; color: #c62828; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-left: 4px; }
+    .alert-warning { background: #fff8e1; color: #f57f17; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-left: 4px; }
+    .alert-soon { background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-left: 4px; }
     .link-copy {
       cursor: pointer;
       color: #667eea;
@@ -339,6 +343,14 @@
         <div class="stat-value" id="statReady">0</div>
         <div class="stat-label">Prêts à générer</div>
       </div>
+      <div class="stat-card" style="cursor:pointer;" onclick="quickFilterExpiring()">
+        <div class="stat-value" id="statExpiring" style="color:#e65100;">0</div>
+        <div class="stat-label">⚠️ Échéance < 90j</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer;" onclick="quickFilterArchived()">
+        <div class="stat-value" id="statArchived" style="color:#546e7a;">0</div>
+        <div class="stat-label">📦 Archivés</div>
+      </div>
     </div>
 
     <div class="actions-bar">
@@ -364,6 +376,20 @@
               <option value="ready">Prêt</option>
               <option value="validated">Validé</option>
               <option value="completed">Terminé</option>
+              <option value="archived">Archivé</option>
+              <option value="__active__">Actifs (non archivés)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;">Échéance</label>
+            <select id="filterLifecycle" onchange="filterContracts()" style="width:100%;padding:8px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+              <option value="">Toutes</option>
+              <option value="urgent">🔴 < 30 jours</option>
+              <option value="warning">🟠 < 60 jours</option>
+              <option value="soon">🟡 < 90 jours</option>
+              <option value="ok">🟢 > 90 jours</option>
+              <option value="expired">⚫ Échu</option>
+              <option value="no_date">Pas de date fin</option>
             </select>
           </div>
           <div>
@@ -540,10 +566,13 @@
         allContracts = await res.json();
 
         // Stats
-        document.getElementById('statTotal').textContent = allContracts.length;
+        const active = allContracts.filter(c => c.status !== 'archived');
+        document.getElementById('statTotal').textContent = active.length;
         document.getElementById('statPending').textContent = allContracts.filter(c => c.status === 'pending').length;
         document.getElementById('statPartial').textContent = allContracts.filter(c => c.status === 'partial').length;
         document.getElementById('statReady').textContent = allContracts.filter(c => c.status === 'ready' || c.status === 'validated').length;
+        document.getElementById('statExpiring').textContent = allContracts.filter(c => c.lifecycleAlert && ['urgent','warning','soon'].includes(c.lifecycleAlert)).length;
+        document.getElementById('statArchived').textContent = allContracts.filter(c => c.status === 'archived').length;
         document.getElementById('contractCount').textContent = allContracts.length + ' contrat(s)';
 
         populateFilterDropdowns();
@@ -591,6 +620,7 @@
     function resetFilters() {
       document.getElementById('searchInput').value = '';
       document.getElementById('filterStatus').value = '';
+      document.getElementById('filterLifecycle').value = '';
       document.getElementById('filterCompletion').value = '';
       document.getElementById('filterEntreprise').value = '';
       document.getElementById('filterFormation').value = '';
@@ -600,10 +630,27 @@
       filterContracts();
     }
 
+    function quickFilterExpiring() {
+      resetFilters();
+      document.getElementById('filterLifecycle').value = 'soon';
+      document.getElementById('advancedFilters').style.display = 'block';
+      document.getElementById('btnAdvFilters').textContent = '🔼 Masquer filtres';
+      filterContracts();
+    }
+
+    function quickFilterArchived() {
+      resetFilters();
+      document.getElementById('filterStatus').value = 'archived';
+      document.getElementById('advancedFilters').style.display = 'block';
+      document.getElementById('btnAdvFilters').textContent = '🔼 Masquer filtres';
+      filterContracts();
+    }
+
     function filterContracts() {
       const rawSearch = document.getElementById('searchInput').value || '';
       const terms = normalizeStr(rawSearch).split(/\s+/).filter(t => t.length > 0);
       const statusFilter = document.getElementById('filterStatus').value;
+      const lifecycleFilter = document.getElementById('filterLifecycle').value;
       const completionFilter = document.getElementById('filterCompletion').value;
       const entrepriseFilter = document.getElementById('filterEntreprise').value;
       const formationFilter = document.getElementById('filterFormation').value;
@@ -613,7 +660,16 @@
       let filtered = allContracts;
 
       // Filtre statut
-      if (statusFilter) filtered = filtered.filter(c => c.status === statusFilter);
+      if (statusFilter === '__active__') filtered = filtered.filter(c => c.status !== 'archived');
+      else if (statusFilter) filtered = filtered.filter(c => c.status === statusFilter);
+
+      // Filtre cycle de vie / échéance
+      if (lifecycleFilter === 'urgent') filtered = filtered.filter(c => c.lifecycleAlert === 'urgent');
+      else if (lifecycleFilter === 'warning') filtered = filtered.filter(c => c.lifecycleAlert === 'warning' || c.lifecycleAlert === 'urgent');
+      else if (lifecycleFilter === 'soon') filtered = filtered.filter(c => ['urgent','warning','soon'].includes(c.lifecycleAlert));
+      else if (lifecycleFilter === 'ok') filtered = filtered.filter(c => c.dateFin && !c.lifecycleAlert);
+      else if (lifecycleFilter === 'expired') filtered = filtered.filter(c => c.lifecycleAlert === 'expired');
+      else if (lifecycleFilter === 'no_date') filtered = filtered.filter(c => !c.dateFin);
 
       // Filtre remplissage
       if (completionFilter === 'both') filtered = filtered.filter(c => c.etudiantComplete && c.entrepriseComplete);
@@ -627,7 +683,7 @@
       // Filtre formation
       if (formationFilter) filtered = filtered.filter(c => c.formationIntitule === formationFilter);
 
-      // Filtre dates
+      // Filtre dates de création
       if (dateFrom) filtered = filtered.filter(c => c.createdAt >= dateFrom);
       if (dateTo) filtered = filtered.filter(c => c.createdAt <= dateTo + 'T23:59:59');
 
@@ -642,7 +698,7 @@
       }
 
       // Afficher le résumé des filtres actifs
-      const activeCount = [statusFilter, completionFilter, entrepriseFilter, formationFilter, dateFrom, dateTo].filter(Boolean).length + (terms.length > 0 ? 1 : 0);
+      const activeCount = [statusFilter, lifecycleFilter, completionFilter, entrepriseFilter, formationFilter, dateFrom, dateTo].filter(Boolean).length + (terms.length > 0 ? 1 : 0);
       const infoEl = document.getElementById('activeFiltersInfo');
       if (activeCount > 0) {
         infoEl.textContent = `🎯 ${filtered.length} résultat(s) sur ${allContracts.length} — ${activeCount} filtre(s) actif(s)`;
@@ -660,41 +716,57 @@
         document.getElementById('contractsTable').innerHTML = `
           <div class="empty-state">
             <div class="icon">📄</div>
-            <p>Aucun contrat pour le moment</p>
-            <p style="margin-top:8px;font-size:13px;">Cliquez sur "Nouveau contrat" pour commencer</p>
+            <p>Aucun contrat trouvé</p>
+            <p style="margin-top:8px;font-size:13px;">Modifiez vos filtres ou cliquez sur "Nouveau contrat"</p>
           </div>`;
         return;
       }
 
-      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
-      let html = '<table><thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Apprenti</th><th>Entreprise</th><th>Statut</th><th>Liens</th><th>Actions</th></tr></thead><tbody>';
+      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
+      const alertLabels = { urgent: '🔴 < 30j', warning: '🟠 < 60j', soon: '🟡 < 90j' };
+      let html = '<table><thead><tr><th>ID</th><th>Création</th><th>Fin contrat</th><th>Apprenti</th><th>Entreprise</th><th>Statut</th><th>Liens</th><th>Actions</th></tr></thead><tbody>';
       contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       for (const c of contracts) {
         const d = new Date(c.createdAt);
-        const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const date = d.toLocaleDateString('fr-FR');
         const statusClass = 'status-' + c.status;
         const label = statusLabels[c.status] || c.status;
         const apprentiName = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '<span style="color:#aaa;font-size:11px;">En attente</span>';
         const entrepriseName = c.entrepriseDenom || '<span style="color:#aaa;font-size:11px;">En attente</span>';
-        const typeLabel = c.typeContrat || '<span style="color:#aaa;font-size:11px;">—</span>';
-        html += `<tr>
+
+        // Date fin + alerte échéance
+        let dateFinHtml = '<span style="color:#aaa;font-size:11px;">—</span>';
+        if (c.dateFin) {
+          const df = new Date(c.dateFin);
+          dateFinHtml = df.toLocaleDateString('fr-FR');
+          if (c.lifecycleAlert && alertLabels[c.lifecycleAlert]) {
+            dateFinHtml += `<span class="alert-${c.lifecycleAlert}">${alertLabels[c.lifecycleAlert]}</span>`;
+          }
+        }
+
+        // Ligne grisée si archivé
+        const rowStyle = c.status === 'archived' ? 'opacity:0.6;' : '';
+
+        html += `<tr style="${rowStyle}">
           <td style="font-family:monospace;font-size:12px;">${c.id.slice(0, 8)}</td>
           <td style="font-size:12px;white-space:nowrap;">${date}</td>
-          <td style="font-size:12px;">${typeLabel}</td>
+          <td style="font-size:12px;white-space:nowrap;">${dateFinHtml}</td>
           <td style="font-size:13px;font-weight:600;">${apprentiName}</td>
           <td style="font-size:13px;">${entrepriseName}</td>
           <td><span class="status-badge ${statusClass}">${label}</span></td>
           <td style="white-space:nowrap;">
-            ${c.etudiantComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Étudiant</span>
-            ${c.entrepriseComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Entreprise</span>
+            ${c.etudiantComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Étu.</span>
+            ${c.entrepriseComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Ent.</span>
           </td>
           <td style="white-space:nowrap;">
-            <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir / Modifier</button>
-            ${['ready','validated'].includes(c.status) ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
+            <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️</button>
+            ${['ready','validated','completed','archived'].includes(c.status) ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄</button>` : ''}
             ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','validated')">✅ Valider</button>` : ''}
             ${c.status === 'validated' ? `<button class="btn btn-sm" style="background:#1b5e20;color:#fff;" onclick="changeStatus('${c.id}','completed')">🏁 Finaliser</button>` : ''}
-            ${!['validated','completed'].includes(c.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>` : ''}
+            ${c.status === 'completed' ? `<button class="btn btn-sm" style="background:#546e7a;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
+            ${c.status === 'archived' ? `<button class="btn btn-sm" style="background:#ff9800;color:#fff;" onclick="changeStatus('${c.id}','completed')">📤 Désarchiver</button>` : ''}
+            ${!['validated','completed','archived'].includes(c.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>` : ''}
           </td>
         </tr>`;
       }
@@ -704,13 +776,14 @@
 
     function exportCSV() {
       if (!allContracts.length) { showToast('Aucun contrat à exporter'); return; }
-      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
-      const header = 'ID;Date;Type;Apprenti;Entreprise;Statut;Étudiant rempli;Entreprise rempli;Lien Étudiant;Lien Entreprise';
+      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
+      const header = 'ID;Création;Fin contrat;Jours restants;Type;Apprenti;Entreprise;Statut;Étudiant rempli;Entreprise rempli;Lien Étudiant;Lien Entreprise';
       const rows = allContracts.map(c => {
         const d = new Date(c.createdAt);
-        const date = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const date = d.toLocaleDateString('fr-FR');
+        const dateFin = c.dateFin ? new Date(c.dateFin).toLocaleDateString('fr-FR') : '';
         const apprenti = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '';
-        return `${c.id};${date};${c.typeContrat||''};${apprenti};${c.entrepriseDenom||''};${statusLabels[c.status]||c.status};${c.etudiantComplete?'Oui':'Non'};${c.entrepriseComplete?'Oui':'Non'};${c.liens?.etudiant||''};${c.liens?.entreprise||''}`;
+        return `${c.id};${date};${dateFin};${c.daysRemaining !== null ? c.daysRemaining : ''};${c.typeContrat||''};${apprenti};${c.entrepriseDenom||''};${statusLabels[c.status]||c.status};${c.etudiantComplete?'Oui':'Non'};${c.entrepriseComplete?'Oui':'Non'};${c.liens?.etudiant||''};${c.liens?.entreprise||''}`;
       });
       const csv = '\uFEFF' + header + '\n' + rows.join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -865,7 +938,7 @@
       document.getElementById('revueContratId').textContent = '#' + currentRevueId.slice(0, 8);
       let html = '';
 
-      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', signed: 'Signé', archived: 'Archivé' };
+      const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
       html += `<div style="margin-bottom:16px;"><strong>Statut :</strong> <span class="status-badge status-${c.status}">${statusLabels[c.status] || c.status}</span></div>`;
 
       html += '<div class="card" style="margin-bottom:12px;padding:14px;"><h4 style="margin-bottom:8px;">🎓 Données étudiant</h4>';
@@ -886,7 +959,7 @@
       html += '<div class="card" style="padding:14px;"><h4 style="margin-bottom:8px;">📜 Historique</h4>';
       if (c.history && c.history.length) {
         html += '<table style="width:100%;"><thead><tr><th>Date</th><th>Action</th><th>Par</th></tr></thead><tbody>';
-        const actionLabels = { created: 'Création', etudiant_submitted: 'Étudiant soumis', entreprise_submitted: 'Entreprise soumis', updated_by_cfa: 'Modifié par CFA', status_changed: 'Statut changé' };
+        const actionLabels = { created: 'Création', etudiant_submitted: 'Étudiant soumis', entreprise_submitted: 'Entreprise soumis', entreprise_prefilled: 'Entreprise pré-remplie', updated_by_cfa: 'Modifié par CFA', status_changed: 'Statut changé', auto_archived: '📦 Archivé automatiquement' };
         for (const h of c.history.slice().reverse()) {
           const d = new Date(h.date).toLocaleString('fr-FR');
           let label = actionLabels[h.action] || h.action;
@@ -986,7 +1059,7 @@
     }
 
     async function changeStatus(id, newStatus) {
-      const labels = { validated: 'valider', completed: 'finaliser' };
+      const labels = { validated: 'valider', completed: 'finaliser / désarchiver', archived: 'archiver' };
       if (!confirm(`Voulez-vous ${labels[newStatus] || newStatus} ce contrat ?`)) return;
       try {
         const res = await fetch('/api/contracts/' + id + '/status', {
