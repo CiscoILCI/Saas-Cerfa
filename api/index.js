@@ -957,6 +957,42 @@ module.exports = async function handler(req, res) {
       return sendJSON(res, result);
     }
 
+    // ---------- PUT /api/entreprise/contracts/:id/archive (entreprise archive/désarchive) ----------
+    const entArchiveMatch = matchRoute(url, '/api/entreprise/contracts/:id/archive');
+    if (method === 'PUT' && entArchiveMatch) {
+      const authUser = requireAuth(req, res, ['entreprise']);
+      if (!authUser) return;
+      const contract = await getContract(entArchiveMatch.id);
+      if (!contract) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      // Vérifier que le contrat appartient à cette entreprise
+      const user = await getUserByEmail(authUser.email);
+      const profile = (user && user.profile) || {};
+      let owns = false;
+      if (contract.entrepriseEmail && contract.entrepriseEmail.toLowerCase() === authUser.email.toLowerCase()) owns = true;
+      if (!owns && profile.siret && contract.entreprise && contract.entreprise.employeur) {
+        const cSiret = (contract.entreprise.employeur.siret || '').replace(/\s/g, '');
+        const pSiret = (profile.siret || '').replace(/\s/g, '');
+        if (cSiret && pSiret && cSiret === pSiret) owns = true;
+      }
+      if (!owns) return sendJSON(res, { error: 'Accès refusé' }, 403);
+      const body = await parseBody(req);
+      const archive = body.archive !== false; // true = archiver, false = désarchiver
+      const prevStatus = contract.status;
+      if (archive) {
+        contract.statusBeforeArchive = contract.status;
+        contract.status = 'archived';
+        contract.archivedAt = new Date().toISOString();
+      } else {
+        contract.status = contract.statusBeforeArchive || 'completed';
+        delete contract.statusBeforeArchive;
+        delete contract.archivedAt;
+      }
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: archive ? 'archived_by_entreprise' : 'unarchived_by_entreprise', by: authUser.email, at: new Date().toISOString(), from: prevStatus, to: contract.status });
+      await saveContract(contract);
+      return sendJSON(res, { success: true, status: contract.status });
+    }
+
     // ---------- GET /api/contracts/:id/generate-pdf ----------
     const pdfMatch = matchRoute(url, '/api/contracts/:id/generate-pdf');
     if (method === 'GET' && pdfMatch) {

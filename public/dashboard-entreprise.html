@@ -71,6 +71,7 @@
     .status-ready { background: #e8f5e9; color: #2e7d32; }
     .status-validated { background: #e0f2f1; color: #00695c; }
     .status-completed { background: #ede7f6; color: #4a148c; }
+    .status-archived { background: #f3f4f6; color: #6b7280; }
 
     .profile-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px; }
     .profile-complete { background: #d1fae5; color: #065f46; }
@@ -84,6 +85,10 @@
     .btn-edit:hover { background: #d97706; }
     .btn-detail { background: #e3f2fd; color: #1565c0; }
     .btn-detail:hover { background: #bbdefb; }
+    .btn-archive { background: #f3f4f6; color: #6b7280; }
+    .btn-archive:hover { background: #e5e7eb; }
+    .btn-unarchive { background: #fff7ed; color: #c2410c; }
+    .btn-unarchive:hover { background: #fed7aa; }
 
     .empty-state { text-align: center; padding: 48px; color: #888; }
     .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
@@ -129,6 +134,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('contrats', this)">📄 Mes contrats</button>
+      <button class="tab-btn" onclick="showTab('archives', this)">📦 Archives</button>
       <button class="tab-btn" onclick="showTab('maitres', this)">👨‍🏫 Maîtres d'apprentissage</button>
       <button class="tab-btn" onclick="showTab('profil', this)">🏢 Mon profil</button>
     </div>
@@ -140,6 +146,7 @@
         <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">En attente</div></div>
         <div class="stat-card"><div class="stat-value" id="statReady">0</div><div class="stat-label">Prêts / Validés</div></div>
         <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Terminés</div></div>
+        <div class="stat-card"><div class="stat-value" id="statArchived">0</div><div class="stat-label">Archivés</div></div>
       </div>
 
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
@@ -156,6 +163,15 @@
       </div>
 
       <div id="contractsList"></div>
+    </div>
+
+    <!-- TAB ARCHIVES -->
+    <div id="tab-archives" class="tab-content">
+      <div class="card">
+        <h3>📦 Contrats archivés</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:16px;">Les contrats que vous avez archivés. Vous pouvez les restaurer à tout moment.</p>
+        <div id="archivedList"></div>
+      </div>
     </div>
 
     <!-- TAB MAITRES D'APPRENTISSAGE -->
@@ -372,18 +388,22 @@
         const res = await fetch('/api/entreprise/contracts', { headers: authHeaders() });
         if (!res.ok) return;
         allContracts = await res.json();
-        document.getElementById('statTotal').textContent = allContracts.length;
-        document.getElementById('statPending').textContent = allContracts.filter(c => ['pending','partial'].includes(c.status)).length;
-        document.getElementById('statReady').textContent = allContracts.filter(c => ['ready','validated'].includes(c.status)).length;
-        document.getElementById('statCompleted').textContent = allContracts.filter(c => c.status === 'completed').length;
-        renderContracts(allContracts);
+        const active = allContracts.filter(c => c.status !== 'archived');
+        const archived = allContracts.filter(c => c.status === 'archived');
+        document.getElementById('statTotal').textContent = active.length;
+        document.getElementById('statPending').textContent = active.filter(c => ['pending','partial'].includes(c.status)).length;
+        document.getElementById('statReady').textContent = active.filter(c => ['ready','validated'].includes(c.status)).length;
+        document.getElementById('statCompleted').textContent = active.filter(c => c.status === 'completed').length;
+        document.getElementById('statArchived').textContent = archived.length;
+        renderContracts(active);
+        renderArchived(archived);
       } catch (err) { console.error(err); }
     }
 
     function filterContracts() {
       const search = (document.getElementById('searchInput').value || '').toLowerCase();
       const status = document.getElementById('filterStatus').value;
-      let filtered = allContracts;
+      let filtered = allContracts.filter(c => c.status !== 'archived');
       if (status) filtered = filtered.filter(c => c.status === status);
       if (search) filtered = filtered.filter(c =>
         c.id.toLowerCase().includes(search) ||
@@ -401,7 +421,7 @@
         el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Aucun contrat trouvé</p><p style="font-size:13px;margin-top:4px;">Votre CFA vous enverra un lien pour remplir votre formulaire.</p></div>`;
         return;
       }
-      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
       const progressMap = { pending: 10, partial: 40, ready: 70, validated: 85, completed: 100 };
       const progressColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', completed: '#7c3aed' };
 
@@ -428,6 +448,7 @@
             ${c.lienFormulaire && !c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-fill">📝 Remplir le formulaire</a>` : ''}
             ${c.lienFormulaire && c.entrepriseComplete ? `<a href="${c.lienFormulaire}" class="btn-action btn-edit">✏️ Modifier mes réponses</a>` : ''}
             <button class="btn-action btn-detail" onclick="openDetail('${c.id}')">🔍 Détails</button>
+            <button class="btn-action btn-archive" onclick="archiveContract('${c.id}')">📦 Archiver</button>
           </div>
         </div>`;
       }).join('');
@@ -439,7 +460,7 @@
       if (!c) return;
       document.getElementById('modalContratId').textContent = '#' + contractId.slice(0,8);
 
-      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé' };
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
       let html = '';
 
       html += `<div class="modal-section"><h4>📋 Informations générales</h4>
@@ -489,6 +510,56 @@
     }
 
     function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+    function renderArchived(contracts) {
+      const el = document.getElementById('archivedList');
+      if (!contracts.length) {
+        el.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Aucun contrat archivé</p></div>';
+        return;
+      }
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
+      el.innerHTML = contracts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(c => {
+        const _d = new Date(c.createdAt);
+        const date = _d.toLocaleDateString('fr-FR');
+        const apprenti = c.apprentiPrenom ? `${c.apprentiPrenom} ${c.apprentiNom}` : 'Apprenti non renseigné';
+        const formation = c.formationIntitule || 'Formation non renseignée';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f0;opacity:0.75;">
+          <div>
+            <span style="font-family:monospace;font-size:11px;color:#888;">#${c.id.slice(0,8)}</span>
+            ${c.cfaNom ? `<span style="font-size:12px;color:#667eea;font-weight:600;"> · ${c.cfaNom}</span>` : ''}
+            <div style="font-size:14px;font-weight:700;color:#1e3a5f;margin-top:2px;">${apprenti} — ${formation}</div>
+            <div style="font-size:12px;color:#888;">Créé le ${date}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="status-badge status-archived">Archivé</span>
+            <button class="btn-action btn-detail" style="padding:8px 14px;font-size:12px;" onclick="openDetail('${c.id}')">🔍</button>
+            <button class="btn-action btn-unarchive" style="padding:8px 14px;font-size:12px;" onclick="unarchiveContract('${c.id}')">📤 Restaurer</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function archiveContract(id) {
+      if (!confirm('Archiver ce contrat ?')) return;
+      try {
+        const res = await fetch('/api/entreprise/contracts/' + id + '/archive', {
+          method: 'PUT', headers: authHeaders(), body: JSON.stringify({ archive: true })
+        });
+        if (res.ok) { showToast('📦 Contrat archivé'); loadContracts(); }
+        else { const err = await res.json(); showToast('❌ ' + (err.error || 'Erreur')); }
+      } catch (err) { showToast('Erreur réseau'); }
+    }
+
+    async function unarchiveContract(id) {
+      if (!confirm('Restaurer ce contrat ?')) return;
+      try {
+        const res = await fetch('/api/entreprise/contracts/' + id + '/archive', {
+          method: 'PUT', headers: authHeaders(), body: JSON.stringify({ archive: false })
+        });
+        if (res.ok) { showToast('📤 Contrat restauré'); loadContracts(); }
+        else { const err = await res.json(); showToast('❌ ' + (err.error || 'Erreur')); }
+      } catch (err) { showToast('Erreur réseau'); }
+    }
 
     // ===== INIT =====
     loadProfile();
