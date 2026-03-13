@@ -723,7 +723,11 @@
 
       const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
       const alertLabels = { urgent: '🔴 < 30j', warning: '🟠 < 60j', soon: '🟡 < 90j' };
-      let html = '<table><thead><tr><th>ID</th><th>Création</th><th>Fin contrat</th><th>Apprenti</th><th>Entreprise</th><th>Statut</th><th>Liens</th><th>Actions</th></tr></thead><tbody>';
+      let html = `<table><thead><tr>
+        <th>ID</th><th>Création</th><th>Fin contrat</th><th>Type</th>
+        <th>Apprenti</th><th>Entreprise</th><th>Formation</th>
+        <th>Statut</th><th>Remplissage</th><th>Liens</th><th>Actions</th>
+      </tr></thead><tbody>`;
       contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       for (const c of contracts) {
@@ -731,8 +735,11 @@
         const date = d.toLocaleDateString('fr-FR');
         const statusClass = 'status-' + c.status;
         const label = statusLabels[c.status] || c.status;
-        const apprentiName = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '<span style="color:#aaa;font-size:11px;">En attente</span>';
-        const entrepriseName = c.entrepriseDenom || '<span style="color:#aaa;font-size:11px;">En attente</span>';
+        const apprentiName = c.apprentiPrenom || c.apprentiNom ? `${c.apprentiPrenom || ''} ${c.apprentiNom || ''}`.trim() : '<span style="color:#aaa;font-size:11px;">Non renseigné</span>';
+        const entrepriseName = c.entrepriseDenom || '<span style="color:#aaa;font-size:11px;">Non renseigné</span>';
+        const formationName = c.formationIntitule ? `<span style="font-size:12px;">${c.formationIntitule}</span>` : '<span style="color:#aaa;font-size:11px;">—</span>';
+        const typeLabel = c.typeContrat || '<span style="color:#aaa;font-size:11px;">—</span>';
+        const communeInfo = c.entrepriseCommune ? `<br><span style="font-size:11px;color:#888;">${c.entrepriseCommune}</span>` : '';
 
         // Date fin + alerte échéance
         let dateFinHtml = '<span style="color:#aaa;font-size:11px;">—</span>';
@@ -740,32 +747,43 @@
           const df = new Date(c.dateFin);
           dateFinHtml = df.toLocaleDateString('fr-FR');
           if (c.lifecycleAlert && alertLabels[c.lifecycleAlert]) {
-            dateFinHtml += `<span class="alert-${c.lifecycleAlert}">${alertLabels[c.lifecycleAlert]}</span>`;
+            dateFinHtml += `<br><span class="alert-${c.lifecycleAlert}">${alertLabels[c.lifecycleAlert]}</span>`;
+          }
+          if (c.daysRemaining !== null && c.daysRemaining >= 0 && !c.lifecycleAlert) {
+            dateFinHtml += `<br><span style="font-size:10px;color:#888;">${c.daysRemaining}j restants</span>`;
           }
         }
+
+        // Remplissage
+        const etuIcon = c.etudiantComplete ? '✅' : '⏳';
+        const entIcon = c.entrepriseComplete ? '✅' : '⏳';
+        const remplissageHtml = `<span style="font-size:12px;">${etuIcon} Étudiant<br>${entIcon} Entreprise</span>`;
 
         // Ligne grisée si archivé
         const rowStyle = c.status === 'archived' ? 'opacity:0.6;' : '';
 
         html += `<tr style="${rowStyle}">
-          <td style="font-family:monospace;font-size:12px;">${c.id.slice(0, 8)}</td>
+          <td style="font-family:monospace;font-size:11px;">${c.id.slice(0, 8)}</td>
           <td style="font-size:12px;white-space:nowrap;">${date}</td>
           <td style="font-size:12px;white-space:nowrap;">${dateFinHtml}</td>
+          <td style="font-size:12px;">${typeLabel}</td>
           <td style="font-size:13px;font-weight:600;">${apprentiName}</td>
-          <td style="font-size:13px;">${entrepriseName}</td>
+          <td style="font-size:13px;">${entrepriseName}${communeInfo}</td>
+          <td>${formationName}</td>
           <td><span class="status-badge ${statusClass}">${label}</span></td>
+          <td>${remplissageHtml}</td>
           <td style="white-space:nowrap;">
-            ${c.etudiantComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')">Étu.</span>
-            ${c.entrepriseComplete ? '✅' : '⏳'} <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')">Ent.</span>
+            <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')" title="Copier lien étudiant">📋 Étudiant</span><br>
+            <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')" title="Copier lien entreprise">📋 Entreprise</span>
           </td>
           <td style="white-space:nowrap;">
-            <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️</button>
-            ${['ready','validated','completed','archived'].includes(c.status) ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄</button>` : ''}
+            <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir</button>
+            ${['ready','validated','completed','archived'].includes(c.status) ? `<button class="btn btn-primary btn-sm" onclick="generatePdf('${c.id}')">📄 PDF</button>` : ''}
             ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','validated')">✅ Valider</button>` : ''}
             ${c.status === 'validated' ? `<button class="btn btn-sm" style="background:#1b5e20;color:#fff;" onclick="changeStatus('${c.id}','completed')">🏁 Finaliser</button>` : ''}
-            ${c.status === 'completed' ? `<button class="btn btn-sm" style="background:#546e7a;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
+            ${['completed','validated'].includes(c.status) ? `<button class="btn btn-sm" style="background:#546e7a;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
             ${c.status === 'archived' ? `<button class="btn btn-sm" style="background:#ff9800;color:#fff;" onclick="changeStatus('${c.id}','completed')">📤 Désarchiver</button>` : ''}
-            ${!['validated','completed','archived'].includes(c.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️</button>` : ''}
+            ${!['validated','completed','archived'].includes(c.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteContract('${c.id}')">🗑️ Suppr.</button>` : ''}
           </td>
         </tr>`;
       }
