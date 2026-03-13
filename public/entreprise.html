@@ -10,16 +10,21 @@
         :root { --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #ede9fe; --accent: #10b981; --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827; --danger: #ef4444; --radius: 12px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); min-height: 100vh; padding: 16px; color: var(--gray-800); }
-        .container { max-width: 900px; margin: 0 auto; width: 100%; }
+        .container { margin: 0 auto; padding: 0 32px; width: 100%; }
         .header { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 24px 20px; margin-bottom: 20px; text-align: center; }
         .header .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--primary-light); color: var(--primary-dark); padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 600; margin-bottom: 12px; }
         .header h1 { font-size: 1.5em; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
         .header p { color: var(--gray-500); font-size: 0.9em; }
-        .form-content { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 24px 20px; }
-        .form-section { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--gray-200); }
-        .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .form-section h2 { font-size: 1.05em; font-weight: 700; color: var(--gray-900); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .form-section h2::before { content: ""; width: 3px; height: 18px; background: var(--primary); border-radius: 2px; }
+        .form-content { background: transparent; border: none; border-radius: var(--radius); padding: 0; }
+        .form-section { margin-bottom: 12px; padding-bottom: 0; border: 1px solid var(--gray-200); border-radius: var(--radius); background: white; overflow: hidden; }
+        .form-section:last-of-type { margin-bottom: 0; }
+        .form-section h2 { font-size: 1.05em; font-weight: 700; color: var(--gray-900); margin-bottom: 0; padding: 16px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; transition: background 0.15s; }
+        .form-section h2:hover { background: var(--gray-50); }
+        .form-section h2::before { content: ""; width: 3px; height: 18px; background: var(--primary); border-radius: 2px; flex-shrink: 0; }
+        .form-section h2::after { content: "▶"; margin-left: auto; font-size: 0.75em; color: var(--gray-400); transition: transform 0.2s; }
+        .form-section.open h2::after { transform: rotate(90deg); }
+        .section-body { display: none; padding: 0 20px 20px; }
+        .form-section.open .section-body { display: block; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
         .form-row.full { grid-template-columns: 1fr; }
         .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
@@ -102,8 +107,9 @@
             <form id="entrepriseForm">
                 
                 <!-- EMPLOYEUR -->
-                <div class="form-section">
-                    <h2>L'Employeur</h2>
+                <div class="form-section open">
+                    <h2 onclick="toggleSection(this)">L'Employeur</h2>
+                    <div class="section-body">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Type d'employeur *</label>
@@ -227,11 +233,13 @@
                             <span class="help">Employeur public non industriel/commercial qui choisit d'adhérer</span>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- CONTRAT -->
                 <div class="form-section">
-                    <h2>Le Contrat</h2>
+                    <h2 onclick="toggleSection(this)">Le Contrat</h2>
+                    <div class="section-body">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Mode contractuel *</label>
@@ -371,11 +379,13 @@
                             <input type="text" name="contrat.autre" placeholder="Ex: Prime panier">
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- RÉMUNÉRATION -->
                 <div class="form-section">
-                    <h2>Rémunération</h2>
+                    <h2 onclick="toggleSection(this)">Rémunération</h2>
+                    <div class="section-body">
                     <div id="remuneration-info" class="info-box" style="line-height:1.6;">
                         <p>💰 <strong>La rémunération de l'apprenti est déterminée par son âge et l'année d'exécution du contrat</strong>, en pourcentage du SMIC ou du Salaire Minimum Conventionnel (SMC) si plus favorable.</p>
                         <p id="smic-status" style="font-size:0.8em;margin-top:8px;color:#3730a3;">⏳ Chargement des données depuis l'API officielle URSSAF...</p>
@@ -681,13 +691,15 @@
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- FORMATION : remplie par le CFA, pas par l'entreprise -->
 
                 <!-- MAÎTRE D'APPRENTISSAGE -->
                 <div class="form-section">
-                    <h2>Maître d'Apprentissage</h2>
+                    <h2 onclick="toggleSection(this)">Maître d'Apprentissage</h2>
+                    <div class="section-body">
                     <div class="info-box">
                         <p>ℹ️ Le maître d'apprentissage doit justifier de compétences professionnelles (diplôme et/ou expérience) dans le domaine du diplôme préparé.</p>
                     </div>
@@ -830,11 +842,13 @@
                             </label>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- ATTESTATION -->
                 <div class="form-section">
-                    <h2>Attestation</h2>
+                    <h2 onclick="toggleSection(this)">Attestation</h2>
+                    <div class="section-body">
                     <div class="form-row full">
                         <div class="form-group">
                             <label>Fait à *</label>
@@ -850,6 +864,7 @@
                             </label>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <button type="submit" id="submitBtn">📤 Envoyer les informations</button>
@@ -858,6 +873,11 @@
     </div>
 
     <script>
+        function toggleSection(h2) {
+            const section = h2.closest('.form-section');
+            section.classList.toggle('open');
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         
