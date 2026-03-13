@@ -1241,7 +1241,8 @@
                 const data = await resp.json();
                 if (data.evaluate && data.evaluate[0] && data.evaluate[0].nodeValue) {
                     smicBrutMensuel = Math.round(data.evaluate[0].nodeValue * 100) / 100;
-                    statusEl.innerHTML = '✅ SMIC brut mensuel en vigueur : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong> <span style="color:#888;">(source : API URSSAF mon-entreprise.fr)</span>';
+                    const annee = new Date().getFullYear();
+                    statusEl.innerHTML = '✅ SMIC brut mensuel en vigueur <strong>' + annee + '</strong> : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong> <span style="color:#888;">(source : API URSSAF mon-entreprise.fr — données au ' + new Date().toLocaleDateString('fr-FR') + ')</span>';
                     statusEl.style.color = '#065f46';
                 } else {
                     throw new Error('Réponse API invalide');
@@ -1249,7 +1250,7 @@
             } catch (err) {
                 console.error('Erreur API URSSAF SMIC:', err);
                 smicBrutMensuel = 1823.07;
-                statusEl.innerHTML = '⚠️ API URSSAF indisponible — SMIC par défaut : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong>';
+                statusEl.innerHTML = '⚠️ API URSSAF indisponible — SMIC par défaut <strong>' + new Date().getFullYear() + '</strong> : <strong>' + smicBrutMensuel.toFixed(2) + ' €/mois</strong> <span style="color:#888;">(valeur de secours, vérifiez sur service-public.fr)</span>';
                 statusEl.style.color = '#92400e';
             }
             grilleEl.innerHTML = buildGrilleTable(smicBrutMensuel);
