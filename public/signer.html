@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signature électronique - Contrat d'apprentissage</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      color: #fff;
+      padding: 20px 24px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+    .container {
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* Loading / Error states */
+    .state-message {
+      text-align: center;
+      padding: 60px 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .state-message .icon { font-size: 48px; margin-bottom: 16px; }
+    .state-message h2 { font-size: 20px; margin-bottom: 8px; }
+    .state-message p { color: #666; font-size: 14px; }
+
+    /* Steps indicator */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+    }
+    .step.active { color: #1e3a5f; font-weight: 700; }
+    .step.done { color: #27ae60; }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      background: #e0e0e0; color: #999;
+    }
+    .step.active .step-num { background: #1e3a5f; color: #fff; }
+    .step.done .step-num { background: #27ae60; color: #fff; }
+    .step-connector {
+      width: 40px; height: 2px;
+      background: #e0e0e0;
+      margin: 0 12px;
+    }
+    .step-connector.done { background: #27ae60; }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      font-size: 16px;
+      color: #1e3a5f;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Summary table */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+    .summary-section h4 {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #eee;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+    .summary-row .label { color: #888; }
+    .summary-row .value { font-weight: 600; color: #333; text-align: right; }
+
+    /* Parties status */
+    .parties-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .party-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      font-size: 13px;
+    }
+    .party-item.current {
+      background: #ebf5fb;
+      border: 2px solid #3498db;
+    }
+    .party-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .party-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .party-badge.signed { background: #d5f5e3; color: #27ae60; }
+    .party-badge.pending { background: #fef9e7; color: #f39c12; }
+    .party-badge.you { background: #ebf5fb; color: #3498db; }
+
+    /* Signature canvas area */
+    .signature-area {
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      padding: 8px;
+      background: #fafafa;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .signature-area.active { border-color: #3498db; background: #fff; }
+    .signature-area.has-signature { border-color: #27ae60; border-style: solid; }
+    canvas#signatureCanvas {
+      width: 100%;
+      height: 200px;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .signature-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #bbb;
+      font-size: 14px;
+      pointer-events: none;
+      text-align: center;
+    }
+    .signature-placeholder.hidden { display: none; }
+    .signature-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .signature-actions button {
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #555;
+      transition: all 0.2s;
+    }
+    .signature-actions button:hover { background: #f0f0f0; }
+
+    /* Type signature (text) */
+    .signature-type-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+    .sig-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #f8f9fa;
+      border: none;
+      color: #666;
+      transition: all 0.2s;
+    }
+    .sig-tab.active { background: #1e3a5f; color: #fff; }
+
+    .text-signature-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 24px;
+      font-family: 'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
+      text-align: center;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      background: #fafafa;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .text-signature-input:focus { border-color: #3498db; background: #fff; }
+    .text-signature-preview {
+      text-align: center;
+      padding: 20px;
+      font-size: 32px;
+      font-family: 'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
+      color: #1e3a5f;
+      border-bottom: 2px solid #1e3a5f;
+      margin-bottom: 16px;
+    }
+
+    /* Consent */
+    .consent-area {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .consent-area label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+    .consent-area input[type="checkbox"] {
+      margin-top: 3px;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(39,174,96,0.3); }
+    .btn-primary:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #fff;
+      color: #1e3a5f;
+      border: 2px solid #1e3a5f;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #f0f4f8; }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    /* Hash display */
+    .hash-display {
+      font-family: monospace;
+      font-size: 11px;
+      color: #888;
+      word-break: break-all;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    /* Security info */
+    .security-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #888;
+      padding: 12px 16px;
+      background: #f0f4f8;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    .security-info .icon { font-size: 16px; }
+
+    /* Success */
+    .success-card {
+      text-align: center;
+      padding: 40px;
+    }
+    .success-card .icon { font-size: 64px; margin-bottom: 16px; }
+    .success-card h2 { color: #27ae60; margin-bottom: 8px; }
+    .success-card p { color: #666; font-size: 14px; line-height: 1.6; }
+
+    /* Already signed */
+    .already-signed-card {
+      text-align: center;
+      padding: 40px;
+    }
+    .already-signed-card .icon { font-size: 64px; margin-bottom: 16px; }
+    .already-signed-card h2 { color: #3498db; margin-bottom: 8px; }
+
+    /* Legal */
+    .legal-text {
+      font-size: 11px;
+      color: #999;
+      line-height: 1.5;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>✍️ Signature électronique</h1>
+  <p>Contrat d'apprentissage — CERFA 10103-14</p>
+</div>
+
+<div class="container">
+  <!-- Loading state -->
+  <div id="loadingState" class="state-message">
+    <div class="icon">⏳</div>
+    <h2>Chargement...</h2>
+    <p>Récupération des informations du contrat</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="errorState" class="state-message" style="display:none;">
+    <div class="icon">❌</div>
+    <h2 id="errorTitle">Erreur</h2>
+    <p id="errorMessage">Une erreur est survenue</p>
+  </div>
+
+  <!-- Already signed state -->
+  <div id="alreadySignedState" class="already-signed-card card" style="display:none;">
+    <div class="icon">✅</div>
+    <h2>Déjà signé</h2>
+    <p>Vous avez déjà signé ce contrat. Aucune action supplémentaire n'est requise.</p>
+  </div>
+
+  <!-- Main signing flow -->
+  <div id="signingFlow" style="display:none;">
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <span>Vérification</span>
+      </div>
+      <div class="step-connector" id="connector1"></div>
+      <div class="step active" id="step2" style="color:#999;">
+        <div class="step-num" style="background:#e0e0e0;color:#999;">2</div>
+        <span>Signature</span>
+      </div>
+      <div class="step-connector" id="connector2"></div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <span>Confirmation</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Contract summary -->
+    <div id="stepVerification">
+      <div class="card">
+        <h3>👤 Vous signez en tant que</h3>
+        <div style="background:#ebf5fb;padding:12px 16px;border-radius:8px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:24px;" id="roleIcon">📝</span>
+          <div>
+            <div style="font-weight:700;font-size:15px;" id="signerNameDisplay"></div>
+            <div style="font-size:13px;color:#666;" id="signerRoleDisplay"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📋 Récapitulatif du contrat</h3>
+        <div class="summary-grid">
+          <div class="summary-section">
+            <h4>🏢 Employeur</h4>
+            <div class="summary-row"><span class="label">Raison sociale</span><span class="value" id="empDenomination">-</span></div>
+            <div class="summary-row"><span class="label">SIRET</span><span class="value" id="empSiret">-</span></div>
+            <div class="summary-row"><span class="label">Adresse</span><span class="value" id="empAdresse">-</span></div>
+          </div>
+          <div class="summary-section">
+            <h4>🎓 Apprenti(e)</h4>
+            <div class="summary-row"><span class="label">Nom</span><span class="value" id="appNom">-</span></div>
+            <div class="summary-row"><span class="label">Prénom</span><span class="value" id="appPrenom">-</span></div>
+            <div class="summary-row"><span class="label">Date de naissance</span><span class="value" id="appDateNaissance">-</span></div>
+          </div>
+          <div class="summary-section">
+            <h4>📄 Contrat</h4>
+            <div class="summary-row"><span class="label">Début</span><span class="value" id="ctrDebut">-</span></div>
+            <div class="summary-row"><span class="label">Fin</span><span class="value" id="ctrFin">-</span></div>
+            <div class="summary-row"><span class="label">Salaire brut</span><span class="value" id="ctrSalaire">-</span></div>
+          </div>
+          <div class="summary-section">
+            <h4>🏫 Formation</h4>
+            <div class="summary-row"><span class="label">Intitulé</span><span class="value" id="frmIntitule">-</span></div>
+            <div class="summary-row"><span class="label">Organisme</span><span class="value" id="frmOrganisme">-</span></div>
+          </div>
+        </div>
+        <div class="hash-display">
+          🔒 Empreinte du document : <span id="docHash">-</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>👥 Parties signataires</h3>
+        <div class="parties-list" id="partiesList"></div>
+      </div>
+
+      <div class="btn-row" style="justify-content:flex-end;">
+        <button class="btn-primary" onclick="goToStep2()" style="max-width:300px;">
+          Continuer vers la signature ➡️
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Signature -->
+    <div id="stepSignature" style="display:none;">
+      <div class="card">
+        <h3>✍️ Votre signature</h3>
+
+        <div class="signature-type-tabs">
+          <button class="sig-tab active" onclick="switchSigMode('draw')">✏️ Dessiner</button>
+          <button class="sig-tab" onclick="switchSigMode('type')">⌨️ Taper</button>
+        </div>
+
+        <!-- Draw mode -->
+        <div id="drawMode">
+          <div class="signature-area" id="signatureArea">
+            <canvas id="signatureCanvas"></canvas>
+            <div class="signature-placeholder" id="sigPlaceholder">
+              ✏️ Dessinez votre signature ici<br>
+              <small>Utilisez la souris ou votre doigt sur écran tactile</small>
+            </div>
+          </div>
+          <div class="signature-actions">
+            <button onclick="clearSignature()">🗑️ Effacer</button>
+            <button onclick="undoSignature()">↩️ Annuler</button>
+          </div>
+        </div>
+
+        <!-- Type mode -->
+        <div id="typeMode" style="display:none;">
+          <input type="text" class="text-signature-input" id="typeSignatureInput" placeholder="Tapez votre nom complet" maxlength="60">
+          <div class="text-signature-preview" id="typePreview" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="consent-area">
+          <label>
+            <input type="checkbox" id="consentCheck">
+            <span>
+              En cochant cette case et en signant, je confirme avoir pris connaissance du contenu du contrat d'apprentissage
+              ci-dessus et j'accepte les termes et conditions qui y sont décrits.
+              Ma signature électronique a la même valeur juridique qu'une signature manuscrite
+              conformément aux articles 1366 et 1367 du Code civil et au règlement européen eIDAS.
+            </span>
+          </label>
+        </div>
+
+        <button class="btn-primary" id="btnSubmit" onclick="submitSignature()" disabled>
+          ✅ Signer le contrat
+        </button>
+
+        <div class="security-info">
+          <span class="icon">🔐</span>
+          <span>Votre signature est sécurisée par chiffrement SHA-256. L'adresse IP, la date et l'heure sont enregistrées pour garantir l'authenticité.</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn-secondary" onclick="goToStep1()">⬅️ Retour au récapitulatif</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirmation -->
+    <div id="stepConfirmation" style="display:none;">
+      <div class="card success-card">
+        <div class="icon">🎉</div>
+        <h2>Signature enregistrée !</h2>
+        <p id="confirmationMessage">Votre signature a été enregistrée avec succès.</p>
+        <div class="hash-display" style="margin-top:20px;">
+          🔒 Hash de votre signature : <span id="signatureHashDisplay">-</span>
+        </div>
+      </div>
+
+      <div class="card" id="remainingPartiesCard" style="display:none;">
+        <h3>⏳ Signatures restantes</h3>
+        <div id="remainingPartiesList" class="parties-list"></div>
+      </div>
+
+      <div class="legal-text" style="padding:0 16px;">
+        <p>
+          <strong>Certificat de signature :</strong> Cette signature électronique a été réalisée conformément à l'article 1367 du Code civil français.
+          L'empreinte numérique (hash SHA-256) ci-dessus constitue la preuve d'intégrité de votre signature.
+          La date, l'heure, l'adresse IP et l'identifiant du signataire ont été enregistrés à des fins de traçabilité.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let signToken = '';
+  let signingData = null;
+  let canvas, ctx;
+  let isDrawing = false;
+  let lastX = 0, lastY = 0;
+  let paths = []; // For undo
+  let currentPath = [];
+  let sigMode = 'draw'; // 'draw' or 'type'
+  let hasDrawnSignature = false;
+
+  // =====================
+  // INIT
+  // =====================
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    signToken = params.get('token');
+    if (!signToken) return showError('Lien invalide', 'Aucun token de signature trouvé dans l\'URL.');
+    await loadSigningData();
+  });
+
+  async function loadSigningData() {
+    try {
+      const res = await fetch(`/api/signature/${signToken}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.error === 'already_signed') {
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('alreadySignedState').style.display = 'block';
+          return;
+        }
+        return showError('Lien invalide', data.error || 'Ce lien de signature est invalide ou a expiré.');
+      }
+
+      signingData = data;
+      renderSigningFlow();
+    } catch (e) {
+      showError('Erreur de connexion', 'Impossible de contacter le serveur. Veuillez réessayer.');
+    }
+  }
+
+  function showError(title, message) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('errorTitle').textContent = title;
+    document.getElementById('errorMessage').textContent = message;
+  }
+
+  // =====================
+  // RENDER
+  // =====================
+  function renderSigningFlow() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('signingFlow').style.display = 'block';
+
+    const roleLabels = {
+      employeur: { label: 'Employeur', icon: '🏢' },
+      apprenti: { label: 'Apprenti(e)', icon: '🎓' },
+      representant_legal: { label: 'Représentant légal', icon: '👨‍👩‍👦' },
+      cfa: { label: 'CFA / Organisme de formation', icon: '🏫' }
+    };
+    const roleInfo = roleLabels[signingData.role] || { label: signingData.role, icon: '📝' };
+
+    document.getElementById('roleIcon').textContent = roleInfo.icon;
+    document.getElementById('signerNameDisplay').textContent = signingData.signerName;
+    document.getElementById('signerRoleDisplay').textContent = roleInfo.label + ' — ' + signingData.signerEmail;
+
+    // Summary
+    const s = signingData.summary;
+    document.getElementById('empDenomination').textContent = s.employeur.denomination || '-';
+    document.getElementById('empSiret').textContent = s.employeur.siret || '-';
+    document.getElementById('empAdresse').textContent = s.employeur.adresse || '-';
+    document.getElementById('appNom').textContent = s.apprenti.nom || '-';
+    document.getElementById('appPrenom').textContent = s.apprenti.prenom || '-';
+    document.getElementById('appDateNaissance').textContent = s.apprenti.dateNaissance || '-';
+    document.getElementById('ctrDebut').textContent = s.contrat.dateDebut || '-';
+    document.getElementById('ctrFin').textContent = s.contrat.dateFin || '-';
+    document.getElementById('ctrSalaire').textContent = s.contrat.salaireBrut ? s.contrat.salaireBrut + ' €' : '-';
+    document.getElementById('frmIntitule').textContent = s.formation.intitule || '-';
+    document.getElementById('frmOrganisme').textContent = s.formation.organisme || '-';
+    document.getElementById('docHash').textContent = signingData.documentHash;
+
+    // Parties
+    const partiesHtml = signingData.allParties.map(p => {
+      const ri = roleLabels[p.role] || { label: p.role, icon: '📝' };
+      const isCurrent = p.role === signingData.role;
+      let badge = '';
+      if (p.signed) {
+        badge = `<span class="party-badge signed">✅ Signé le ${new Date(p.signedAt).toLocaleDateString('fr-FR')}</span>`;
+      } else if (isCurrent) {
+        badge = `<span class="party-badge you">👈 C'est vous</span>`;
+      } else {
+        badge = `<span class="party-badge pending">⏳ En attente</span>`;
+      }
+      return `<div class="party-item ${isCurrent ? 'current' : ''}">
+        <div class="party-info">
+          <span>${ri.icon}</span>
+          <div>
+            <div style="font-weight:600;">${p.name}</div>
+            <div style="font-size:12px;color:#888;">${ri.label}</div>
+          </div>
+        </div>
+        ${badge}
+      </div>`;
+    }).join('');
+    document.getElementById('partiesList').innerHTML = partiesHtml;
+
+    // Init canvas
+    initCanvas();
+
+    // Consent checkbox
+    document.getElementById('consentCheck').addEventListener('change', updateSubmitButton);
+  }
+
+  // =====================
+  // STEPS
+  // =====================
+  function goToStep2() {
+    document.getElementById('stepVerification').style.display = 'none';
+    document.getElementById('stepSignature').style.display = 'block';
+    // Update steps indicator
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').querySelector('.step-num').textContent = '✓';
+    document.getElementById('connector1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+    document.getElementById('step2').querySelector('.step-num').style.background = '#1e3a5f';
+    document.getElementById('step2').querySelector('.step-num').style.color = '#fff';
+    document.getElementById('step2').style.color = '#1e3a5f';
+    // Resize canvas
+    setTimeout(() => resizeCanvas(), 100);
+  }
+
+  function goToStep1() {
+    document.getElementById('stepSignature').style.display = 'none';
+    document.getElementById('stepVerification').style.display = 'block';
+    // Reset steps indicator
+    document.getElementById('step1').classList.remove('done');
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('step1').querySelector('.step-num').textContent = '1';
+    document.getElementById('connector1').classList.remove('done');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step2').querySelector('.step-num').style.background = '#e0e0e0';
+    document.getElementById('step2').querySelector('.step-num').style.color = '#999';
+    document.getElementById('step2').style.color = '#999';
+  }
+
+  function goToStep3(result) {
+    document.getElementById('stepSignature').style.display = 'none';
+    document.getElementById('stepConfirmation').style.display = 'block';
+    // Update steps
+    document.getElementById('step2').classList.add('done');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step2').querySelector('.step-num').textContent = '✓';
+    document.getElementById('step2').querySelector('.step-num').style.background = '#27ae60';
+    document.getElementById('connector2').classList.add('done');
+    document.getElementById('step3').classList.add('done');
+    document.getElementById('step3').querySelector('.step-num').textContent = '✓';
+    document.getElementById('step3').querySelector('.step-num').style.background = '#27ae60';
+    document.getElementById('step3').querySelector('.step-num').style.color = '#fff';
+    document.getElementById('step3').style.color = '#27ae60';
+
+    document.getElementById('signatureHashDisplay').textContent = result.signatureHash;
+
+    if (result.allSigned) {
+      document.getElementById('confirmationMessage').textContent =
+        'Toutes les parties ont signé ! Le contrat est maintenant complet et juridiquement valide.';
+    } else {
+      document.getElementById('confirmationMessage').textContent =
+        'Votre signature a été enregistrée avec succès. D\'autres parties doivent encore signer.';
+      if (result.remainingParties && result.remainingParties.length > 0) {
+        document.getElementById('remainingPartiesCard').style.display = 'block';
+        const roleLabels = {
+          employeur: { label: 'Employeur', icon: '🏢' },
+          apprenti: { label: 'Apprenti(e)', icon: '🎓' },
+          representant_legal: { label: 'Représentant légal', icon: '👨‍👩‍👦' },
+          cfa: { label: 'CFA', icon: '🏫' }
+        };
+        document.getElementById('remainingPartiesList').innerHTML = result.remainingParties.map(p => {
+          const ri = roleLabels[p.role] || { label: p.role, icon: '📝' };
+          return `<div class="party-item">
+            <div class="party-info"><span>${ri.icon}</span><div><div style="font-weight:600;">${p.name}</div><div style="font-size:12px;color:#888;">${ri.label}</div></div></div>
+            <span class="party-badge pending">⏳ En attente</span>
+          </div>`;
+        }).join('');
+      }
+    }
+  }
+
+  // =====================
+  // CANVAS SIGNATURE
+  // =====================
+  function initCanvas() {
+    canvas = document.getElementById('signatureCanvas');
+    ctx = canvas.getContext('2d');
+    resizeCanvas();
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchDraw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+
+    window.addEventListener('resize', resizeCanvas);
+  }
+
+  function resizeCanvas() {
+    if (!canvas) return;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = (rect.width - 16) * dpr;
+    canvas.height = 200 * dpr;
+    canvas.style.width = (rect.width - 16) + 'px';
+    canvas.style.height = '200px';
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#1e3a5f';
+    // Redraw all paths
+    redrawPaths();
+  }
+
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  function startDrawing(e) {
+    isDrawing = true;
+    const coords = getCanvasCoords(e);
+    lastX = coords.x;
+    lastY = coords.y;
+    currentPath = [{ x: lastX, y: lastY }];
+    document.getElementById('sigPlaceholder').classList.add('hidden');
+    document.getElementById('signatureArea').classList.add('active');
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    const coords = getCanvasCoords(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(coords.x, coords.y);
+    ctx.stroke();
+    lastX = coords.x;
+    lastY = coords.y;
+    currentPath.push({ x: lastX, y: lastY });
+  }
+
+  function stopDrawing() {
+    if (!isDrawing) return;
+    isDrawing = false;
+    if (currentPath.length > 1) {
+      paths.push([...currentPath]);
+      hasDrawnSignature = true;
+      document.getElementById('signatureArea').classList.add('has-signature');
+    }
+    currentPath = [];
+    updateSubmitButton();
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY };
+    startDrawing(fakeEvent);
+  }
+
+  function handleTouchDraw(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY };
+    draw(fakeEvent);
+  }
+
+  function clearSignature() {
+    paths = [];
+    currentPath = [];
+    hasDrawnSignature = false;
+    const dpr = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    document.getElementById('sigPlaceholder').classList.remove('hidden');
+    document.getElementById('signatureArea').classList.remove('active', 'has-signature');
+    updateSubmitButton();
+  }
+
+  function undoSignature() {
+    if (paths.length === 0) return;
+    paths.pop();
+    redrawPaths();
+    if (paths.length === 0) {
+      hasDrawnSignature = false;
+      document.getElementById('sigPlaceholder').classList.remove('hidden');
+      document.getElementById('signatureArea').classList.remove('active', 'has-signature');
+    }
+    updateSubmitButton();
+  }
+
+  function redrawPaths() {
+    const dpr = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#1e3a5f';
+    for (const path of paths) {
+      if (path.length < 2) continue;
+      ctx.beginPath();
+      ctx.moveTo(path[0].x, path[0].y);
+      for (let i = 1; i < path.length; i++) {
+        ctx.lineTo(path[i].x, path[i].y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // =====================
+  // TEXT SIGNATURE
+  // =====================
+  function switchSigMode(mode) {
+    sigMode = mode;
+    document.querySelectorAll('.sig-tab').forEach((t, i) => {
+      t.classList.toggle('active', (mode === 'draw' && i === 0) || (mode === 'type' && i === 1));
+    });
+    document.getElementById('drawMode').style.display = mode === 'draw' ? 'block' : 'none';
+    document.getElementById('typeMode').style.display = mode === 'type' ? 'block' : 'none';
+    updateSubmitButton();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('typeSignatureInput');
+    if (input) {
+      input.addEventListener('input', () => {
+        const preview = document.getElementById('typePreview');
+        if (input.value.trim()) {
+          preview.style.display = 'block';
+          preview.textContent = input.value;
+        } else {
+          preview.style.display = 'none';
+        }
+        updateSubmitButton();
+      });
+    }
+  });
+
+  // =====================
+  // SUBMIT
+  // =====================
+  function updateSubmitButton() {
+    const consent = document.getElementById('consentCheck').checked;
+    let hasSig = false;
+    if (sigMode === 'draw') {
+      hasSig = hasDrawnSignature;
+    } else {
+      hasSig = document.getElementById('typeSignatureInput').value.trim().length > 2;
+    }
+    document.getElementById('btnSubmit').disabled = !(consent && hasSig);
+  }
+
+  function getSignatureDataURL() {
+    if (sigMode === 'draw') {
+      return canvas.toDataURL('image/png');
+    } else {
+      // Generate a canvas from text
+      const text = document.getElementById('typeSignatureInput').value.trim();
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = 600;
+      tmpCanvas.height = 200;
+      const tmpCtx = tmpCanvas.getContext('2d');
+      tmpCtx.fillStyle = '#ffffff';
+      tmpCtx.fillRect(0, 0, 600, 200);
+      tmpCtx.fillStyle = '#1e3a5f';
+      tmpCtx.font = '48px "Brush Script MT", "Segoe Script", cursive';
+      tmpCtx.textAlign = 'center';
+      tmpCtx.textBaseline = 'middle';
+      tmpCtx.fillText(text, 300, 100);
+      return tmpCanvas.toDataURL('image/png');
+    }
+  }
+
+  async function submitSignature() {
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = '⏳ Signature en cours...';
+
+    try {
+      const signatureData = getSignatureDataURL();
+      const res = await fetch(`/api/signature/${signToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signatureData })
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || 'Erreur lors de la signature');
+        btn.disabled = false;
+        btn.textContent = '✅ Signer le contrat';
+        return;
+      }
+
+      goToStep3(result);
+    } catch (e) {
+      alert('Erreur de connexion. Veuillez réessayer.');
+      btn.disabled = false;
+      btn.textContent = '✅ Signer le contrat';
+    }
+  }
+</script>
+
+</body>
+</html>

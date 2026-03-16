@@ -71,6 +71,8 @@
     .status-ready { background: #e8f5e9; color: #2e7d32; }
     .status-validated { background: #e0f2f1; color: #00695c; }
     .status-completed { background: #ede7f6; color: #4a148c; }
+    .status-signing { background: #f3e5f5; color: #8e24aa; }
+    .status-signed { background: #e8f5e9; color: #1b5e20; font-weight: 700; }
     .status-archived { background: #f3f4f6; color: #6b7280; }
 
     .profile-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px; }
@@ -421,9 +423,9 @@
         el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Aucun contrat trouvé</p><p style="font-size:13px;margin-top:4px;">Votre CFA vous enverra un lien pour remplir votre formulaire.</p></div>`;
         return;
       }
-      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
-      const progressMap = { pending: 10, partial: 40, ready: 70, validated: 85, completed: 100 };
-      const progressColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', completed: '#7c3aed' };
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', signing: 'En signature', signed: 'Signé', completed: 'Terminé', archived: 'Archivé' };
+      const progressMap = { pending: 10, partial: 40, ready: 70, validated: 85, signing: 90, signed: 95, completed: 100 };
+      const progressColors = { pending: '#e65100', partial: '#1565c0', ready: '#2e7d32', validated: '#00695c', signing: '#8e24aa', signed: '#1b5e20', completed: '#7c3aed' };
 
       el.innerHTML = contracts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(c => {
         const _d = new Date(c.createdAt);
@@ -460,7 +462,7 @@
       if (!c) return;
       document.getElementById('modalContratId').textContent = '#' + contractId.slice(0,8);
 
-      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', completed: 'Terminé', archived: 'Archivé' };
+      const statusMap = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', signing: 'En signature', signed: 'Signé', completed: 'Terminé', archived: 'Archivé' };
       let html = '';
 
       html += `<div class="modal-section"><h4>📋 Informations générales</h4>

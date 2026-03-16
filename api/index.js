@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { PDFDocument } = require('pdf-lib');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -37,6 +37,7 @@ const TOKENS_KEY = 'tokens';       // Hash: token -> { contractId, type }
 const USERS_KEY = 'users';         // Hash: email -> JSON { id, email, password, role, createdAt, profile }
 const MA_KEY_PREFIX = 'maitres:';  // Hash per CFA: maitres:{cfaId} -> maId -> JSON
 const ENT_DIR_KEY = 'entreprises_directory'; // Hash: SIRET -> JSON { siret, denomination, code_ape, idcc, effectif, adresse, code_postal, commune, telephone, courriel, ... }
+const SIGN_TOKENS_KEY = 'sign_tokens'; // Hash: signToken -> JSON { contractId, role, email, name, expiresAt }
 
 // =====================
 // REDIS HELPERS (via REST API)
@@ -260,6 +261,43 @@ async function saveEntrepriseToDir(entData) {
   }
 }
 
+// =====================
+// SIGNATURE HELPERS
+// =====================
+async function saveSignToken(token, data) {
+  try {
+    await redisCall(['HSET', SIGN_TOKENS_KEY, token, JSON.stringify(data)]);
+  } catch (e) {
+    console.error('[REDIS ERROR] saveSignToken:', e.message);
+  }
+}
+
+async function getSignToken(token) {
+  try {
+    const data = await redisCall(['HGET', SIGN_TOKENS_KEY, token]);
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    if (parsed.expiresAt && new Date(parsed.expiresAt) < new Date()) return null;
+    return parsed;
+  } catch (e) {
+    console.error('[REDIS ERROR] getSignToken:', e.message);
+    return null;
+  }
+}
+
+async function deleteSignToken(token) {
+  try {
+    await redisCall(['HDEL', SIGN_TOKENS_KEY, token]);
+  } catch (e) {
+    console.error('[REDIS ERROR] deleteSignToken:', e.message);
+  }
+}
+
+function generateSignatureHash(contractId, role, signatureData, timestamp) {
+  const payload = `${contractId}|${role}|${signatureData.substring(0, 100)}|${timestamp}`;
+  return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
 function normalizeStr(s) {
   return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
@@ -395,8 +433,8 @@ function matchRoute(url, pattern) {
 }
 
 function updateContractStatus(contract) {
-  // Ne pas écraser les statuts avancés (validated, completed, archived)
-  if (['validated', 'completed', 'archived'].includes(contract.status)) return;
+  // Ne pas écraser les statuts avancés (validated, completed, signing, signed, archived)
+  if (['validated', 'completed', 'signing', 'signed', 'archived'].includes(contract.status)) return;
   if (contract.etudiant && contract.entreprise) {
     contract.status = 'ready';
   } else if (contract.etudiant || contract.entreprise) {
@@ -998,7 +1036,7 @@ module.exports = async function handler(req, res) {
     if (method === 'GET' && pdfMatch) {
       const contract = await getContract(pdfMatch.id);
       if (!contract) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
-      if (!['ready', 'validated'].includes(contract.status)) {
+      if (!['ready', 'validated', 'signing', 'signed', 'completed'].includes(contract.status)) {
         return sendJSON(res, { error: 'Le contrat n\'est pas complet', status: contract.status, etudiantComplete: !!contract.etudiant, entrepriseComplete: !!contract.entreprise }, 400);
       }
 
@@ -1022,6 +1060,108 @@ module.exports = async function handler(req, res) {
             if (value === true || value === 'true' || value === 'OUI' || value === 'on') { field.check(); filledCount++; }
           }
         } catch (e) { /* champ non trouvé */ }
+      }
+
+      // Si le contrat a des signatures, ajouter une page de signatures + audit trail
+      if (contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed)) {
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const signPage = pdfDoc.addPage([595.28, 841.89]); // A4
+        let y = 800;
+        const leftMargin = 50;
+        const pageWidth = 595.28;
+
+        // Titre
+        signPage.drawText('CERTIFICAT DE SIGNATURE ÉLECTRONIQUE', { x: leftMargin, y, font: fontBold, size: 16, color: rgb(0.118, 0.227, 0.373) });
+        y -= 24;
+        signPage.drawText('Contrat d\'apprentissage — CERFA 10103-14', { x: leftMargin, y, font, size: 10, color: rgb(0.4, 0.4, 0.4) });
+        y -= 16;
+        signPage.drawText(`Identifiant du contrat : ${contract.id}`, { x: leftMargin, y, font, size: 9, color: rgb(0.5, 0.5, 0.5) });
+        y -= 12;
+        signPage.drawText(`Empreinte du document (SHA-256) : ${contract.signature.documentHash}`, { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+        y -= 20;
+
+        // Ligne de séparation
+        signPage.drawLine({ start: { x: leftMargin, y }, end: { x: pageWidth - leftMargin, y }, thickness: 1, color: rgb(0.8, 0.8, 0.8) });
+        y -= 20;
+
+        // Statut global
+        const allSigned = contract.signature.parties.every(p => p.signed);
+        if (allSigned) {
+          signPage.drawText('✓ TOUTES LES PARTIES ONT SIGNÉ', { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.106, 0.369, 0.125) });
+        } else {
+          const signedCount = contract.signature.parties.filter(p => p.signed).length;
+          signPage.drawText(`⏳ SIGNATURE EN COURS (${signedCount}/${contract.signature.parties.length})`, { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.557, 0.141, 0.667) });
+        }
+        y -= 30;
+
+        const roleLabels = { employeur: 'Employeur', apprenti: 'Apprenti(e)', representant_legal: 'Représentant légal', cfa: 'CFA / Organisme de formation' };
+
+        // Pour chaque signataire
+        for (const party of contract.signature.parties) {
+          // Cadre
+          signPage.drawRectangle({ x: leftMargin, y: y - 80, width: pageWidth - 2 * leftMargin, height: 85, borderColor: rgb(0.85, 0.85, 0.85), borderWidth: 1, color: party.signed ? rgb(0.97, 0.99, 0.97) : rgb(1, 0.98, 0.94) });
+
+          const roleLabel = roleLabels[party.role] || party.role;
+          signPage.drawText(roleLabel, { x: leftMargin + 10, y: y - 2, font: fontBold, size: 11, color: rgb(0.118, 0.227, 0.373) });
+          signPage.drawText(party.name, { x: leftMargin + 10, y: y - 16, font, size: 10, color: rgb(0.2, 0.2, 0.2) });
+          signPage.drawText(party.email || '', { x: leftMargin + 10, y: y - 30, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
+
+          if (party.signed) {
+            signPage.drawText('Signé le ' + new Date(party.signedAt).toLocaleString('fr-FR'), { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.106, 0.369, 0.125) });
+            signPage.drawText('IP: ' + (party.ip || 'N/A'), { x: leftMargin + 10, y: y - 58, font, size: 7, color: rgb(0.6, 0.6, 0.6) });
+            signPage.drawText('Hash: ' + (party.signatureHash || 'N/A'), { x: leftMargin + 10, y: y - 70, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
+
+            // Insérer l'image de signature si disponible
+            if (party.signatureData && party.signatureData.startsWith('data:image/png;base64,')) {
+              try {
+                const base64Data = party.signatureData.replace('data:image/png;base64,', '');
+                const sigImageBytes = Buffer.from(base64Data, 'base64');
+                const sigImage = await pdfDoc.embedPng(sigImageBytes);
+                const sigDims = sigImage.scale(0.25);
+                const maxW = 150;
+                const maxH = 50;
+                const ratio = Math.min(maxW / sigDims.width, maxH / sigDims.height, 1);
+                signPage.drawImage(sigImage, {
+                  x: pageWidth - leftMargin - (sigDims.width * ratio) - 10,
+                  y: y - 70,
+                  width: sigDims.width * ratio,
+                  height: sigDims.height * ratio
+                });
+              } catch (imgErr) {
+                console.error('[PDF] Erreur insertion image signature:', imgErr.message);
+              }
+            }
+          } else {
+            signPage.drawText('⏳ En attente de signature', { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.8, 0.5, 0.0) });
+          }
+
+          y -= 100;
+
+          // Nouvelle page si on manque de place
+          if (y < 100) {
+            const newPage = pdfDoc.addPage([595.28, 841.89]);
+            y = 800;
+            // Continuer sur la nouvelle page (variable signPage est locale, on ne peut pas la réassigner facilement dans ce contexte)
+            // Les signatures restantes seront tronquées si > 7 parties (peu probable)
+          }
+        }
+
+        // Mentions légales en bas
+        y -= 20;
+        signPage.drawLine({ start: { x: leftMargin, y }, end: { x: pageWidth - leftMargin, y }, thickness: 0.5, color: rgb(0.85, 0.85, 0.85) });
+        y -= 14;
+        const legalLines = [
+          'Ce certificat atteste que les signatures ci-dessus ont été recueillies par voie électronique.',
+          'Conformément aux articles 1366 et 1367 du Code civil et au règlement européen eIDAS (UE n°910/2014),',
+          'la signature électronique a la même valeur probante que la signature manuscrite.',
+          `Signature initiée le ${new Date(contract.signature.initiatedAt).toLocaleString('fr-FR')} par ${contract.signature.initiatedBy}`,
+          `Document généré le ${new Date().toLocaleString('fr-FR')}`
+        ];
+        for (const line of legalLines) {
+          signPage.drawText(line, { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+          y -= 10;
+        }
       }
 
       const pdfOut = await pdfDoc.save();
@@ -1082,7 +1222,7 @@ module.exports = async function handler(req, res) {
       if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
 
       const body = await parseBody(req);
-      const validStatuses = ['pending', 'partial', 'ready', 'validated', 'completed', 'archived'];
+      const validStatuses = ['pending', 'partial', 'ready', 'validated', 'signing', 'signed', 'completed', 'archived'];
       if (!body.status || !validStatuses.includes(body.status)) {
         return sendJSON(res, { error: 'Statut invalide. Valeurs: ' + validStatuses.join(', ') }, 400);
       }
@@ -1204,6 +1344,205 @@ module.exports = async function handler(req, res) {
       const deleted = await deleteMaitre(authUser.id, maDelMatch.id);
       if (deleted) return sendJSON(res, { success: true });
       return sendJSON(res, { error: 'Maître non trouvé' }, 404);
+    }
+
+    // =====================
+    // SIGNATURE ELECTRONIQUE ROUTES
+    // =====================
+
+    // ---------- POST /api/contracts/:id/signature/init (CFA initie la signature) ----------
+    const signInitMatch = matchRoute(url, '/api/contracts/:id/signature/init');
+    if (method === 'POST' && signInitMatch) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(signInitMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      if (!['ready', 'validated'].includes(contract.status)) {
+        return sendJSON(res, { error: 'Le contrat doit être au statut "prêt" ou "validé" pour lancer la signature' }, 400);
+      }
+      if (!contract.etudiant || !contract.entreprise) {
+        return sendJSON(res, { error: 'Le contrat doit être complet (données étudiant et entreprise)' }, 400);
+      }
+
+      const body = await parseBody(req);
+      // Parties à signer : au minimum employeur et apprenti
+      const parties = [];
+      const baseUrl = getBaseUrl(req);
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 jours
+
+      // Partie Employeur
+      const empEmail = body.employeurEmail || contract.entreprise?.employeur?.courriel || contract.entrepriseEmail || '';
+      const empNom = contract.entreprise?.employeur?.denomination || 'Employeur';
+      const empToken = crypto.randomUUID();
+      parties.push({ role: 'employeur', email: empEmail, name: empNom, token: empToken, signed: false });
+      await saveSignToken(empToken, { contractId: contract.id, role: 'employeur', email: empEmail, name: empNom, expiresAt });
+
+      // Partie Apprenti
+      const appEmail = body.apprentiEmail || contract.etudiant?.apprenti?.courriel || '';
+      const appNom = `${contract.etudiant?.apprenti?.prenom || ''} ${contract.etudiant?.apprenti?.nom_naissance || ''}`.trim() || 'Apprenti';
+      const appToken = crypto.randomUUID();
+      parties.push({ role: 'apprenti', email: appEmail, name: appNom, token: appToken, signed: false });
+      await saveSignToken(appToken, { contractId: contract.id, role: 'apprenti', email: appEmail, name: appNom, expiresAt });
+
+      // Partie Représentant légal (optionnel, si mineur)
+      if (body.representantLegal || contract.etudiant?.representant_legal?.nom_prenom) {
+        const rlEmail = body.representantEmail || contract.etudiant?.representant_legal?.courriel || '';
+        const rlNom = contract.etudiant?.representant_legal?.nom_prenom || 'Représentant légal';
+        const rlToken = crypto.randomUUID();
+        parties.push({ role: 'representant_legal', email: rlEmail, name: rlNom, token: rlToken, signed: false });
+        await saveSignToken(rlToken, { contractId: contract.id, role: 'representant_legal', email: rlEmail, name: rlNom, expiresAt });
+      }
+
+      // Partie CFA
+      const cfaUser = await getUserByEmail(authUser.email);
+      const cfaNom = cfaUser?.nom || cfaUser?.profile?.denomination || 'CFA';
+      const cfaToken = crypto.randomUUID();
+      parties.push({ role: 'cfa', email: authUser.email, name: cfaNom, token: cfaToken, signed: false });
+      await saveSignToken(cfaToken, { contractId: contract.id, role: 'cfa', email: authUser.email, name: cfaNom, expiresAt });
+
+      // Sauvegarder dans le contrat
+      contract.signature = {
+        initiatedAt: new Date().toISOString(),
+        initiatedBy: authUser.email,
+        expiresAt,
+        parties,
+        documentHash: crypto.createHash('sha256').update(JSON.stringify({ etudiant: contract.etudiant, entreprise: contract.entreprise, formation: contract.formation })).digest('hex'),
+        completed: false
+      };
+      contract.status = 'signing';
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: 'signature_initiated', date: new Date().toISOString(), by: authUser.email, parties: parties.map(p => ({ role: p.role, email: p.email })) });
+      await saveContract(contract);
+
+      // Générer les liens de signature
+      const links = parties.map(p => ({
+        role: p.role,
+        name: p.name,
+        email: p.email,
+        url: `${baseUrl}/signer.html?token=${p.token}`
+      }));
+
+      return sendJSON(res, { success: true, signatureId: contract.id, links, expiresAt });
+    }
+
+    // ---------- GET /api/signature/:token (récupérer infos de signature publique) ----------
+    const signInfoMatch = matchRoute(url, '/api/signature/:token');
+    if (method === 'GET' && signInfoMatch) {
+      const tokenData = await getSignToken(signInfoMatch.token);
+      if (!tokenData) return sendJSON(res, { error: 'Lien de signature invalide ou expiré' }, 404);
+
+      const contract = await getContract(tokenData.contractId);
+      if (!contract || !contract.signature) return sendJSON(res, { error: 'Contrat non trouvé ou signature non initiée' }, 404);
+
+      const party = contract.signature.parties.find(p => p.role === tokenData.role && p.email === tokenData.email);
+      if (!party) return sendJSON(res, { error: 'Partie non trouvée' }, 404);
+      if (party.signed) return sendJSON(res, { error: 'already_signed', message: 'Vous avez déjà signé ce contrat' }, 400);
+
+      // Résumé du contrat pour affichage
+      const emp = contract.entreprise?.employeur || {};
+      const app = contract.etudiant?.apprenti || {};
+      const ctr = contract.entreprise?.contrat || {};
+      const frm = contract.entreprise?.formation || contract.formation || {};
+
+      return sendJSON(res, {
+        contractId: contract.id,
+        role: tokenData.role,
+        signerName: tokenData.name,
+        signerEmail: tokenData.email,
+        documentHash: contract.signature.documentHash,
+        expiresAt: contract.signature.expiresAt,
+        allParties: contract.signature.parties.map(p => ({ role: p.role, name: p.name, signed: p.signed, signedAt: p.signedAt })),
+        summary: {
+          employeur: { denomination: emp.denomination || '', siret: emp.siret || '', adresse: `${emp.adresse_numero || ''} ${emp.adresse_voie || ''}, ${emp.adresse_code_postal || ''} ${emp.adresse_commune || ''}`.trim() },
+          apprenti: { nom: app.nom_naissance || '', prenom: app.prenom || '', dateNaissance: `${app.date_naissance_jour || ''}/${app.date_naissance_mois || ''}/${app.date_naissance_annee || ''}` },
+          contrat: {
+            dateDebut: `${ctr.date_debut_contrat_jour || ''}/${ctr.date_debut_contrat_mois || ''}/${ctr.date_debut_contrat_annee || ''}`,
+            dateFin: `${ctr.date_fin_contrat_jour || ''}/${ctr.date_fin_contrat_mois || ''}/${ctr.date_fin_contrat_annee || ''}`,
+            salaireBrut: ctr.salaire_brut_mensuel || ''
+          },
+          formation: { intitule: frm.intitule_precis || frm.diplome || '', organisme: frm.denomination_cfa || '' }
+        }
+      });
+    }
+
+    // ---------- POST /api/signature/:token (soumettre une signature) ----------
+    const signSubmitMatch = matchRoute(url, '/api/signature/:token');
+    if (method === 'POST' && signSubmitMatch) {
+      const tokenData = await getSignToken(signSubmitMatch.token);
+      if (!tokenData) return sendJSON(res, { error: 'Lien de signature invalide ou expiré' }, 404);
+
+      const contract = await getContract(tokenData.contractId);
+      if (!contract || !contract.signature) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+
+      const partyIndex = contract.signature.parties.findIndex(p => p.role === tokenData.role && p.email === tokenData.email);
+      if (partyIndex === -1) return sendJSON(res, { error: 'Partie non trouvée' }, 404);
+      if (contract.signature.parties[partyIndex].signed) return sendJSON(res, { error: 'Vous avez déjà signé ce contrat' }, 400);
+
+      const body = await parseBody(req);
+      if (!body.signatureData) return sendJSON(res, { error: 'Données de signature manquantes' }, 400);
+
+      const now = new Date().toISOString();
+      const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const signatureHash = generateSignatureHash(contract.id, tokenData.role, body.signatureData, now);
+
+      // Enregistrer la signature
+      contract.signature.parties[partyIndex].signed = true;
+      contract.signature.parties[partyIndex].signedAt = now;
+      contract.signature.parties[partyIndex].signatureData = body.signatureData;
+      contract.signature.parties[partyIndex].signatureHash = signatureHash;
+      contract.signature.parties[partyIndex].ip = ip;
+      contract.signature.parties[partyIndex].userAgent = userAgent;
+
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: 'signed', role: tokenData.role, by: tokenData.email, name: tokenData.name, date: now, ip, signatureHash });
+
+      // Vérifier si toutes les parties ont signé
+      const allSigned = contract.signature.parties.every(p => p.signed);
+      if (allSigned) {
+        contract.signature.completed = true;
+        contract.signature.completedAt = new Date().toISOString();
+        contract.status = 'signed';
+        contract.history.push({ action: 'all_signatures_completed', date: new Date().toISOString() });
+      }
+
+      await saveContract(contract);
+      await deleteSignToken(signSubmitMatch.token);
+
+      return sendJSON(res, {
+        success: true,
+        signatureHash,
+        allSigned,
+        remainingParties: contract.signature.parties.filter(p => !p.signed).map(p => ({ role: p.role, name: p.name }))
+      });
+    }
+
+    // ---------- GET /api/contracts/:id/signature (statut signature - auth CFA) ----------
+    const signStatusMatch = matchRoute(url, '/api/contracts/:id/signature');
+    if (method === 'GET' && signStatusMatch && !url.includes('init')) {
+      const authUser = requireAuth(req, res, ['cfa']);
+      if (!authUser) return;
+      const contract = await getContract(signStatusMatch.id);
+      if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
+      if (!contract.signature) return sendJSON(res, { error: 'Aucune signature initiée pour ce contrat' }, 404);
+
+      const baseUrl = getBaseUrl(req);
+      return sendJSON(res, {
+        initiatedAt: contract.signature.initiatedAt,
+        expiresAt: contract.signature.expiresAt,
+        completed: contract.signature.completed,
+        completedAt: contract.signature.completedAt || null,
+        documentHash: contract.signature.documentHash,
+        parties: contract.signature.parties.map(p => ({
+          role: p.role,
+          name: p.name,
+          email: p.email,
+          signed: p.signed,
+          signedAt: p.signedAt || null,
+          signatureHash: p.signatureHash || null,
+          url: !p.signed ? `${baseUrl}/signer.html?token=${p.token}` : null
+        }))
+      });
     }
 
     // ---------- DELETE /api/contracts/:id ----------
