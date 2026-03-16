@@ -344,6 +344,10 @@
         <div class="stat-value" id="statReady">0</div>
         <div class="stat-label">Prêts à générer</div>
       </div>
+      <div class="stat-card" style="cursor:pointer;" onclick="document.getElementById('filterStatus').value='signing';filterContracts();">
+        <div class="stat-value" id="statSigning" style="color:#8e24aa;">0</div>
+        <div class="stat-label">✍️ En signature</div>
+      </div>
       <div class="stat-card" style="cursor:pointer;" onclick="quickFilterExpiring()">
         <div class="stat-value" id="statExpiring" style="color:#e65100;">0</div>
         <div class="stat-label">⚠️ Échéance < 90j</div>
@@ -376,6 +380,8 @@
               <option value="partial">Partiel</option>
               <option value="ready">Prêt</option>
               <option value="validated">Validé</option>
+              <option value="signing">En signature</option>
+              <option value="signed">Signé</option>
               <option value="completed">Terminé</option>
               <option value="archived">Archivé</option>
               <option value="__active__">Actifs (non archivés)</option>
@@ -572,6 +578,7 @@
         document.getElementById('statPending').textContent = allContracts.filter(c => c.status === 'pending').length;
         document.getElementById('statPartial').textContent = allContracts.filter(c => c.status === 'partial').length;
         document.getElementById('statReady').textContent = allContracts.filter(c => c.status === 'ready' || c.status === 'validated').length;
+        document.getElementById('statSigning').textContent = allContracts.filter(c => c.status === 'signing' || c.status === 'signed').length;
         document.getElementById('statExpiring').textContent = allContracts.filter(c => c.lifecycleAlert && ['urgent','warning','soon'].includes(c.lifecycleAlert)).length;
         document.getElementById('statArchived').textContent = allContracts.filter(c => c.status === 'archived').length;
         document.getElementById('contractCount').textContent = allContracts.length + ' contrat(s)';
@@ -784,6 +791,8 @@
             ${c.status === 'ready' ? `<button class="btn btn-sm" style="background:#2e7d32;color:#fff;" onclick="changeStatus('${c.id}','validated')">✅ Valider</button>` : ''}
             ${['ready','validated'].includes(c.status) ? `<button class="btn btn-sm" style="background:#8e24aa;color:#fff;" onclick="openSignatureModal('${c.id}')">✍️ Signature</button>` : ''}
             ${c.status === 'signing' ? `<button class="btn btn-sm" style="background:#8e24aa;color:#fff;" onclick="viewSignatureStatus('${c.id}')">✍️ Suivi signature</button>` : ''}
+            ${c.status === 'signed' ? `<button class="btn btn-sm" style="background:#1b5e20;color:#fff;" onclick="generatePdf('${c.id}')">📄 PDF signé</button>` : ''}
+            ${c.status === 'signed' ? `<button class="btn btn-sm" style="background:#8e24aa;color:#fff;" onclick="viewSignatureStatus('${c.id}')">✍️ Voir signatures</button>` : ''}
             ${c.status === 'validated' ? `<button class="btn btn-sm" style="background:#1b5e20;color:#fff;" onclick="changeStatus('${c.id}','completed')">🏁 Finaliser</button>` : ''}
             ${['completed','validated','signed'].includes(c.status) ? `<button class="btn btn-sm" style="background:#546e7a;color:#fff;" onclick="changeStatus('${c.id}','archived')">📦 Archiver</button>` : ''}
             ${c.status === 'archived' ? `<button class="btn btn-sm" style="background:#ff9800;color:#fff;" onclick="changeStatus('${c.id}','completed')">📤 Désarchiver</button>` : ''}
