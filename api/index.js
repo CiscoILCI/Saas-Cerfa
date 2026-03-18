@@ -1063,7 +1063,8 @@ module.exports = async function handler(req, res) {
       }
 
       // Si le contrat a des signatures, ajouter une page de signatures + audit trail
-      if (contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed)) {
+      const hasSigs = contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed);
+      if (hasSigs) {
         // Fonction pour nettoyer les caracteres non-WinAnsi (pdf-lib Helvetica)
         function sanitize(str) {
           return String(str || '').replace(/[\u2013\u2014]/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/[^\x00-\xFF]/g, '');
@@ -1072,51 +1073,68 @@ module.exports = async function handler(req, res) {
         try {
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
         const signPage = pdfDoc.addPage([595.28, 841.89]); // A4
+        let currentPage = signPage;
         let y = 800;
         const leftMargin = 50;
         const pageWidth = 595.28;
+        const certVersion = 'v1.0';
+        const allSigned = contract.signature.parties.every(p => p.signed);
 
         // Titre
         signPage.drawText('CERTIFICAT DE SIGNATURE ELECTRONIQUE', { x: leftMargin, y, font: fontBold, size: 16, color: rgb(0.118, 0.227, 0.373) });
-        y -= 24;
-        signPage.drawText('Contrat d\'apprentissage - CERFA 10103-14', { x: leftMargin, y, font, size: 10, color: rgb(0.4, 0.4, 0.4) });
-        y -= 16;
-        signPage.drawText(sanitize('Identifiant du contrat : ' + contract.id), { x: leftMargin, y, font, size: 9, color: rgb(0.5, 0.5, 0.5) });
-        y -= 12;
-        signPage.drawText(sanitize('Empreinte du document (SHA-256) : ' + contract.signature.documentHash), { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
         y -= 20;
+        signPage.drawText('Contrat d\'apprentissage - CERFA 10103-14', { x: leftMargin, y, font, size: 10, color: rgb(0.4, 0.4, 0.4) });
+        signPage.drawText('Certificat ' + certVersion, { x: pageWidth - leftMargin - 80, y, font, size: 8, color: rgb(0.6, 0.6, 0.6) });
+        y -= 14;
+        signPage.drawText(sanitize('Identifiant du contrat : ' + contract.id), { x: leftMargin, y, font, size: 9, color: rgb(0.5, 0.5, 0.5) });
+        y -= 10;
+        signPage.drawText(sanitize('Empreinte du document (SHA-256) : ' + (contract.signature.documentHash || 'N/A')), { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+        y -= 10;
+        if (allSigned) {
+          signPage.drawText('DOCUMENT VERROUILLE - Toute modification est interdite apres signature', { x: leftMargin, y, font: fontBold, size: 7, color: rgb(0.7, 0.1, 0.1) });
+          y -= 10;
+        }
+        y -= 8;
 
         // Ligne de separation
         signPage.drawLine({ start: { x: leftMargin, y }, end: { x: pageWidth - leftMargin, y }, thickness: 1, color: rgb(0.8, 0.8, 0.8) });
-        y -= 20;
+        y -= 18;
 
         // Statut global
-        const allSigned = contract.signature.parties.every(p => p.signed);
         if (allSigned) {
           signPage.drawText('[OK] TOUTES LES PARTIES ONT SIGNE', { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.106, 0.369, 0.125) });
         } else {
           const signedCount = contract.signature.parties.filter(p => p.signed).length;
           signPage.drawText('SIGNATURE EN COURS (' + signedCount + '/' + contract.signature.parties.length + ')', { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.557, 0.141, 0.667) });
         }
-        y -= 30;
+        y -= 28;
 
         const roleLabels = { employeur: 'Employeur', apprenti: 'Apprenti(e)', representant_legal: 'Representant legal', cfa: 'CFA / Organisme de formation' };
 
         // Pour chaque signataire
         for (const party of contract.signature.parties) {
+          // Nouvelle page si on manque de place
+          if (y < 140) {
+            currentPage = pdfDoc.addPage([595.28, 841.89]);
+            y = 800;
+          }
+
           // Cadre
-          signPage.drawRectangle({ x: leftMargin, y: y - 80, width: pageWidth - 2 * leftMargin, height: 85, borderColor: rgb(0.85, 0.85, 0.85), borderWidth: 1, color: party.signed ? rgb(0.97, 0.99, 0.97) : rgb(1, 0.98, 0.94) });
+          const boxH = party.signed ? 95 : 60;
+          currentPage.drawRectangle({ x: leftMargin, y: y - boxH, width: pageWidth - 2 * leftMargin, height: boxH + 5, borderColor: rgb(0.85, 0.85, 0.85), borderWidth: 1, color: party.signed ? rgb(0.97, 0.99, 0.97) : rgb(1, 0.98, 0.94) });
 
           const roleLabel = roleLabels[party.role] || party.role;
-          signPage.drawText(sanitize(roleLabel), { x: leftMargin + 10, y: y - 2, font: fontBold, size: 11, color: rgb(0.118, 0.227, 0.373) });
-          signPage.drawText(sanitize(party.name), { x: leftMargin + 10, y: y - 16, font, size: 10, color: rgb(0.2, 0.2, 0.2) });
-          signPage.drawText(sanitize(party.email || ''), { x: leftMargin + 10, y: y - 30, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
+          currentPage.drawText(sanitize(roleLabel), { x: leftMargin + 10, y: y - 2, font: fontBold, size: 11, color: rgb(0.118, 0.227, 0.373) });
+          currentPage.drawText(sanitize(party.name), { x: leftMargin + 10, y: y - 16, font, size: 10, color: rgb(0.2, 0.2, 0.2) });
+          currentPage.drawText(sanitize(party.email || ''), { x: leftMargin + 10, y: y - 30, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
 
           if (party.signed) {
-            signPage.drawText(sanitize('Signe le ' + new Date(party.signedAt).toLocaleString('fr-FR')), { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.106, 0.369, 0.125) });
-            signPage.drawText(sanitize('IP: ' + (party.ip || 'N/A')), { x: leftMargin + 10, y: y - 58, font, size: 7, color: rgb(0.6, 0.6, 0.6) });
-            signPage.drawText(sanitize('Hash: ' + (party.signatureHash || 'N/A')), { x: leftMargin + 10, y: y - 70, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
+            currentPage.drawText(sanitize('Signe le ' + new Date(party.signedAt).toLocaleString('fr-FR')), { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.106, 0.369, 0.125) });
+            currentPage.drawText(sanitize('IP: ' + (party.ip || 'N/A') + '  |  User-Agent: ' + (party.userAgent || 'N/A').substring(0, 60)), { x: leftMargin + 10, y: y - 58, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
+            currentPage.drawText(sanitize('Hash signature: ' + (party.signatureHash || 'N/A')), { x: leftMargin + 10, y: y - 68, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
+            currentPage.drawText('Consentement: le signataire a explicitement accepte de signer ce document par voie electronique', { x: leftMargin + 10, y: y - 80, font: fontItalic, size: 6, color: rgb(0.4, 0.4, 0.4) });
 
             // Inserer l'image de signature si disponible
             if (party.signatureData && party.signatureData.startsWith('data:image/png;base64,')) {
@@ -1128,9 +1146,9 @@ module.exports = async function handler(req, res) {
                 const maxW = 150;
                 const maxH = 50;
                 const ratio = Math.min(maxW / sigDims.width, maxH / sigDims.height, 1);
-                signPage.drawImage(sigImage, {
+                currentPage.drawImage(sigImage, {
                   x: pageWidth - leftMargin - (sigDims.width * ratio) - 10,
-                  y: y - 70,
+                  y: y - 85,
                   width: sigDims.width * ratio,
                   height: sigDims.height * ratio
                 });
@@ -1138,36 +1156,59 @@ module.exports = async function handler(req, res) {
                 console.error('[PDF] Erreur insertion image signature:', imgErr.message);
               }
             }
+            y -= (boxH + 15);
           } else {
-            signPage.drawText('En attente de signature', { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.8, 0.5, 0.0) });
-          }
-
-          y -= 100;
-
-          // Nouvelle page si on manque de place
-          if (y < 100) {
-            const newPage = pdfDoc.addPage([595.28, 841.89]);
-            y = 800;
+            currentPage.drawText('En attente de signature', { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.8, 0.5, 0.0) });
+            y -= (boxH + 15);
           }
         }
 
         // Mentions legales en bas
-        y -= 20;
-        signPage.drawLine({ start: { x: leftMargin, y }, end: { x: pageWidth - leftMargin, y }, thickness: 0.5, color: rgb(0.85, 0.85, 0.85) });
+        if (y < 120) {
+          currentPage = pdfDoc.addPage([595.28, 841.89]);
+          y = 800;
+        }
+        y -= 10;
+        currentPage.drawLine({ start: { x: leftMargin, y }, end: { x: pageWidth - leftMargin, y }, thickness: 0.5, color: rgb(0.85, 0.85, 0.85) });
         y -= 14;
         const legalLines = [
+          'MENTIONS LEGALES',
+          '',
           'Ce certificat atteste que les signatures ci-dessus ont ete recueillies par voie electronique.',
-          'Conformement aux articles 1366 et 1367 du Code civil et au reglement europeen eIDAS (UE n 910/2014),',
-          'la signature electronique a la meme valeur probante que la signature manuscrite.',
-          sanitize('Signature initiee le ' + new Date(contract.signature.initiatedAt).toLocaleString('fr-FR') + ' par ' + contract.signature.initiatedBy),
-          sanitize('Document genere le ' + new Date().toLocaleString('fr-FR'))
+          'Chaque signataire a donne son consentement explicite avant de signer, en cochant la case',
+          '"Je donne mon consentement pour signer ce document par voie electronique".',
+          '',
+          'Conformement aux articles 1366 et 1367 du Code civil francais et au reglement europeen',
+          'eIDAS (UE n 910/2014), la signature electronique a la meme valeur probante que la signature manuscrite.',
+          '',
+          'Integrite du document : le hash SHA-256 du document a ete calcule au moment de l\'initiation',
+          'de la session de signature. Toute modification du contrat apres signature est techniquement',
+          'bloquee par le systeme.',
+          '',
+          sanitize('Signature initiee le ' + new Date(contract.signature.initiatedAt).toLocaleString('fr-FR') + ' par ' + (contract.signature.initiatedBy || 'N/A')),
+          sanitize('Document genere le ' + new Date().toLocaleString('fr-FR')),
+          'Certificat ' + certVersion + ' - Systeme de signature electronique SaaS CERFA'
         ];
         for (const line of legalLines) {
-          signPage.drawText(line, { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+          if (line === 'MENTIONS LEGALES') {
+            currentPage.drawText(line, { x: leftMargin, y, font: fontBold, size: 8, color: rgb(0.3, 0.3, 0.3) });
+          } else {
+            currentPage.drawText(line, { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+          }
           y -= 10;
         }
         } catch (certErr) {
           console.error('[PDF] Erreur generation certificat signature:', certErr.message);
+        }
+      }
+
+      // Aplatir le formulaire si le contrat est signe (rend le PDF non-editable)
+      const isSigned = contract.signature && contract.signature.parties && contract.signature.parties.every(p => p.signed);
+      if (isSigned || contract.status === 'signed' || contract.status === 'completed') {
+        try {
+          form.flatten();
+        } catch (flatErr) {
+          console.error('[PDF] Erreur flatten:', flatErr.message);
         }
       }
 
@@ -1204,6 +1245,11 @@ module.exports = async function handler(req, res) {
       const contract = await getContract(updateMatch.id);
       if (!contract || contract.cfaId !== authUser.id) return sendJSON(res, { error: 'Contrat non trouvé' }, 404);
 
+      // Verrouillage : interdire modification apres signature
+      if (['signed', 'completed'].includes(contract.status) && contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed)) {
+        return sendJSON(res, { error: 'Ce contrat a ete signe electroniquement et ne peut plus etre modifie. L\'integrite du document est protegee.' }, 403);
+      }
+
       const body = await parseBody(req);
       if (body.etudiant !== undefined) contract.etudiant = { ...contract.etudiant, ...body.etudiant };
       if (body.entreprise !== undefined) contract.entreprise = { ...contract.entreprise, ...body.entreprise };
@@ -1233,6 +1279,14 @@ module.exports = async function handler(req, res) {
       if (!body.status || !validStatuses.includes(body.status)) {
         return sendJSON(res, { error: 'Statut invalide. Valeurs: ' + validStatuses.join(', ') }, 400);
       }
+      // Verrouillage : interdire retour en arriere depuis signed
+      if (['signed'].includes(contract.status) && contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed)) {
+        const allowedFromSigned = ['completed', 'archived'];
+        if (!allowedFromSigned.includes(body.status)) {
+          return sendJSON(res, { error: 'Un contrat signe ne peut pas revenir a un statut anterieur. Seuls "completed" et "archived" sont autorises.' }, 403);
+        }
+      }
+
       const oldStatus = contract.status;
       contract.status = body.status;
       if (!contract.history) contract.history = [];
