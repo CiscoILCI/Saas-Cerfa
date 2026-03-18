@@ -1062,8 +1062,41 @@ module.exports = async function handler(req, res) {
         } catch (e) { /* champ non trouvé */ }
       }
 
-      // Si le contrat a des signatures, ajouter une page de signatures + audit trail
+      // Apposer les signatures directement sur la page 2 du CERFA
       const hasSigs = contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed);
+      if (hasSigs) {
+        // Zones de signature sur la page 2 du CERFA (coordonnees en points PDF)
+        const sigZones = {
+          employeur: { x: 30, y: 140, maxW: 150, maxH: 50 },
+          apprenti: { x: 210, y: 140, maxW: 150, maxH: 50 },
+          representant_legal: { x: 410, y: 140, maxW: 150, maxH: 50 }
+        };
+        const page2 = pdfDoc.getPage(1); // Page 2 = index 1
+
+        for (const party of contract.signature.parties) {
+          if (!party.signed || !party.signatureData) continue;
+          if (!party.signatureData.startsWith('data:image/png;base64,')) continue;
+          const zone = sigZones[party.role];
+          if (!zone) continue;
+          try {
+            const base64Data = party.signatureData.replace('data:image/png;base64,', '');
+            const sigImageBytes = Buffer.from(base64Data, 'base64');
+            const sigImage = await pdfDoc.embedPng(sigImageBytes);
+            const sigDims = sigImage.scale(1);
+            const ratio = Math.min(zone.maxW / sigDims.width, zone.maxH / sigDims.height, 1);
+            page2.drawImage(sigImage, {
+              x: zone.x,
+              y: zone.y,
+              width: sigDims.width * ratio,
+              height: sigDims.height * ratio
+            });
+          } catch (sigErr) {
+            console.error('[PDF] Erreur apposition signature ' + party.role + ':', sigErr.message);
+          }
+        }
+      }
+
+      // Ajouter page certificat de signature (audit trail)
       if (hasSigs) {
         // Fonction pour nettoyer les caracteres non-WinAnsi (pdf-lib Helvetica)
         function sanitize(str) {
