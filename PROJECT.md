@@ -107,21 +107,21 @@ Le fichier `mapping_complet_v2.json` fait correspondre les clés de données aux
 | `Case à cocher 5_2` | `apprenti.sportif_haut_niveau_non` | Sportif haut niveau Non |
 | `Case à cocher 5_3` | `apprenti.handicap_oui` | Handicap Oui |
 | `Case à cocher 5_4` | `apprenti.handicap_non` | Handicap Non |
-| `Case à cocher 5_5` | `contrat.type_contrat_initial` | Contrat initial |
-| `Case à cocher 5_6` | `contrat.type_succession` | Succession de contrats |
-| `Case à cocher 5_7` | `contrat.type_avenant` | Avenant |
-| `Case à cocher 5_8` | `contrat.travail_risque_oui` | Travail à risque Oui |
-| `Case à cocher 5_9` | `contrat.travail_risque_non` | Travail à risque Non |
-| `Case à cocher 5_10` | `formation.cfa_entreprise_oui` | CFA d'entreprise Oui |
-| `Case à cocher 5_11` | `formation.cfa_entreprise_non` | CFA d'entreprise Non |
-| `Case à cocher 5_12` | `maitre_apprentissage.atteste_criteres_eligibilite` | Attestation maître (**À VÉRIFIER**) |
-| `Case à cocher 5_13` | *Non mappée* | **À identifier** |
-| `Case à cocher 5_14` | *Non mappée* | **À identifier** |
-| `Case à cocher 6` | `formation.cfa_meme_lieu` | CFA même lieu |
-| `Case à cocher 7` | `attestation.pieces_justificatives` | Pièces justificatives |
-| `Case à cocher 8` | *Non mappée* | **À identifier** |
+| `Case à cocher 5_5` | `apprenti.equivalence_jeunes_oui` | Équivalence jeunes Oui |
+| `Case à cocher 5_6` | `apprenti.equivalence_jeunes_non` | Équivalence jeunes Non |
+| `Case à cocher 5_7` | `apprenti.extension_boe_oui` | Extension BOE Oui |
+| `Case à cocher 5_8` | `apprenti.extension_boe_non` | Extension BOE Non |
+| `Case à cocher 5_9` | `apprenti.projet_creation_entreprise_oui` | Projet création entreprise Oui |
+| `Case à cocher 5_10` | `apprenti.projet_creation_entreprise_non` | Projet création entreprise Non |
+| `Case à cocher 5_11` | `formation.cfa_entreprise_oui` | CFA d'entreprise Oui |
+| `Case à cocher 5_12` | `formation.cfa_entreprise_non` | CFA d'entreprise Non |
+| `Case à cocher 5_13` | `contrat.travail_risque_oui` | Travail sur machines dangereuses Oui |
+| `Case à cocher 5_14` | `contrat.travail_risque_non` | Travail sur machines dangereuses Non |
+| `Case à cocher 6` | `maitre_apprentissage.atteste_criteres_eligibilite` | Attestation maître d'apprentissage |
+| `Case à cocher 7` | `formation.cfa_meme_lieu` | CFA même lieu |
+| `Case à cocher 8` | `attestation.pieces_justificatives` | Pièces justificatives |
 
-> **Note** : Un PDF de test (`test_checkboxes.pdf`) a été généré pour identifier visuellement les cases `5_12`, `5_13`, `5_14` et `8`. Vérification en cours.
+> **Note** : Toutes les cases à cocher ont été identifiées et mappées dans `mapping_complet_v2.json`. Vérification terminée.
 
 ---
 
@@ -199,8 +199,8 @@ Le fichier `mapping_complet_v2.json` fait correspondre les clés de données aux
 
 ## Bugs connus / Points à vérifier
 
-- [ ] **Mapping attestation maître d'apprentissage** : la case `5_12` doit être vérifiée visuellement sur le PDF de test pour confirmer qu'elle correspond bien à "L'employeur atteste sur l'honneur..."
-- [ ] Cases `5_13`, `5_14`, `8` non mappées : identifier à quoi elles correspondent sur le CERFA
+- [x] **Mapping attestation maître d'apprentissage** : la case `6` correspond bien à "L'employeur atteste sur l'honneur..." (confirmé)
+- [x] Cases `5_13`, `5_14`, `8` identifiées : `5_13`/`5_14` = travail sur machines dangereuses Oui/Non, `8` = pièces justificatives
 
 ---
 
