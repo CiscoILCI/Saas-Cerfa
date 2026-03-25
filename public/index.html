@@ -372,35 +372,163 @@
 
         /* ===== TRUSTED BY ===== */
         .trusted {
-            padding: 40px 24px;
+            padding: 48px 0 40px;
             text-align: center;
             background: white;
             border-top: 1px solid var(--gray-100);
             border-bottom: 1px solid var(--gray-100);
+            overflow: hidden;
         }
-        .trusted p {
+        .trusted .trusted-title {
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 600;
             color: var(--text-light);
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+            padding: 0 24px;
         }
-        .trusted-logos {
+        .marquee-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        .marquee-wrapper::before,
+        .marquee-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 120px;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .marquee-wrapper::before {
+            left: 0;
+            background: linear-gradient(90deg, white 0%, transparent 100%);
+        }
+        .marquee-wrapper::after {
+            right: 0;
+            background: linear-gradient(270deg, white 0%, transparent 100%);
+        }
+        .marquee-track {
             display: flex;
+            align-items: center;
+            gap: 60px;
+            animation: marquee 35s linear infinite;
+            width: max-content;
+        }
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .logo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            opacity: 0.55;
+            transition: opacity 0.3s;
+            cursor: default;
+            padding: 8px 0;
+        }
+        .logo-item:hover {
+            opacity: 1;
+        }
+        .logo-icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            gap: 48px;
-            flex-wrap: wrap;
-            opacity: 0.5;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
         }
-        .trusted-logo {
-            font-size: 18px;
-            font-weight: 700;
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+        .logo-text .lt-name {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+        .logo-text .lt-sub {
+            font-size: 10px;
+            font-weight: 500;
             color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+        /* Text-only logo style */
+        .logo-text-only {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            opacity: 0.55;
+            transition: opacity 0.3s;
+            cursor: default;
+            padding: 8px 0;
+        }
+        .logo-text-only:hover {
+            opacity: 1;
+        }
+        .logo-text-only .lt-accent {
+            color: var(--primary);
+        }
+        .logo-text-only .lt-accent-red {
+            color: #dc2626;
+        }
+        .logo-text-only .lt-accent-teal {
+            color: #0d9488;
+        }
+        .logo-text-only .lt-accent-orange {
+            color: #ea580c;
+        }
+        .logo-text-only .lt-accent-blue {
+            color: #0284c7;
+        }
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        /* Second row - reverse */
+        .marquee-track-reverse {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 60px;
+            animation: marquee-reverse 40s linear infinite;
+            width: max-content;
+            margin-top: 24px;
+        }
+        .marquee-track-reverse:hover {
+            animation-play-state: paused;
+        }
+        @keyframes marquee-reverse {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
         }
 
         /* ===== SECTION STYLES ===== */
@@ -994,13 +1122,151 @@
 
 <!-- ===== TRUSTED BY ===== -->
 <section class="trusted">
-    <p>Ils nous font confiance</p>
-    <div class="trusted-logos">
-        <div class="trusted-logo">&#127979; CFA Paris</div>
-        <div class="trusted-logo">&#127891; École Sup.</div>
-        <div class="trusted-logo">&#128218; OPCO EP</div>
-        <div class="trusted-logo">&#127963;&#65039; Entreprises PME</div>
-        <div class="trusted-logo">&#128736;&#65039; Artisanat</div>
+    <p class="trusted-title">Ils nous font confiance</p>
+    <div class="marquee-wrapper">
+        <div class="marquee-track" id="marqueeRow1">
+            <!-- Row 1 logos - will be duplicated by JS -->
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#4F46E5;">U</div>
+                <div class="logo-text">
+                    <span class="lt-name">Université Paris 8</span>
+                    <span class="lt-sub">CFA numiA</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span class="lt-accent-red">HEAD</span>
+                <span style="font-size:10px;font-weight:500;color:#64748b;display:block;letter-spacing:0.5px;">HAUTES ÉTUDES APPLIQUÉES DU DROIT</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#ea580c;">C</div>
+                <div class="logo-text">
+                    <span class="lt-name">Campus<span style="color:#ea580c;">+</span></span>
+                    <span class="lt-sub">des carrières</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                ALBERT<span style="font-weight:400;">SCHOOL</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#0d9488;border-radius:50%;">IUT</div>
+                <div class="logo-text">
+                    <span class="lt-name">IUT Montreuil</span>
+                    <span class="lt-sub">by CFA numiA</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span style="color:#dc2626;">CBS</span><span class="logo-badge" style="background:#dc262615;color:#dc2626;">Business School</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">N</div>
+                <div class="logo-text">
+                    <span class="lt-name">N<span style="color:#8b5cf6;">O</span>VA</span>
+                    <span class="lt-sub">School of Business</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span class="lt-accent-teal">hupso</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#1e3a5f;">E</div>
+                <div class="logo-text">
+                    <span class="lt-name">ESIEA</span>
+                    <span class="lt-sub">École d'ingénieurs</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                We<span style="font-size:26px;font-weight:900;">TE<span class="lt-accent-red">A</span>CH</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">par Action CBM</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#f59e0b;border-radius:8px;">S</div>
+                <div class="logo-text">
+                    <span class="lt-name">Sup de Luxe</span>
+                    <span class="lt-sub">Paris</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span class="lt-accent-blue">CFJ</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">PARIS PANTHÉON-ASSAS</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#059669;">P</div>
+                <div class="logo-text">
+                    <span class="lt-name">POP Genius</span>
+                    <span class="lt-sub">École créative</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="marquee-wrapper">
+        <div class="marquee-track-reverse" id="marqueeRow2">
+            <!-- Row 2 logos - will be duplicated by JS -->
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#7c3aed;">I</div>
+                <div class="logo-text">
+                    <span class="lt-name">ISCE Alternance</span>
+                    <span class="lt-sub">Paris</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                stu<span style="color:#ea580c;font-size:26px;">di</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">La grande école 100% en ligne</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#dc2626;">F</div>
+                <div class="logo-text">
+                    <span class="lt-name"><span style="color:#dc2626;">F</span>INANCIA</span>
+                    <span class="lt-sub">Business School</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                Talia<span style="color:#0284c7;">.fr</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">L'école nouvelle génération</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#0284c7;">G</div>
+                <div class="logo-text">
+                    <span class="lt-name">Grenoble EM</span>
+                    <span class="lt-sub">École de Management</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span style="font-weight:400;">Cours</span> <span style="background:#1e3a5f;color:white;padding:1px 6px;border-radius:3px;font-size:16px;">Galien</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">Études de santé</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#f97316;border-radius:50%;">A</div>
+                <div class="logo-text">
+                    <span class="lt-name">ada<span style="color:#f97316;"> tech</span></span>
+                    <span class="lt-sub">School</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span class="lt-accent">EPISEN</span>
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">CFA numiA</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#334155;">T</div>
+                <div class="logo-text">
+                    <span class="lt-name">TOCCATA</span>
+                    <span class="lt-sub">Formation</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                <span style="color:#7c3aed;">&#10023;</span> OTERIA
+                <span style="font-size:9px;font-weight:500;color:#64748b;display:block;">Cyber School</span>
+            </div>
+            <div class="logo-item">
+                <div class="logo-icon-box" style="background:#0ea5e9;">W</div>
+                <div class="logo-text">
+                    <span class="lt-name">LA WAB</span>
+                    <span class="lt-sub">Le digital coopératif</span>
+                </div>
+            </div>
+            <div class="logo-text-only">
+                PIGIER <span style="color:#0284c7;">&phi;</span>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -1275,6 +1541,15 @@
 </footer>
 
 <script>
+    // Marquee: duplicate logos for infinite seamless loop
+    ['marqueeRow1', 'marqueeRow2'].forEach(id => {
+        const track = document.getElementById(id);
+        if (track) {
+            const clone = track.innerHTML;
+            track.innerHTML = clone + clone;
+        }
+    });
+
     // Navbar scroll effect
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
