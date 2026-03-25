@@ -800,29 +800,152 @@
             line-height: 1.7;
         }
 
-        /* ===== STATS ===== */
-        .stats-section {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary), #6366F1);
-            padding: 80px 24px;
+        /* ===== SOCIAL PROOF / STATS ===== */
+        .social-proof-section {
+            background: linear-gradient(135deg, #312e81 0%, var(--primary) 40%, #6366F1 70%, #818CF8 100%);
+            padding: 100px 24px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-            max-width: 1000px;
+        .social-proof-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .social-proof-section::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .sp-header {
+            margin-bottom: 56px;
+            position: relative;
+            z-index: 1;
+        }
+        .sp-header .sp-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.9);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .sp-header h2 {
+            font-size: 38px;
+            font-weight: 800;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .sp-header p {
+            font-size: 17px;
+            color: rgba(255,255,255,0.7);
+            max-width: 520px;
             margin: 0 auto;
+            line-height: 1.6;
         }
-        .stat-item .stat-value {
-            font-size: 48px;
+        .sp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 960px;
+            margin: 0 auto 48px;
+            position: relative;
+            z-index: 1;
+        }
+        .sp-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 40px 28px 36px;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .sp-card:hover {
+            background: rgba(255,255,255,0.14);
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.22);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .sp-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sp-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: white;
+            stroke-width: 1.8;
+            fill: none;
+        }
+        .sp-number {
+            font-size: 52px;
             font-weight: 900;
             color: white;
             line-height: 1;
             margin-bottom: 8px;
+            letter-spacing: -1px;
         }
-        .stat-item .stat-label {
-            font-size: 14px;
-            color: rgba(255,255,255,0.75);
+        .sp-label {
+            font-size: 15px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        /* Bottom row - smaller stats */
+        .sp-bottom {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 880px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .sp-mini {
+            padding: 24px 16px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+        .sp-mini:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .sp-mini .sp-mini-val {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 4px;
+        }
+        .sp-mini .sp-mini-lbl {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
             font-weight: 500;
         }
 
@@ -1001,7 +1124,10 @@
             .section { padding: 60px 16px; }
             .cta-box { padding: 40px 24px; }
             .cta-box h2 { font-size: 26px; }
-            .stat-item .stat-value { font-size: 36px; }
+            .sp-grid { grid-template-columns: 1fr; gap: 20px; }
+            .sp-bottom { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+            .sp-number { font-size: 40px; }
+            .sp-header h2 { font-size: 28px; }
         }
     </style>
 </head>
@@ -1457,24 +1583,65 @@
     </div>
 </section>
 
-<!-- ===== STATS ===== -->
-<section class="stats-section">
-    <div class="stats-grid fade-in">
-        <div class="stat-item">
-            <div class="stat-value">90+</div>
-            <div class="stat-label">Champs CERFA mappés</div>
+<!-- ===== SOCIAL PROOF ===== -->
+<section class="social-proof-section">
+    <div class="sp-header fade-in">
+        <div class="sp-tag">&#128200; Preuve sociale</div>
+        <h2>Ils simplifient déjà leurs contrats</h2>
+        <p>Des CFA, écoles et entreprises font confiance à CerfaSign pour gérer leurs contrats d'apprentissage.</p>
+    </div>
+    <div class="sp-grid fade-in">
+        <div class="sp-card">
+            <div class="sp-icon">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18M5 21V7l8-4v18M13 21V3l6 4v14"/>
+                    <path d="M9 9h1M9 13h1M9 17h1"/>
+                    <path d="M17 9h1M17 13h1"/>
+                </svg>
+            </div>
+            <div class="sp-number" data-target="150" data-suffix="+">0+</div>
+            <div class="sp-label">Centres de formation<br>et écoles partenaires</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">3min</div>
-            <div class="stat-label">Pour créer un contrat</div>
+        <div class="sp-card">
+            <div class="sp-icon">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </div>
+            <div class="sp-number" data-target="2500" data-suffix="+">0+</div>
+            <div class="sp-label">Entreprises utilisatrices<br>de la plateforme</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">100%</div>
-            <div class="stat-label">Dématérialisé</div>
+        <div class="sp-card">
+            <div class="sp-icon">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <path d="M9 16l2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="sp-number" data-target="8000" data-suffix="+">0+</div>
+            <div class="sp-label">Contrats d'apprentissage<br>générés et signés</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value">eIDAS</div>
-            <div class="stat-label">Signature conforme</div>
+    </div>
+    <div class="sp-bottom fade-in">
+        <div class="sp-mini">
+            <div class="sp-mini-val">90+</div>
+            <div class="sp-mini-lbl">Champs CERFA mappés automatiquement</div>
+        </div>
+        <div class="sp-mini">
+            <div class="sp-mini-val">&lt; 3 min</div>
+            <div class="sp-mini-lbl">Pour créer un contrat complet</div>
+        </div>
+        <div class="sp-mini">
+            <div class="sp-mini-val">100%</div>
+            <div class="sp-mini-lbl">Dématérialisé et sans papier</div>
+        </div>
+        <div class="sp-mini">
+            <div class="sp-mini-val">eIDAS</div>
+            <div class="sp-mini-lbl">Signature légalement conforme</div>
         </div>
     </div>
 </section>
@@ -1598,38 +1765,41 @@
         });
     });
 
-    // Counter animation for stats
-    function animateCounters() {
-        const counters = document.querySelectorAll('.stat-value');
+    // Social proof counter animation
+    function animateSocialProof() {
+        const counters = document.querySelectorAll('.sp-number[data-target]');
         counters.forEach(counter => {
             if (counter.dataset.animated) return;
-            const text = counter.textContent;
-            if (/^\d+/.test(text)) {
-                const num = parseInt(text);
-                const suffix = text.replace(/\d+/, '');
-                let current = 0;
-                const increment = Math.ceil(num / 40);
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= num) {
-                        current = num;
-                        clearInterval(timer);
-                    }
-                    counter.textContent = current + suffix;
-                }, 30);
-                counter.dataset.animated = 'true';
-            }
+            const target = parseInt(counter.dataset.target);
+            const suffix = counter.dataset.suffix || '';
+            const duration = 2000;
+            const steps = 60;
+            const stepTime = duration / steps;
+            let current = 0;
+            const easeOut = t => 1 - Math.pow(1 - t, 3);
+            let step = 0;
+            const timer = setInterval(() => {
+                step++;
+                const progress = easeOut(step / steps);
+                current = Math.round(target * progress);
+                counter.textContent = current.toLocaleString('fr-FR') + suffix;
+                if (step >= steps) {
+                    counter.textContent = target.toLocaleString('fr-FR') + suffix;
+                    clearInterval(timer);
+                }
+            }, stepTime);
+            counter.dataset.animated = 'true';
         });
     }
 
-    const statsObserver = new IntersectionObserver((entries) => {
+    const spObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) animateCounters();
+            if (entry.isIntersecting) animateSocialProof();
         });
-    }, { threshold: 0.5 });
+    }, { threshold: 0.3 });
 
-    const statsSection = document.querySelector('.stats-section');
-    if (statsSection) statsObserver.observe(statsSection);
+    const spSection = document.querySelector('.social-proof-section');
+    if (spSection) spObserver.observe(spSection);
 </script>
 
 </body>
