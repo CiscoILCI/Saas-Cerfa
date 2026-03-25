@@ -3,21 +3,1359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CERFA Apprentissage - Redirection</title>
+    <title>CerfaSign — Simplifiez vos contrats d'apprentissage</title>
+    <meta name="description" content="Plateforme SaaS de gestion et signature électronique des contrats d'apprentissage CERFA. Remplissage automatique, signature en ligne, conformité légale.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
-        // Redirection intelligente selon l'état d'authentification
-        const token = localStorage.getItem('auth_token');
-        const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        if (token && user.role === 'cfa') {
-            window.location.replace('/dashboard-cfa.html');
-        } else if (token && user.role === 'entreprise') {
-            window.location.replace('/dashboard-entreprise.html');
-        } else {
-            window.location.replace('/login.html');
-        }
+        // Redirection automatique si déjà connecté
+        (function() {
+            const token = localStorage.getItem('auth_token');
+            const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            if (token && user.role === 'cfa') { window.location.replace('/dashboard-cfa.html'); return; }
+            if (token && user.role === 'entreprise') { window.location.replace('/dashboard-entreprise.html'); return; }
+        })();
     </script>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --primary-dark: #3730A3;
+            --secondary: #0EA5E9;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --bg: #FAFBFF;
+            --text: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-800: #1E293B;
+            --radius: 16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+            --shadow-xl: 0 20px 60px rgba(79,70,229,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: all 0.3s ease;
+        }
+        .navbar.scrolled {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+            padding: 10px 0;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 22px;
+            color: var(--primary);
+        }
+        .nav-logo .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 900;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-cta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+        }
+        .btn-ghost:hover { background: var(--gray-100); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(79,70,229,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(79,70,229,0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-lg {
+            padding: 16px 36px;
+            font-size: 17px;
+            border-radius: 14px;
+        }
+
+        /* ===== HAMBURGER ===== */
+        .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+        .hamburger span { display: block; width: 24px; height: 2px; background: var(--text); margin: 6px 0; transition: all 0.3s; border-radius: 2px; }
+
+        /* ===== HERO ===== */
+        .hero {
+            padding: 160px 24px 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(14,165,233,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .hero-content { max-width: 560px; }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(79,70,229,0.08);
+            border: 1px solid rgba(79,70,229,0.15);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 24px;
+        }
+        .hero-badge .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1.5px;
+        }
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 18px;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 36px;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .hero-mockup {
+            width: 100%;
+            max-width: 520px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            background: white;
+            border: 1px solid var(--gray-200);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+            transition: transform 0.5s ease;
+        }
+        .hero-mockup:hover {
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+        }
+        .mockup-bar {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .mockup-dot.red { background: #FF5F57; }
+        .mockup-dot.yellow { background: #FEBC2E; }
+        .mockup-dot.green { background: #28C840; }
+        .mockup-body {
+            padding: 24px;
+            min-height: 320px;
+            background: linear-gradient(180deg, #FAFBFF, #F1F5F9);
+        }
+        .mockup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .mockup-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--primary-dark);
+        }
+        .mockup-badge {
+            padding: 4px 10px;
+            background: rgba(16,185,129,0.1);
+            color: var(--success);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .mockup-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+        .mockup-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .mockup-row-info { flex: 1; }
+        .mockup-row-name { font-size: 13px; font-weight: 600; color: var(--text); }
+        .mockup-row-sub { font-size: 11px; color: var(--text-light); }
+        .mockup-status {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .status-signed { background: rgba(16,185,129,0.1); color: #059669; }
+        .status-pending { background: rgba(245,158,11,0.1); color: #D97706; }
+        .status-progress { background: rgba(79,70,229,0.1); color: var(--primary); }
+
+        /* Floating elements */
+        .float-card {
+            position: absolute;
+            background: white;
+            border-radius: 14px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: float 6s ease-in-out infinite;
+            z-index: 2;
+        }
+        .float-card.fc1 { top: 40px; right: -20px; animation-delay: 0s; }
+        .float-card.fc2 { bottom: 60px; left: -30px; animation-delay: 2s; }
+        .float-card .fc-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .float-card .fc-text { font-size: 12px; font-weight: 600; color: var(--text); }
+        .float-card .fc-sub { font-size: 10px; color: var(--text-light); }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* ===== TRUSTED BY ===== */
+        .trusted {
+            padding: 40px 24px;
+            text-align: center;
+            background: white;
+            border-top: 1px solid var(--gray-100);
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .trusted p {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+        .trusted-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            opacity: 0.5;
+        }
+        .trusted-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== SECTION STYLES ===== */
+        .section {
+            padding: 100px 24px;
+        }
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-header {
+            text-align: center;
+            max-width: 640px;
+            margin: 0 auto 60px;
+        }
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(79,70,229,0.08);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+        .section-header p {
+            font-size: 17px;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* ===== FEATURES GRID ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 36px 28px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-section { background: white; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            position: relative;
+        }
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 48px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
+            z-index: 0;
+        }
+        .step-card {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .step-number {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 30px rgba(79,70,229,0.25);
+            transition: transform 0.3s;
+        }
+        .step-card:hover .step-number {
+            transform: scale(1.08);
+        }
+        .step-number .num {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .step-number .step-icon {
+            font-size: 22px;
+            margin-top: 2px;
+        }
+        .step-card h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .step-card p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* ===== SHOWCASE ===== */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        .showcase-grid.reverse { direction: rtl; }
+        .showcase-grid.reverse > * { direction: ltr; }
+        .showcase-image {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            background: white;
+            border: 1px solid var(--gray-200);
+        }
+        .showcase-img-inner {
+            padding: 24px;
+            background: linear-gradient(135deg, #f0f4ff, #e8f4f8);
+            min-height: 340px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+        .showcase-img-inner .big-icon {
+            font-size: 64px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+        .showcase-img-inner .img-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+        .showcase-content h3 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .showcase-content p {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .check-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .check-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--text);
+        }
+        .check-list li .check-icon {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border-radius: 50%;
+            background: rgba(16,185,129,0.1);
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* ===== DIFFERENCE ===== */
+        .diff-section { background: linear-gradient(180deg, #FAFBFF, white); }
+        .diff-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+        }
+        .diff-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px 28px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            transition: all 0.4s;
+        }
+        .diff-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: transparent;
+        }
+        .diff-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+        .diff-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .diff-card p {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* ===== STATS ===== */
+        .stats-section {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary), #6366F1);
+            padding: 80px 24px;
+            text-align: center;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .stat-item .stat-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: white;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-item .stat-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+        }
+
+        /* ===== CTA ===== */
+        .cta-section {
+            padding: 100px 24px;
+            text-align: center;
+        }
+        .cta-box {
+            max-width: 720px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 60px 40px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
+        }
+        .cta-box h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            letter-spacing: -0.5px;
+        }
+        .cta-box p {
+            font-size: 17px;
+            color: var(--text-light);
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        .cta-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--gray-800);
+            color: white;
+            padding: 60px 24px 30px;
+        }
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .footer-brand .footer-logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .footer-brand .footer-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .footer-brand p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+            max-width: 280px;
+        }
+        .footer h4 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.9);
+        }
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .footer-links a {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: white; }
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .footer-bottom p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+        }
+        .footer-badges {
+            display: flex;
+            gap: 12px;
+        }
+        .footer-badge {
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 600;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 40px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps-grid::before { display: none; }
+            .diff-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hero-container { grid-template-columns: 1fr; text-align: center; }
+            .hero-content { max-width: 100%; }
+            .hero-actions { justify-content: center; }
+            .hero-visual { order: -1; }
+            .hero-mockup { transform: none; max-width: 400px; }
+            .float-card { display: none; }
+            .hero h1 { font-size: 34px; }
+            .section-header h2 { font-size: 30px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .showcase-grid, .showcase-grid.reverse { grid-template-columns: 1fr; direction: ltr; }
+            .diff-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .hamburger { display: block; }
+            .nav-cta .btn-ghost { display: none; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 28px; }
+            .hero { padding: 130px 16px 60px; }
+            .section { padding: 60px 16px; }
+            .cta-box { padding: 40px 24px; }
+            .cta-box h2 { font-size: 26px; }
+            .stat-item .stat-value { font-size: 36px; }
+        }
+    </style>
 </head>
 <body>
-    <p style="text-align:center;margin-top:40px;font-family:sans-serif;color:#666;">Redirection en cours...</p>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="#" class="nav-logo">
+            <div class="logo-icon">C</div>
+            CerfaSign
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#fonctionnalites">Fonctionnalites</a>
+            <a href="#comment-ca-marche">Comment ca marche</a>
+            <a href="#securite">Securite</a>
+        </div>
+        <div class="nav-cta">
+            <a href="/login.html" class="btn btn-ghost">Se connecter</a>
+            <a href="/login.html" class="btn btn-primary">Commencer gratuitement</a>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="hero-container">
+        <div class="hero-content fade-in">
+            <div class="hero-badge">
+                <span class="pulse"></span>
+                Plateforme 100% francaise
+            </div>
+            <h1>
+                Gerez vos contrats<br>
+                d'apprentissage en<br>
+                <span class="gradient-text">toute simplicite</span>
+            </h1>
+            <p>
+                Remplissage automatique du CERFA, signature electronique integree,
+                suivi en temps reel. La solution tout-en-un pour les CFA et les entreprises.
+            </p>
+            <div class="hero-actions">
+                <a href="/login.html" class="btn btn-primary btn-lg">
+                    Demarrer maintenant
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="#comment-ca-marche" class="btn btn-outline btn-lg">Decouvrir</a>
+            </div>
+        </div>
+        <div class="hero-visual fade-in">
+            <div class="hero-mockup">
+                <div class="mockup-bar">
+                    <span class="mockup-dot red"></span>
+                    <span class="mockup-dot yellow"></span>
+                    <span class="mockup-dot green"></span>
+                    <span style="flex:1;text-align:center;font-size:11px;color:var(--text-light);font-weight:500;">Dashboard CFA</span>
+                </div>
+                <div class="mockup-body">
+                    <div class="mockup-header">
+                        <span class="mockup-title">Contrats d'apprentissage</span>
+                        <span class="mockup-badge">3 nouveaux</span>
+                    </div>
+                    <div class="mockup-row">
+                        <div class="mockup-avatar" style="background:rgba(79,70,229,0.1);">&#127891;</div>
+                        <div class="mockup-row-info">
+                            <div class="mockup-row-name">Marie Martin</div>
+                            <div class="mockup-row-sub">BTS Commerce International</div>
+                        </div>
+                        <span class="mockup-status status-signed">Signe</span>
+                    </div>
+                    <div class="mockup-row">
+                        <div class="mockup-avatar" style="background:rgba(245,158,11,0.1);">&#128188;</div>
+                        <div class="mockup-row-info">
+                            <div class="mockup-row-name">Lucas Dupont</div>
+                            <div class="mockup-row-sub">Licence Pro Marketing</div>
+                        </div>
+                        <span class="mockup-status status-progress">En signature</span>
+                    </div>
+                    <div class="mockup-row">
+                        <div class="mockup-avatar" style="background:rgba(14,165,233,0.1);">&#128187;</div>
+                        <div class="mockup-row-info">
+                            <div class="mockup-row-name">Camille Bernard</div>
+                            <div class="mockup-row-sub">Master Informatique</div>
+                        </div>
+                        <span class="mockup-status status-pending">En attente</span>
+                    </div>
+                    <div class="mockup-row">
+                        <div class="mockup-avatar" style="background:rgba(16,185,129,0.1);">&#128640;</div>
+                        <div class="mockup-row-info">
+                            <div class="mockup-row-name">Thomas Moreau</div>
+                            <div class="mockup-row-sub">BUT GEA</div>
+                        </div>
+                        <span class="mockup-status status-signed">Signe</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Floating cards -->
+            <div class="float-card fc1">
+                <div class="fc-icon" style="background:rgba(16,185,129,0.1);">&#9989;</div>
+                <div>
+                    <div class="fc-text">Contrat signe !</div>
+                    <div class="fc-sub">Il y a 3 minutes</div>
+                </div>
+            </div>
+            <div class="float-card fc2">
+                <div class="fc-icon" style="background:rgba(79,70,229,0.1);">&#128196;</div>
+                <div>
+                    <div class="fc-text">CERFA genere</div>
+                    <div class="fc-sub">Pret a envoyer</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TRUSTED BY ===== -->
+<section class="trusted">
+    <p>Ils nous font confiance</p>
+    <div class="trusted-logos">
+        <div class="trusted-logo">&#127979; CFA Paris</div>
+        <div class="trusted-logo">&#127891; Ecole Sup.</div>
+        <div class="trusted-logo">&#128218; OPCO EP</div>
+        <div class="trusted-logo">&#127963;&#65039; Entreprises PME</div>
+        <div class="trusted-logo">&#128736;&#65039; Artisanat</div>
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="section" id="fonctionnalites">
+    <div class="section-container">
+        <div class="section-header fade-in">
+            <span class="section-tag">&#10024; Fonctionnalites</span>
+            <h2>Tout ce dont vous avez besoin pour gerer vos contrats</h2>
+            <p>Une plateforme complete qui automatise chaque etape, du remplissage du CERFA a la signature electronique.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(79,70,229,0.1);">&#128196;</div>
+                <h3>Remplissage automatique</h3>
+                <p>Le formulaire CERFA 10103-14 est pre-rempli automatiquement. Fini les erreurs de saisie et les formulaires incomplets.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(16,185,129,0.1);">&#9997;&#65039;</div>
+                <h3>Signature electronique</h3>
+                <p>Signature conforme eIDAS integree. Chaque partie signe en ligne avec un lien unique et securise. Valeur juridique garantie.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(14,165,233,0.1);">&#128101;</div>
+                <h3>Multi-parties</h3>
+                <p>CFA, entreprise, apprenti et representant legal : chacun accede a son propre espace pour remplir sa partie du contrat.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(245,158,11,0.1);">&#128202;</div>
+                <h3>Suivi en temps reel</h3>
+                <p>Dashboard complet avec statuts, progression, filtres avances et historique detaille de chaque contrat.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(239,68,68,0.1);">&#128274;</div>
+                <h3>Securite et conformite</h3>
+                <p>Hash SHA-256, verrouillage PDF apres signature, certificat d'audit integre. Conforme Code civil et reglement eIDAS.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon" style="background:rgba(168,85,247,0.1);">&#128203;</div>
+                <h3>Export et archivage</h3>
+                <p>Exportez vos contrats en CSV, generez les PDF CERFA officiels, archivez et restaurez en un clic.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section how-section" id="comment-ca-marche">
+    <div class="section-container">
+        <div class="section-header fade-in">
+            <span class="section-tag">&#128640; Comment ca marche</span>
+            <h2>4 etapes pour un contrat signe</h2>
+            <p>Un processus simple et fluide, du premier clic a la signature finale.</p>
+        </div>
+        <div class="steps-grid fade-in">
+            <div class="step-card">
+                <div class="step-number">
+                    <span class="num">1</span>
+                    <span class="step-icon">&#128221;</span>
+                </div>
+                <h4>Creez le contrat</h4>
+                <p>Le CFA cree un nouveau contrat et invite l'entreprise et l'apprenti via des liens securises.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number" style="background:linear-gradient(135deg, #0EA5E9, #0284C7);">
+                    <span class="num">2</span>
+                    <span class="step-icon">&#128221;</span>
+                </div>
+                <h4>Chacun remplit sa partie</h4>
+                <p>L'entreprise et l'apprenti completent leurs informations via un formulaire intuitif et guide.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number" style="background:linear-gradient(135deg, #8B5CF6, #7C3AED);">
+                    <span class="num">3</span>
+                    <span class="step-icon">&#9997;&#65039;</span>
+                </div>
+                <h4>Signature electronique</h4>
+                <p>Chaque signataire recoit un lien unique pour signer electroniquement le contrat.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number" style="background:linear-gradient(135deg, #10B981, #059669);">
+                    <span class="num">4</span>
+                    <span class="step-icon">&#128196;</span>
+                </div>
+                <h4>PDF CERFA genere</h4>
+                <p>Le CERFA est genere automatiquement avec toutes les signatures et un certificat d'audit.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SHOWCASE 1: CERFA ===== -->
+<section class="section">
+    <div class="section-container">
+        <div class="showcase-grid fade-in">
+            <div class="showcase-image">
+                <div class="showcase-img-inner">
+                    <div class="big-icon">&#128196;</div>
+                    <div class="img-label">CERFA 10103-14<br>Rempli automatiquement</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                        <span style="padding:4px 10px;background:rgba(79,70,229,0.1);border-radius:6px;font-size:11px;font-weight:600;color:var(--primary);">Employeur</span>
+                        <span style="padding:4px 10px;background:rgba(16,185,129,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#059669;">Apprenti</span>
+                        <span style="padding:4px 10px;background:rgba(245,158,11,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#D97706;">Formation</span>
+                        <span style="padding:4px 10px;background:rgba(168,85,247,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#7C3AED;">Maitre</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-content">
+                <h3>Generation automatique du CERFA officiel</h3>
+                <p>Plus besoin de remplir manuellement le formulaire CERFA. Notre systeme mappe automatiquement les donnees saisies vers les champs officiels du document.</p>
+                <ul class="check-list">
+                    <li><span class="check-icon">&#10003;</span>CERFA 10103-14 officiel a jour</li>
+                    <li><span class="check-icon">&#10003;</span>Mapping automatique de + de 90 champs</li>
+                    <li><span class="check-icon">&#10003;</span>Verification de coherence des donnees</li>
+                    <li><span class="check-icon">&#10003;</span>PDF pret a envoyer a l'OPCO</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SHOWCASE 2: SIGNATURE ===== -->
+<section class="section" style="background:white;">
+    <div class="section-container">
+        <div class="showcase-grid reverse fade-in">
+            <div class="showcase-image">
+                <div class="showcase-img-inner" style="background:linear-gradient(135deg, #f0f9ff, #ecfdf5);">
+                    <div class="big-icon">&#9997;&#65039;</div>
+                    <div class="img-label">Signature electronique<br>conforme eIDAS</div>
+                    <div style="display:flex;flex-direction:column;gap:6px;width:80%;max-width:260px;">
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                            <span style="font-size:16px;">&#127891;</span>
+                            <span style="font-size:12px;font-weight:600;flex:1;">Employeur</span>
+                            <span style="font-size:11px;color:#059669;font-weight:600;">&#9989; Signe</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                            <span style="font-size:16px;">&#128188;</span>
+                            <span style="font-size:12px;font-weight:600;flex:1;">Apprenti</span>
+                            <span style="font-size:11px;color:#059669;font-weight:600;">&#9989; Signe</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                            <span style="font-size:16px;">&#128100;</span>
+                            <span style="font-size:12px;font-weight:600;flex:1;">Representant legal</span>
+                            <span style="font-size:11px;color:#D97706;font-weight:600;">&#9203; En attente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-content">
+                <h3>Signature electronique integree et securisee</h3>
+                <p>Envoyez des liens de signature a chaque partie prenante. Dessinez ou tapez votre signature directement dans le navigateur. Valeur juridique garantie.</p>
+                <ul class="check-list">
+                    <li><span class="check-icon">&#10003;</span>Conforme eIDAS et Code civil (art. 1366-1367)</li>
+                    <li><span class="check-icon">&#10003;</span>Dessin ou saisie de signature</li>
+                    <li><span class="check-icon">&#10003;</span>Signatures apposees sur le CERFA officiel</li>
+                    <li><span class="check-icon">&#10003;</span>Certificat d'audit avec hash SHA-256, IP et horodatage</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== DIFFERENCE ===== -->
+<section class="section diff-section" id="securite">
+    <div class="section-container">
+        <div class="section-header fade-in">
+            <span class="section-tag">&#128170; Ce qui fait notre difference</span>
+            <h2>Securite, simplicite, conformite</h2>
+            <p>Concu pour les CFA et les entreprises qui veulent gagner du temps sans sacrifier la conformite.</p>
+        </div>
+        <div class="diff-grid fade-in">
+            <div class="diff-card">
+                <div class="diff-icon" style="background:rgba(79,70,229,0.08);">&#9889;</div>
+                <h3>Rapidite</h3>
+                <p>Creez un contrat complet en quelques minutes. Le remplissage collaboratif permet a chaque partie de saisir ses donnees en parallele.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-icon" style="background:rgba(16,185,129,0.08);">&#128274;</div>
+                <h3>Securite</h3>
+                <p>Donnees chiffrees, PDF verrouille apres signature, certificat d'integrite SHA-256. Vos contrats sont proteges et inviolables.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-icon" style="background:rgba(14,165,233,0.08);">&#128588;</div>
+                <h3>Simplicite</h3>
+                <p>Interface intuitive, pas de formation requise. Chaque utilisateur est guide etape par etape dans son parcours.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="stats-section">
+    <div class="stats-grid fade-in">
+        <div class="stat-item">
+            <div class="stat-value">90+</div>
+            <div class="stat-label">Champs CERFA mappes</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">3min</div>
+            <div class="stat-label">Pour creer un contrat</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">100%</div>
+            <div class="stat-label">Dematerialise</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">eIDAS</div>
+            <div class="stat-label">Signature conforme</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+    <div class="cta-box fade-in">
+        <h2>Pret a simplifier vos contrats ?</h2>
+        <p>Rejoignez les CFA et entreprises qui font confiance a CerfaSign pour gerer et signer leurs contrats d'apprentissage en toute serenite.</p>
+        <div class="cta-actions">
+            <a href="/login.html" class="btn btn-primary btn-lg">
+                Creer un compte gratuitement
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+            <a href="#fonctionnalites" class="btn btn-outline btn-lg">Voir les fonctionnalites</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="logo-icon">C</div>
+                    CerfaSign
+                </div>
+                <p>Plateforme de gestion et signature electronique des contrats d'apprentissage. Simplifiez vos demarches administratives.</p>
+            </div>
+            <div>
+                <h4>Produit</h4>
+                <ul class="footer-links">
+                    <li><a href="#fonctionnalites">Fonctionnalites</a></li>
+                    <li><a href="#comment-ca-marche">Comment ca marche</a></li>
+                    <li><a href="#securite">Securite</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Acces</h4>
+                <ul class="footer-links">
+                    <li><a href="/login.html">Connexion CFA</a></li>
+                    <li><a href="/login.html">Connexion Entreprise</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Mentions legales</a></li>
+                    <li><a href="#">Politique de confidentialite</a></li>
+                    <li><a href="#">CGU</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 CerfaSign. Tous droits reserves.</p>
+            <div class="footer-badges">
+                <span class="footer-badge">&#127467;&#127479; Heberge en France</span>
+                <span class="footer-badge">&#128274; Conforme RGPD</span>
+                <span class="footer-badge">&#9997;&#65039; eIDAS</span>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Fade-in animation on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Hamburger menu toggle
+    function toggleMenu() {
+        const links = document.getElementById('navLinks');
+        if (links.style.display === 'flex') {
+            links.style.display = 'none';
+        } else {
+            links.style.display = 'flex';
+            links.style.flexDirection = 'column';
+            links.style.position = 'absolute';
+            links.style.top = '70px';
+            links.style.left = '0';
+            links.style.right = '0';
+            links.style.background = 'white';
+            links.style.padding = '20px';
+            links.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+            links.style.borderRadius = '0 0 16px 16px';
+            links.style.gap = '16px';
+        }
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Counter animation for stats
+    function animateCounters() {
+        const counters = document.querySelectorAll('.stat-value');
+        counters.forEach(counter => {
+            if (counter.dataset.animated) return;
+            const text = counter.textContent;
+            if (/^\d+/.test(text)) {
+                const num = parseInt(text);
+                const suffix = text.replace(/\d+/, '');
+                let current = 0;
+                const increment = Math.ceil(num / 40);
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= num) {
+                        current = num;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = current + suffix;
+                }, 30);
+                counter.dataset.animated = 'true';
+            }
+        });
+    }
+
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) animateCounters();
+        });
+    }, { threshold: 0.5 });
+
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) statsObserver.observe(statsSection);
+</script>
+
 </body>
 </html>
