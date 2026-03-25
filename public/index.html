@@ -719,6 +719,107 @@
             color: var(--primary-dark);
             text-align: center;
         }
+        /* CERFA Mockup */
+        .showcase-mockup-cerfa {
+            position: relative;
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cerfa-mockup-window {
+            width: 100%;
+            max-width: 380px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(79,70,229,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+        .cerfa-mock-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .cerfa-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .cerfa-mock-body {
+            padding: 16px;
+        }
+        .cerfa-mock-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .cerfa-mock-section {
+            margin-bottom: 14px;
+        }
+        .cerfa-mock-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .cerfa-mock-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+        .cerfa-field-label {
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 500;
+            min-width: 80px;
+        }
+        .cerfa-field-val {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .cerfa-float-notif {
+            position: absolute;
+            bottom: 12px;
+            left: -10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-100);
+            animation: float 4s ease-in-out infinite;
+        }
+        .cerfa-float-calc {
+            position: absolute;
+            top: 8px;
+            right: -10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-100);
+            animation: float 5s ease-in-out infinite 1s;
+        }
         .showcase-content h3 {
             font-size: 32px;
             font-weight: 800;
@@ -920,9 +1021,9 @@
         /* Bottom row - smaller stats */
         .sp-bottom {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 24px;
-            max-width: 880px;
+            max-width: 480px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -1489,24 +1590,69 @@
     <div class="section-container">
         <div class="showcase-grid fade-in">
             <div class="showcase-image">
-                <div class="showcase-img-inner">
-                    <div class="big-icon">&#128196;</div>
-                    <div class="img-label">CERFA 10103-14<br>Rempli automatiquement</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-                        <span style="padding:4px 10px;background:rgba(79,70,229,0.1);border-radius:6px;font-size:11px;font-weight:600;color:var(--primary);">Employeur</span>
-                        <span style="padding:4px 10px;background:rgba(16,185,129,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#059669;">Apprenti</span>
-                        <span style="padding:4px 10px;background:rgba(245,158,11,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#D97706;">Formation</span>
-                        <span style="padding:4px 10px;background:rgba(168,85,247,0.1);border-radius:6px;font-size:11px;font-weight:600;color:#7C3AED;">Maître</span>
+                <div class="showcase-mockup-cerfa">
+                    <div class="cerfa-mockup-window">
+                        <div class="cerfa-mock-bar">
+                            <span class="cerfa-dot" style="background:#FF5F57;"></span>
+                            <span class="cerfa-dot" style="background:#FFBD2E;"></span>
+                            <span class="cerfa-dot" style="background:#28C840;"></span>
+                            <span style="flex:1;text-align:center;font-size:11px;color:var(--text-light);font-weight:500;">Formulaire CERFA</span>
+                        </div>
+                        <div class="cerfa-mock-body">
+                            <div class="cerfa-mock-header">
+                                <span style="font-size:13px;font-weight:700;color:var(--primary);">CERFA 10103*14</span>
+                                <span style="font-size:10px;padding:3px 8px;background:#dcfce7;color:#166534;border-radius:50px;font-weight:600;">Rempli automatiquement</span>
+                            </div>
+                            <div class="cerfa-mock-section">
+                                <div class="cerfa-mock-label">Employeur</div>
+                                <div class="cerfa-mock-field"><span class="cerfa-field-label">SIRET</span><span class="cerfa-field-val">123 456 789 00012</span></div>
+                                <div class="cerfa-mock-field"><span class="cerfa-field-label">Dénomination</span><span class="cerfa-field-val">Entreprise Martin SAS</span></div>
+                            </div>
+                            <div class="cerfa-mock-section">
+                                <div class="cerfa-mock-label" style="color:#059669;">Apprenti</div>
+                                <div class="cerfa-mock-field"><span class="cerfa-field-label">Nom</span><span class="cerfa-field-val">Dupont Marie</span></div>
+                                <div class="cerfa-mock-field"><span class="cerfa-field-label">Date naissance</span><span class="cerfa-field-val">15/03/2004</span></div>
+                            </div>
+                            <div class="cerfa-mock-section">
+                                <div class="cerfa-mock-label" style="color:#D97706;">Rémunération</div>
+                                <div class="cerfa-mock-field">
+                                    <span class="cerfa-field-label">Salaire brut</span>
+                                    <span class="cerfa-field-val" style="color:#059669;font-weight:700;">1 045,63 €</span>
+                                    <span style="font-size:9px;color:var(--primary);background:rgba(79,70,229,0.08);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:4px;">Calculé auto</span>
+                                </div>
+                                <div class="cerfa-mock-field">
+                                    <span class="cerfa-field-label">% SMIC</span>
+                                    <span class="cerfa-field-val" style="color:#059669;font-weight:700;">57%</span>
+                                    <span style="font-size:9px;color:var(--primary);background:rgba(79,70,229,0.08);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:4px;">Calculé auto</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Floating notification -->
+                    <div class="cerfa-float-notif">
+                        <div style="width:28px;height:28px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">&#9989;</div>
+                        <div>
+                            <div style="font-size:12px;font-weight:700;color:var(--text);">PDF CERFA généré</div>
+                            <div style="font-size:10px;color:var(--text-light);">Prêt à envoyer à l'OPCO</div>
+                        </div>
+                    </div>
+                    <!-- Calculator badge -->
+                    <div class="cerfa-float-calc">
+                        <div style="width:28px;height:28px;border-radius:8px;background:rgba(79,70,229,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;">&#128178;</div>
+                        <div>
+                            <div style="font-size:12px;font-weight:700;color:var(--text);">Calculateur intégré</div>
+                            <div style="font-size:10px;color:var(--text-light);">Salaires calculés automatiquement</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="showcase-content">
-                <h3>Génération automatique du CERFA officiel</h3>
-                <p>Plus besoin de remplir manuellement le formulaire CERFA. Notre système mappe automatiquement les données saisies vers les champs officiels du document.</p>
+                <h3>Votre CERFA rempli en quelques clics</h3>
+                <p>Fini les formulaires fastidieux ! Saisissez vos informations et le CERFA officiel se génère automatiquement. Notre calculateur intégré s'occupe des salaires et pourcentages SMIC selon l'âge et l'année du contrat.</p>
                 <ul class="check-list">
-                    <li><span class="check-icon">&#10003;</span>CERFA 10103-14 officiel à jour</li>
-                    <li><span class="check-icon">&#10003;</span>Mapping automatique de + de 90 champs</li>
-                    <li><span class="check-icon">&#10003;</span>Vérification de cohérence des données</li>
+                    <li><span class="check-icon">&#10003;</span>CERFA 10103-14 officiel toujours à jour</li>
+                    <li><span class="check-icon">&#10003;</span>Calculateur de salaire intégré (% SMIC, brut, net)</li>
+                    <li><span class="check-icon">&#10003;</span>Vérification automatique de cohérence</li>
                     <li><span class="check-icon">&#10003;</span>PDF prêt à envoyer à l'OPCO</li>
                 </ul>
             </div>
@@ -1586,7 +1732,6 @@
 <!-- ===== SOCIAL PROOF ===== -->
 <section class="social-proof-section">
     <div class="sp-header fade-in">
-        <div class="sp-tag">&#128200; Preuve sociale</div>
         <h2>Ils simplifient déjà leurs contrats</h2>
         <p>Des CFA, écoles et entreprises font confiance à CerfaSign pour gérer leurs contrats d'apprentissage.</p>
     </div>
@@ -1627,14 +1772,6 @@
         </div>
     </div>
     <div class="sp-bottom fade-in">
-        <div class="sp-mini">
-            <div class="sp-mini-val">90+</div>
-            <div class="sp-mini-lbl">Champs CERFA mappés automatiquement</div>
-        </div>
-        <div class="sp-mini">
-            <div class="sp-mini-val">&lt; 3 min</div>
-            <div class="sp-mini-lbl">Pour créer un contrat complet</div>
-        </div>
         <div class="sp-mini">
             <div class="sp-mini-val">100%</div>
             <div class="sp-mini-lbl">Dématérialisé et sans papier</div>
