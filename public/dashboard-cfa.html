@@ -598,6 +598,21 @@
       navigator.clipboard.writeText(text).then(() => showToast('Lien copié !'));
     }
 
+    function sendMailTo(email, type, link, name) {
+      const isEtudiant = type === 'etudiant';
+      const typeLabel = isEtudiant ? 'étudiant (apprenti)' : 'entreprise';
+      const subject = encodeURIComponent(`Formulaire ${typeLabel} à compléter — Contrat d'apprentissage`);
+      const body = encodeURIComponent(
+        `Bonjour${name ? ' ' + name : ''},\n\n` +
+        `Vous êtes invité(e) à compléter le formulaire ${typeLabel} pour votre contrat d'apprentissage.\n\n` +
+        `Cliquez sur le lien ci-dessous pour accéder au formulaire :\n${link}\n\n` +
+        `Ce lien est personnel et sécurisé.\n\n` +
+        `Cordialement,\nCerfaSign`
+      );
+      const mailto = `mailto:${email || ''}?subject=${subject}&body=${body}`;
+      window.open(mailto, '_blank');
+    }
+
     let allContracts = [];
     let currentSortCol = 'creation';
     let currentSortDir = 'desc';
@@ -884,8 +899,16 @@
           <td><span class="status-badge ${statusClass}">${label}</span></td>
           <td>${remplissageHtml}</td>
           <td style="white-space:nowrap;">
-            <span class="link-copy" onclick="copyToClipboard('${c.liens.etudiant}')" title="Copier lien étudiant">📋 Étudiant</span><br>
-            <span class="link-copy" onclick="copyToClipboard('${c.liens.entreprise}')" title="Copier lien entreprise">📋 Entreprise</span>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
+              <span style="font-size:12px;min-width:65px;">📋 Étudiant</span>
+              <button class="btn btn-sm" style="background:#e0e7ff;color:#4F46E5;padding:3px 7px;font-size:10px;" onclick="copyToClipboard('${c.liens.etudiant}')" title="Copier le lien">📋</button>
+              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.apprentiEmail || ''}','etudiant','${c.liens.etudiant}','${(c.apprentiPrenom || '').replace(/'/g, "\\'")}')">✉️</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span style="font-size:12px;min-width:65px;">🏢 Entreprise</span>
+              <button class="btn btn-sm" style="background:#e0e7ff;color:#4F46E5;padding:3px 7px;font-size:10px;" onclick="copyToClipboard('${c.liens.entreprise}')" title="Copier le lien">📋</button>
+              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.entrepriseEmail || ''}','entreprise','${c.liens.entreprise}','${(c.entrepriseDenom || '').replace(/'/g, "\\'")}')">✉️</button>
+            </div>
           </td>
           <td style="white-space:nowrap;">
             <button class="btn btn-sm" style="background:#1565c0;color:#fff;" onclick="window.location.href='/edit-contrat.html?id=${c.id}'">👁️ Voir</button>

@@ -738,6 +738,8 @@ module.exports = async function handler(req, res) {
           apprentiPrenom: app.prenom || '',
           entrepriseDenom: emp.denomination || '',
           entrepriseCommune: emp.adresse_commune || '',
+          apprentiEmail: app.courriel || '',
+          entrepriseEmail: emp.courriel || c.entrepriseEmail || '',
           formationIntitule: form.intitule_precis || form.diplome || '',
           typeContrat: typeContratLabels[ctr.type_contrat] || '',
           typeContratCode: ctr.type_contrat || '',
