@@ -902,12 +902,14 @@
             <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
               <span style="font-size:12px;min-width:65px;">📋 Étudiant</span>
               <button class="btn btn-sm" style="background:#e0e7ff;color:#4F46E5;padding:3px 7px;font-size:10px;" onclick="copyToClipboard('${c.liens.etudiant}')" title="Copier le lien">📋</button>
-              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.apprentiEmail || ''}','etudiant','${c.liens.etudiant}','${(c.apprentiPrenom || '').replace(/'/g, "\\'")}')">✉️</button>
+              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.apprentiEmail || ''}','etudiant','${c.liens.etudiant}','${(c.apprentiPrenom || '').replace(/'/g, "\\'")}')"
+              title="Envoyer le lien par email">✉️</button>
             </div>
             <div style="display:flex;align-items:center;gap:4px;">
               <span style="font-size:12px;min-width:65px;">🏢 Entreprise</span>
               <button class="btn btn-sm" style="background:#e0e7ff;color:#4F46E5;padding:3px 7px;font-size:10px;" onclick="copyToClipboard('${c.liens.entreprise}')" title="Copier le lien">📋</button>
-              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.entrepriseEmail || ''}','entreprise','${c.liens.entreprise}','${(c.entrepriseDenom || '').replace(/'/g, "\\'")}')">✉️</button>
+              <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;padding:3px 7px;font-size:10px;" onclick="sendMailTo('${c.entrepriseEmail || ''}','entreprise','${c.liens.entreprise}','${(c.entrepriseDenom || '').replace(/'/g, "\\'")}')"
+              title="Envoyer le lien par email">✉️</button>
             </div>
           </td>
           <td style="white-space:nowrap;">
