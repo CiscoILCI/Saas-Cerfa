@@ -118,6 +118,13 @@
                                 <label><input type="radio" name="employeur.type" value="public"> Public</label>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label>Adhésion au régime d'assurance chômage</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui, l'employeur adhère</label>
+                            </div>
+                            <span class="help">Employeur public non industriel/commercial qui choisit d'adhérer</span>
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -131,7 +138,7 @@
                             <div class="siret-lookup-msg" id="siretLookupMsg"></div>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row triple">
                         <div class="form-group">
                             <label>N°</label>
                             <input type="text" name="employeur.adresse_numero">
@@ -140,8 +147,6 @@
                             <label>Voie *</label>
                             <input type="text" name="employeur.adresse_voie" required>
                         </div>
-                    </div>
-                    <div class="form-row full">
                         <div class="form-group">
                             <label>Complément d'adresse</label>
                             <input type="text" name="employeur.adresse_complement">
@@ -219,18 +224,11 @@
                             <span class="help">Nombre total de salariés de l'entreprise (tous établissements confondus)</span>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row full">
                         <div class="form-group">
                             <label>Code IDCC de la convention collective</label>
                             <input type="text" name="employeur.code_idcc" placeholder="Ex: 1486" maxlength="4">
                             <span class="help">4 chiffres - Trouvez votre code sur <a href="https://quel-est-mon-opco.francecompetences.fr/" target="_blank">France Compétences</a>. Si pas de convention: 9999. Si en cours de négociation: 9998</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Adhésion au régime d'assurance chômage</label>
-                            <div class="checkbox-group">
-                                <label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui, l'employeur adhère au régime d'assurance chômage</label>
-                            </div>
-                            <span class="help">Employeur public non industriel/commercial qui choisit d'adhérer</span>
                         </div>
                     </div>
                     </div>
@@ -357,8 +355,6 @@
                             </div>
                             <span class="help">Uniquement si apprenti mineur</span>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
                             <label>Caisse de retraite complémentaire</label>
                             <input type="text" name="contrat.caisse_retraite_complementaire" placeholder="Ex: AGIRC-ARRCO">
@@ -751,13 +747,11 @@
                                 <input type="email" name="maitre_apprentissage.courriel">
                             </div>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row triple">
                             <div class="form-group">
                                 <label>Emploi occupé *</label>
                                 <input type="text" name="maitre_apprentissage.emploi_occupe" placeholder="Ex: Directeur technique" required>
                             </div>
-                        </div>
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Diplôme ou titre le plus élevé obtenu *</label>
                                 <input type="text" name="maitre_apprentissage.diplome_le_plus_eleve" placeholder="Ex: Master Informatique" required>
@@ -805,13 +799,11 @@
                                 <input type="email" name="maitre_apprentissage_2.courriel">
                             </div>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row triple">
                             <div class="form-group">
                                 <label>Emploi occupé</label>
                                 <input type="text" name="maitre_apprentissage_2.emploi_occupe">
                             </div>
-                        </div>
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Diplôme ou titre le plus élevé obtenu</label>
                                 <input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve">

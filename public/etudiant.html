@@ -179,7 +179,7 @@
                 <div class="form-section">
                     <h2 onclick="toggleSection(this)">Adresse</h2>
                     <div class="section-body">
-                    <div class="form-row">
+                    <div class="form-row triple">
                         <div class="form-group">
                             <label>N°</label>
                             <input type="text" name="apprenti.adresse_numero" placeholder="Ex: 12">
@@ -188,8 +188,6 @@
                             <label>Voie *</label>
                             <input type="text" name="apprenti.adresse_voie" placeholder="Ex: Rue de la Paix" required>
                         </div>
-                    </div>
-                    <div class="form-row full">
                         <div class="form-group">
                             <label>Complément d'adresse</label>
                             <input type="text" name="apprenti.adresse_complement" placeholder="Bâtiment, étage, etc.">
@@ -335,7 +333,7 @@
                             <input type="text" name="apprenti.intitule_dernier_diplome" placeholder="Ex: BAC PRO Commerce">
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row triple">
                         <div class="form-group">
                             <label>Dernière classe suivie *</label>
                             <select name="apprenti.derniere_classe" required>
@@ -363,10 +361,8 @@
                             </select>
                             <span class="help">Résultat de la dernière année de formation suivie</span>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
-                            <label>Reconnaissance travailleur handicapé ?</label>
+                            <label>Travailleur handicapé ?</label>
                             <div class="checkbox-group">
                                 <label><input type="radio" name="apprenti.handicap" value="oui"> Oui</label>
                                 <label><input type="radio" name="apprenti.handicap" value="non" checked> Non</label>
@@ -402,14 +398,18 @@
                     <div class="info-box">
                         <p>⚠️ À remplir car l'apprenti(e) est mineur(e) à la date de signature du contrat.</p>
                     </div>
-                    <div class="form-row full">
+                    <div class="form-row">
                         <div class="form-group">
                             <label>Nom de naissance et prénom</label>
                             <input type="text" name="representant_legal.nom_prenom" placeholder="Ex: DUPONT Marie">
                             <span class="help">Nom et prénom du représentant légal</span>
                         </div>
+                        <div class="form-group">
+                            <label>Courriel</label>
+                            <input type="email" name="representant_legal.courriel">
+                        </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row triple">
                         <div class="form-group">
                             <label>N°</label>
                             <input type="text" name="representant_legal.adresse_numero">
@@ -418,8 +418,6 @@
                             <label>Voie</label>
                             <input type="text" name="representant_legal.adresse_voie">
                         </div>
-                    </div>
-                    <div class="form-row full">
                         <div class="form-group">
                             <label>Complément d'adresse</label>
                             <input type="text" name="representant_legal.adresse_complement">
@@ -433,12 +431,6 @@
                         <div class="form-group">
                             <label>Commune</label>
                             <input type="text" name="representant_legal.adresse_commune">
-                        </div>
-                    </div>
-                    <div class="form-row full">
-                        <div class="form-group">
-                            <label>Courriel</label>
-                            <input type="email" name="representant_legal.courriel">
                         </div>
                     </div>
                     </div>
