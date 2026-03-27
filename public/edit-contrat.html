@@ -150,40 +150,34 @@
                 <div class="form-group"><label>Voie</label><input type="text" name="apprenti.adresse_voie"></div>
                 <div class="form-group"><label>Complément</label><input type="text" name="apprenti.adresse_complement"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row" style="grid-template-columns:1fr 2fr 1fr 2fr;">
                 <div class="form-group"><label>Code postal</label><input type="text" name="apprenti.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="apprenti.adresse_commune"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Téléphone</label><input type="tel" name="apprenti.telephone"></div>
                 <div class="form-group"><label>Courriel</label><input type="email" name="apprenti.courriel"></div>
             </div>
             <h3>Situation</h3>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Situation avant contrat</label><select name="apprenti.situation_avant_contrat"><option value="">--</option><option value="1">1 - Scolaire</option><option value="2">2 - Prépa apprentissage</option><option value="3">3 - Étudiant</option><option value="4">4 - Contrat d'apprentissage</option><option value="5">5 - Contrat de professionnalisation</option><option value="6">6 - Contrat aidé</option><option value="7">7 - Formation CFA avant contrat</option><option value="8">8 - Formation CFA sans contrat (rupture)</option><option value="9">9 - Stagiaire formation pro</option><option value="10">10 - Salarié</option><option value="11">11 - Demandeur d'emploi</option><option value="12">12 - Inactif</option></select></div>
                 <div class="form-group"><label>Dernier diplôme préparé</label><select name="apprenti.dernier_diplome"><option value="">--</option><option value="13">13 - Aucun</option><option value="25">25 - DNB</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Diplôme le plus élevé obtenu</label><select name="apprenti.diplome_le_plus_eleve"><option value="">--</option><option value="13">13 - Aucun</option><option value="25">25 - DNB</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
-                <div class="form-group"><label>Intitulé du dernier diplôme</label><input type="text" name="apprenti.intitule_dernier_diplome"></div>
             </div>
-            <div class="form-row triple">
+            <div class="form-row" style="grid-template-columns:2fr 2fr 1fr 1fr;">
+                <div class="form-group"><label>Intitulé du dernier diplôme</label><input type="text" name="apprenti.intitule_dernier_diplome"></div>
                 <div class="form-group"><label>Dernière classe suivie</label><select name="apprenti.derniere_classe"><option value="">--</option><option value="01">01 - Diplôme obtenu</option><option value="11">11 - 1ère année validée</option><option value="12">12 - 1ère année non validée</option><option value="21">21 - 2ème année validée</option><option value="22">22 - 2ème année non validée</option><option value="31">31 - 3ème année validée</option><option value="32">32 - 3ème année non validée</option><option value="40">40 - Collège achevé</option></select></div>
                 <div class="form-group"><label>Handicap</label><div class="checkbox-group"><label><input type="radio" name="apprenti.handicap" value="oui"> Oui</label><label><input type="radio" name="apprenti.handicap" value="non"> Non</label></div></div>
-                <div class="form-group"><label>Sportif de haut niveau</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sportif_haut_niveau" value="oui"> Oui</label><label><input type="radio" name="apprenti.sportif_haut_niveau" value="non"> Non</label></div></div>
+                <div class="form-group"><label>Sportif haut niveau</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sportif_haut_niveau" value="oui"> Oui</label><label><input type="radio" name="apprenti.sportif_haut_niveau" value="non"> Non</label></div></div>
             </div>
             <h3>Représentant légal (si mineur)</h3>
-            <div class="form-row">
+            <div class="form-row" style="grid-template-columns:2fr 1fr 2fr;">
                 <div class="form-group"><label>Nom et prénom</label><input type="text" name="representant_legal.nom_prenom"></div>
+                <div class="form-group"><label>Code postal</label><input type="text" name="representant_legal.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Courriel</label><input type="email" name="representant_legal.courriel"></div>
             </div>
-            <div class="form-row triple">
+            <div class="form-row" style="grid-template-columns:80px 1fr 1fr 1fr;">
                 <div class="form-group"><label>N°</label><input type="text" name="representant_legal.adresse_numero"></div>
                 <div class="form-group"><label>Voie</label><input type="text" name="representant_legal.adresse_voie"></div>
                 <div class="form-group"><label>Complément</label><input type="text" name="representant_legal.adresse_complement"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Code postal</label><input type="text" name="representant_legal.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="representant_legal.adresse_commune"></div>
             </div>
             </div>
@@ -211,11 +205,9 @@
                 <div class="form-group"><label>Voie</label><input type="text" name="employeur.adresse_voie"></div>
                 <div class="form-group"><label>Complément</label><input type="text" name="employeur.adresse_complement"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row" style="grid-template-columns:1fr 2fr 1fr 2fr;">
                 <div class="form-group"><label>Code postal</label><input type="text" name="employeur.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="employeur.adresse_commune"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Téléphone</label><input type="tel" name="employeur.telephone"></div>
                 <div class="form-group"><label>Courriel</label><input type="email" name="employeur.courriel"></div>
             </div>
@@ -235,11 +227,9 @@
         <div class="form-card" id="sec-contrat">
             <h2 onclick="toggleCard(this)">📄 Le Contrat</h2>
             <div class="card-body">
-            <div class="form-row">
+            <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr;">
                 <div class="form-group"><label>Mode contractuel</label><select name="contrat.mode_contractuel"><option value="1">1 - Durée limitée</option><option value="2">2 - CDI</option><option value="3">3 - Travail temporaire</option><option value="4">4 - Saisonnier 2 employeurs</option></select></div>
                 <div class="form-group"><label>Type contrat/avenant</label><select name="contrat.type_contrat"><option value="11">11 - Premier contrat</option><option value="21">21 - Nouveau, nouvel employeur</option><option value="22">22 - Nouveau, même employeur</option><option value="23">23 - Nouveau, diplôme différent</option><option value="31">31 - Avenant: modif juridique</option><option value="35">35 - Avenant: modif diplôme</option><option value="36">36 - Avenant: autres</option></select></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Type de dérogation</label><select name="contrat.type_derogation"><option value="">Aucune</option><option value="11">11 - Âge < 16</option><option value="12">12 - Âge > 29</option><option value="21">21 - Réduction durée</option><option value="22">22 - Allongement durée</option><option value="50">50 - Cumul dérogations</option></select></div>
                 <div class="form-group"><label>N° contrat précédent</label><input type="text" name="contrat.numero_contrat_precedent"></div>
             </div>
@@ -248,12 +238,10 @@
                 <div class="form-group"><label>Date début en entreprise</label><div class="date-group"><input type="text" name="contrat.date_debut_contrat_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_debut_contrat_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_debut_contrat_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>Date début formation employeur</label><div class="date-group"><input type="text" name="contrat.date_debut_formation_employeur_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_debut_formation_employeur_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_debut_formation_employeur_annee" placeholder="AAAA" maxlength="4"></div></div>
             </div>
-            <div class="form-row">
+            <div class="form-row" style="grid-template-columns:1fr 1fr 80px 50px;">
                 <div class="form-group"><label>Date effet avenant</label><div class="date-group"><input type="text" name="contrat.date_effet_avenant_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_effet_avenant_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_effet_avenant_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>Date fin contrat</label><div class="date-group"><input type="text" name="contrat.date_fin_contrat_jour" placeholder="JJ" maxlength="2"><input type="text" name="contrat.date_fin_contrat_mois" placeholder="MM" maxlength="2"><input type="text" name="contrat.date_fin_contrat_annee" placeholder="AAAA" maxlength="4"></div></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Durée hebdo (heures) <span class="info-tooltip">i<span class="tooltip-text"><strong>Durée légale : 35h/semaine</strong><br>Le temps de formation en CFA est inclus dans ces heures.<br><br><strong>Apprenti majeur :</strong> soumis à la durée de travail de l'entreprise. Heures supplémentaires possibles.<br><br><strong>Apprenti mineur :</strong> max 35h/semaine et 8h/jour. Dérogation jusqu'à 40h dans le BTP/paysager.</span></span></label><input type="number" name="contrat.duree_hebdomadaire_heures" value="35"></div>
+                <div class="form-group"><label>Durée hebdo <span class="info-tooltip">i<span class="tooltip-text"><strong>Durée légale : 35h/semaine</strong><br>Le temps de formation en CFA est inclus dans ces heures.<br><br><strong>Apprenti majeur :</strong> soumis à la durée de travail de l'entreprise. Heures supplémentaires possibles.<br><br><strong>Apprenti mineur :</strong> max 35h/semaine et 8h/jour. Dérogation jusqu'à 40h dans le BTP/paysager.</span></span></label><input type="number" name="contrat.duree_hebdomadaire_heures" value="35"></div>
                 <div class="form-group"><label>Minutes</label><input type="number" name="contrat.duree_hebdomadaire_minutes" value="0" max="59"></div>
             </div>
             <div class="form-row triple">

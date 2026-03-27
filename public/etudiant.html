@@ -187,7 +187,7 @@
                             <input type="text" name="apprenti.adresse_complement" placeholder="Bâtiment, étage, etc.">
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="grid-template-columns:1fr 2fr 1fr 2fr;">
                         <div class="form-group">
                             <label>Code postal *</label>
                             <input type="text" name="apprenti.adresse_code_postal" maxlength="5" required>
@@ -196,8 +196,6 @@
                             <label>Commune *</label>
                             <input type="text" name="apprenti.adresse_commune" required>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
                             <label>Téléphone</label>
                             <input type="tel" name="apprenti.telephone" placeholder="06 12 34 56 78">
@@ -392,18 +390,21 @@
                     <div class="info-box">
                         <p>⚠️ À remplir car l'apprenti(e) est mineur(e) à la date de signature du contrat.</p>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="grid-template-columns:2fr 1fr 2fr;">
                         <div class="form-group">
-                            <label>Nom de naissance et prénom</label>
+                            <label>Nom et prénom</label>
                             <input type="text" name="representant_legal.nom_prenom" placeholder="Ex: DUPONT Marie">
-                            <span class="help">Nom et prénom du représentant légal</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Code postal</label>
+                            <input type="text" name="representant_legal.adresse_code_postal" maxlength="5">
                         </div>
                         <div class="form-group">
                             <label>Courriel</label>
                             <input type="email" name="representant_legal.courriel">
                         </div>
                     </div>
-                    <div class="form-row triple">
+                    <div class="form-row" style="grid-template-columns:80px 1fr 1fr 1fr;">
                         <div class="form-group">
                             <label>N°</label>
                             <input type="text" name="representant_legal.adresse_numero">
@@ -413,14 +414,8 @@
                             <input type="text" name="representant_legal.adresse_voie">
                         </div>
                         <div class="form-group">
-                            <label>Complément d'adresse</label>
+                            <label>Complément</label>
                             <input type="text" name="representant_legal.adresse_complement">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code postal</label>
-                            <input type="text" name="representant_legal.adresse_code_postal" maxlength="5">
                         </div>
                         <div class="form-group">
                             <label>Commune</label>

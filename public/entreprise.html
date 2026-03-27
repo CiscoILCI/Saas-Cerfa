@@ -152,7 +152,7 @@
                             <input type="text" name="employeur.adresse_complement">
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="grid-template-columns:1fr 2fr 1fr 2fr;">
                         <div class="form-group">
                             <label>Code postal *</label>
                             <input type="text" name="employeur.adresse_code_postal" maxlength="5" required>
@@ -161,8 +161,6 @@
                             <label>Commune *</label>
                             <input type="text" name="employeur.adresse_commune" required>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
                             <label>Téléphone</label>
                             <input type="tel" name="employeur.telephone">
@@ -212,23 +210,21 @@
                             <span class="help">Si situation particulière de l'employeur</span>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row triple">
                         <div class="form-group">
                             <label>Code APE/NAF *</label>
                             <input type="text" name="employeur.code_ape" placeholder="Ex: 6201Z" required>
-                            <span class="help">Nomenclature d'activités française (version 2008) - Code de l'activité principale de l'établissement</span>
+                            <span class="help">Code activité principale</span>
                         </div>
                         <div class="form-group">
-                            <label>Effectif total de l'entreprise *</label>
+                            <label>Effectif entreprise *</label>
                             <input type="number" name="employeur.effectif_entreprise" required>
-                            <span class="help">Nombre total de salariés de l'entreprise (tous établissements confondus)</span>
+                            <span class="help">Tous établissements confondus</span>
                         </div>
-                    </div>
-                    <div class="form-row full">
                         <div class="form-group">
-                            <label>Code IDCC de la convention collective</label>
+                            <label>Code IDCC convention</label>
                             <input type="text" name="employeur.code_idcc" placeholder="Ex: 1486" maxlength="4">
-                            <span class="help">4 chiffres - Trouvez votre code sur <a href="https://quel-est-mon-opco.francecompetences.fr/" target="_blank">France Compétences</a>. Si pas de convention: 9999. Si en cours de négociation: 9998</span>
+                            <span class="help">4 chiffres — <a href="https://quel-est-mon-opco.francecompetences.fr/" target="_blank">France Compétences</a></span>
                         </div>
                     </div>
                     </div>
@@ -336,27 +332,24 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="grid-template-columns:1fr 60px 1fr 1fr;">
                         <div class="form-group">
-                            <label>Durée hebdomadaire (heures) * <span class="info-tooltip">i<span class="tooltip-text"><strong>Durée légale : 35h/semaine</strong><br>La durée légale du travail est de 35 heures par semaine (art. L3121-27 du Code du travail). Le temps de formation en CFA est inclus dans ces heures.<br><br><strong>Apprenti majeur :</strong> soumis à la durée de travail applicable dans l'entreprise. Des heures supplémentaires sont possibles.<br><br><strong>Apprenti mineur :</strong> limité à 35h/semaine et 8h/jour maximum. Dérogation possible jusqu'à 40h/semaine dans le BTP et l'aménagement paysager.<br><br>Indiquez la durée convenue dans le contrat (minimum 35h sauf temps partiel autorisé).</span></span></label>
+                            <label>Durée hebdo (h) * <span class="info-tooltip">i<span class="tooltip-text"><strong>Durée légale : 35h/semaine</strong><br>Le temps de formation en CFA est inclus.<br><strong>Majeur :</strong> durée de l'entreprise. <strong>Mineur :</strong> max 35h/semaine.</span></span></label>
                             <input type="number" name="contrat.duree_hebdomadaire_heures" value="35" required>
                         </div>
                         <div class="form-group">
-                            <label>Minutes</label>
+                            <label>Min.</label>
                             <input type="number" name="contrat.duree_hebdomadaire_minutes" value="0" max="59">
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
-                            <label>Travail sur machines dangereuses ?</label>
+                            <label>Machines dangereuses ?</label>
                             <div class="checkbox-group">
                                 <label><input type="radio" name="contrat.travail_risque" value="oui"> Oui</label>
                                 <label><input type="radio" name="contrat.travail_risque" value="non" checked> Non</label>
                             </div>
-                            <span class="help">Uniquement si apprenti mineur</span>
                         </div>
                         <div class="form-group">
-                            <label>Caisse de retraite complémentaire</label>
+                            <label>Caisse retraite complémentaire</label>
                             <input type="text" name="contrat.caisse_retraite_complementaire" placeholder="Ex: AGIRC-ARRCO">
                         </div>
                     </div>
