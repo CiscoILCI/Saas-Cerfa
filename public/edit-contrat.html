@@ -128,23 +128,19 @@
         <div class="form-card open" id="sec-apprenti">
             <h2 onclick="toggleCard(this)">🎓 L'Apprenti(e)</h2>
             <div class="card-body">
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Nom de naissance *</label><input type="text" name="apprenti.nom_naissance"></div>
                 <div class="form-group"><label>Nom d'usage</label><input type="text" name="apprenti.nom_usage"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Prénom *</label><input type="text" name="apprenti.prenom"></div>
-                <div class="form-group"><label>Sexe *</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sexe" value="homme"> Homme</label><label><input type="radio" name="apprenti.sexe" value="femme"> Femme</label></div></div>
             </div>
-            <div class="form-row">
+            <div class="form-row triple">
+                <div class="form-group"><label>Sexe *</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sexe" value="homme"> Homme</label><label><input type="radio" name="apprenti.sexe" value="femme"> Femme</label></div></div>
                 <div class="form-group"><label>Date de naissance *</label><div class="date-group"><input type="text" name="apprenti.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="apprenti.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="apprenti.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>N° Sécurité Sociale (NIR)</label><input type="text" name="apprenti.nir" placeholder="1 23 45 67 890 123 45"></div>
             </div>
-            <div class="form-row">
-                <div class="form-group"><label>Département de naissance</label><input type="text" name="apprenti.departement_naissance" maxlength="3"></div>
+            <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+                <div class="form-group"><label>Département naissance</label><input type="text" name="apprenti.departement_naissance" maxlength="3"></div>
                 <div class="form-group"><label>Commune de naissance</label><input type="text" name="apprenti.commune_naissance"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Nationalité</label><select name="apprenti.nationalite"><option value="1">1 - Française</option><option value="2">2 - UE</option><option value="3">3 - Étranger hors UE</option></select></div>
                 <div class="form-group"><label>Régime social</label><select name="apprenti.regime_social"><option value="1">1 - MSA</option><option value="2">2 - Régime général</option></select></div>
             </div>
