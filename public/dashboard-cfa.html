@@ -157,6 +157,39 @@
       letter-spacing: 0.5px;
       border-bottom: 1px solid #eee;
     }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: 22px;
+      transition: color 0.2s;
+    }
+    th.sortable:hover {
+      color: #4F46E5;
+    }
+    th.sortable::after {
+      content: '⇅';
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      opacity: 0.4;
+    }
+    th.sortable.sort-asc::after {
+      content: '▲';
+      opacity: 1;
+      color: #4F46E5;
+    }
+    th.sortable.sort-desc::after {
+      content: '▼';
+      opacity: 1;
+      color: #4F46E5;
+    }
+    th.sortable.sort-asc,
+    th.sortable.sort-desc {
+      color: #4F46E5;
+    }
     td {
       padding: 14px 16px;
       font-size: 14px;
@@ -566,6 +599,61 @@
     }
 
     let allContracts = [];
+    let currentSortCol = 'creation';
+    let currentSortDir = 'desc';
+
+    const STATUS_ORDER = { pending: 0, partial: 1, ready: 2, validated: 3, signing: 4, signed: 5, completed: 6, archived: 7 };
+
+    function sortContracts(contracts, col, dir) {
+      const asc = dir === 'asc' ? 1 : -1;
+      return [...contracts].sort((a, b) => {
+        let va, vb;
+        switch (col) {
+          case 'id':
+            va = a.id || ''; vb = b.id || '';
+            return va.localeCompare(vb) * asc;
+          case 'creation':
+            va = new Date(a.createdAt || 0); vb = new Date(b.createdAt || 0);
+            return (va - vb) * asc;
+          case 'fin':
+            va = a.dateFin ? new Date(a.dateFin) : new Date('9999-12-31');
+            vb = b.dateFin ? new Date(b.dateFin) : new Date('9999-12-31');
+            return (va - vb) * asc;
+          case 'type':
+            va = (a.typeContrat || '').toLowerCase(); vb = (b.typeContrat || '').toLowerCase();
+            return va.localeCompare(vb) * asc;
+          case 'apprenti':
+            va = `${a.apprentiPrenom || ''} ${a.apprentiNom || ''}`.trim().toLowerCase();
+            vb = `${b.apprentiPrenom || ''} ${b.apprentiNom || ''}`.trim().toLowerCase();
+            return va.localeCompare(vb) * asc;
+          case 'entreprise':
+            va = (a.entrepriseDenom || '').toLowerCase(); vb = (b.entrepriseDenom || '').toLowerCase();
+            return va.localeCompare(vb) * asc;
+          case 'formation':
+            va = (a.formationIntitule || '').toLowerCase(); vb = (b.formationIntitule || '').toLowerCase();
+            return va.localeCompare(vb) * asc;
+          case 'statut':
+            va = STATUS_ORDER[a.status] ?? 99; vb = STATUS_ORDER[b.status] ?? 99;
+            return (va - vb) * asc;
+          case 'remplissage':
+            va = (a.etudiantComplete ? 1 : 0) + (a.entrepriseComplete ? 1 : 0);
+            vb = (b.etudiantComplete ? 1 : 0) + (b.entrepriseComplete ? 1 : 0);
+            return (va - vb) * asc;
+          default:
+            return 0;
+        }
+      });
+    }
+
+    function handleSort(col) {
+      if (currentSortCol === col) {
+        currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortCol = col;
+        currentSortDir = col === 'creation' || col === 'fin' ? 'desc' : 'asc';
+      }
+      filterContracts();
+    }
 
     async function loadContracts() {
       try {
@@ -732,14 +820,28 @@
 
       const statusLabels = { pending: 'En attente', partial: 'Partiel', ready: 'Prêt', validated: 'Validé', signing: 'En signature', signed: 'Signé', completed: 'Terminé', archived: 'Archivé' };
       const alertLabels = { urgent: '🔴 < 30j', warning: '🟠 < 60j', soon: '🟡 < 90j' };
-      let html = `<table><thead><tr>
-        <th>ID</th><th>Création</th><th>Fin contrat</th><th>Type</th>
-        <th>Apprenti</th><th>Entreprise</th><th>Formation</th>
-        <th>Statut</th><th>Remplissage</th><th>Liens</th><th>Actions</th>
-      </tr></thead><tbody>`;
-      contracts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const cols = [
+        { key: 'id', label: 'ID' },
+        { key: 'creation', label: 'Création' },
+        { key: 'fin', label: 'Fin contrat' },
+        { key: 'type', label: 'Type' },
+        { key: 'apprenti', label: 'Apprenti' },
+        { key: 'entreprise', label: 'Entreprise' },
+        { key: 'formation', label: 'Formation' },
+        { key: 'statut', label: 'Statut' },
+        { key: 'remplissage', label: 'Remplissage' },
+        { key: null, label: 'Liens' },
+        { key: null, label: 'Actions' }
+      ];
+      const thHtml = cols.map(c => {
+        if (!c.key) return `<th>${c.label}</th>`;
+        const cls = 'sortable' + (currentSortCol === c.key ? (currentSortDir === 'asc' ? ' sort-asc' : ' sort-desc') : '');
+        return `<th class="${cls}" onclick="handleSort('${c.key}')">${c.label}</th>`;
+      }).join('');
+      let html = `<table><thead><tr>${thHtml}</tr></thead><tbody>`;
+      const sorted = sortContracts(contracts, currentSortCol, currentSortDir);
 
-      for (const c of contracts) {
+      for (const c of sorted) {
         const d = new Date(c.createdAt);
         const date = d.toLocaleDateString('fr-FR');
         const statusClass = 'status-' + c.status;
