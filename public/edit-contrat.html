@@ -149,11 +149,11 @@
                 <div class="form-group"><label>Régime social</label><select name="apprenti.regime_social"><option value="1">1 - MSA</option><option value="2">2 - Régime général</option></select></div>
             </div>
             <h3>Adresse de l'apprenti</h3>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>N°</label><input type="text" name="apprenti.adresse_numero"></div>
                 <div class="form-group"><label>Voie</label><input type="text" name="apprenti.adresse_voie"></div>
+                <div class="form-group"><label>Complément</label><input type="text" name="apprenti.adresse_complement"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="apprenti.adresse_complement"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>Code postal</label><input type="text" name="apprenti.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="apprenti.adresse_commune"></div>
@@ -171,25 +171,25 @@
                 <div class="form-group"><label>Diplôme le plus élevé obtenu</label><select name="apprenti.diplome_le_plus_eleve"><option value="">--</option><option value="13">13 - Aucun</option><option value="25">25 - DNB</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
                 <div class="form-group"><label>Intitulé du dernier diplôme</label><input type="text" name="apprenti.intitule_dernier_diplome"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Dernière classe suivie</label><select name="apprenti.derniere_classe"><option value="">--</option><option value="01">01 - Diplôme obtenu</option><option value="11">11 - 1ère année validée</option><option value="12">12 - 1ère année non validée</option><option value="21">21 - 2ème année validée</option><option value="22">22 - 2ème année non validée</option><option value="31">31 - 3ème année validée</option><option value="32">32 - 3ème année non validée</option><option value="40">40 - Collège achevé</option></select></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Handicap</label><div class="checkbox-group"><label><input type="radio" name="apprenti.handicap" value="oui"> Oui</label><label><input type="radio" name="apprenti.handicap" value="non"> Non</label></div></div>
                 <div class="form-group"><label>Sportif de haut niveau</label><div class="checkbox-group"><label><input type="radio" name="apprenti.sportif_haut_niveau" value="oui"> Oui</label><label><input type="radio" name="apprenti.sportif_haut_niveau" value="non"> Non</label></div></div>
             </div>
             <h3>Représentant légal (si mineur)</h3>
-            <div class="form-row full"><div class="form-group"><label>Nom et prénom</label><input type="text" name="representant_legal.nom_prenom"></div></div>
             <div class="form-row">
+                <div class="form-group"><label>Nom et prénom</label><input type="text" name="representant_legal.nom_prenom"></div>
+                <div class="form-group"><label>Courriel</label><input type="email" name="representant_legal.courriel"></div>
+            </div>
+            <div class="form-row triple">
                 <div class="form-group"><label>N°</label><input type="text" name="representant_legal.adresse_numero"></div>
                 <div class="form-group"><label>Voie</label><input type="text" name="representant_legal.adresse_voie"></div>
+                <div class="form-group"><label>Complément</label><input type="text" name="representant_legal.adresse_complement"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="representant_legal.adresse_complement"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>Code postal</label><input type="text" name="representant_legal.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="representant_legal.adresse_commune"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Courriel</label><input type="email" name="representant_legal.courriel"></div></div>
             </div>
         </div>
 
@@ -202,16 +202,19 @@
                 <input type="text" id="entSearchInput" placeholder="Ex: 12345678901234 ou Dupont SA..." autocomplete="off">
                 <div class="autocomplete-results" id="entSearchResults"></div>
             </div>
-            <div class="form-row"><div class="form-group"><label>Type</label><div class="checkbox-group"><label><input type="radio" name="employeur.type" value="prive"> Privé</label><label><input type="radio" name="employeur.type" value="public"> Public</label></div></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Type</label><div class="checkbox-group"><label><input type="radio" name="employeur.type" value="prive"> Privé</label><label><input type="radio" name="employeur.type" value="public"> Public</label></div></div>
+                <div class="form-group"><label>Adhésion assurance chômage</label><div class="checkbox-group"><label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui</label></div></div>
+            </div>
             <div class="form-row">
                 <div class="form-group"><label>Dénomination / Raison sociale</label><input type="text" name="employeur.denomination"></div>
                 <div class="form-group"><label>SIRET (14 chiffres)</label><input type="text" name="employeur.siret" maxlength="17"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>N°</label><input type="text" name="employeur.adresse_numero"></div>
                 <div class="form-group"><label>Voie</label><input type="text" name="employeur.adresse_voie"></div>
+                <div class="form-group"><label>Complément</label><input type="text" name="employeur.adresse_complement"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="employeur.adresse_complement"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>Code postal</label><input type="text" name="employeur.adresse_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="employeur.adresse_commune"></div>
@@ -224,13 +227,10 @@
                 <div class="form-group"><label>Type d'employeur (code)</label><select name="employeur.type_employeur"><option value="">--</option><option value="11">11 - Entreprise métiers</option><option value="12">12 - Entreprise RCS</option><option value="13">13 - MSA</option><option value="14">14 - Profession libérale</option><option value="15">15 - Association</option><option value="16">16 - Autre privé</option><option value="21">21 - Service État</option><option value="22">22 - Commune</option><option value="23">23 - Département</option><option value="24">24 - Région</option><option value="25">25 - Hôpital public</option><option value="29">29 - Autre public</option></select></div>
                 <div class="form-group"><label>Employeur spécifique</label><select name="employeur.employeur_specifique"><option value="0">0 - Aucun</option><option value="1">1 - Travail temporaire</option><option value="2">2 - Groupement d'employeurs</option><option value="3">3 - Saisonnier</option><option value="4">4 - Apprentissage familial</option></select></div>
             </div>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Code APE/NAF</label><input type="text" name="employeur.code_ape"></div>
                 <div class="form-group"><label>Effectif total entreprise</label><input type="number" name="employeur.effectif_entreprise"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Code IDCC convention collective</label><input type="text" name="employeur.code_idcc" maxlength="4"></div>
-                <div class="form-group"><label>Adhésion assurance chômage</label><div class="checkbox-group"><label><input type="checkbox" name="employeur.adhesion_chomage" value="true"> Oui</label></div></div>
             </div>
             </div>
         </div>
@@ -260,11 +260,9 @@
                 <div class="form-group"><label>Durée hebdo (heures) <span class="info-tooltip">i<span class="tooltip-text"><strong>Durée légale : 35h/semaine</strong><br>Le temps de formation en CFA est inclus dans ces heures.<br><br><strong>Apprenti majeur :</strong> soumis à la durée de travail de l'entreprise. Heures supplémentaires possibles.<br><br><strong>Apprenti mineur :</strong> max 35h/semaine et 8h/jour. Dérogation jusqu'à 40h dans le BTP/paysager.</span></span></label><input type="number" name="contrat.duree_hebdomadaire_heures" value="35"></div>
                 <div class="form-group"><label>Minutes</label><input type="number" name="contrat.duree_hebdomadaire_minutes" value="0" max="59"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Travail sur machines dangereuses</label><div class="checkbox-group"><label><input type="radio" name="contrat.travail_risque" value="oui"> Oui</label><label><input type="radio" name="contrat.travail_risque" value="non"> Non</label></div></div>
                 <div class="form-group"><label>Salaire brut mensuel (€)</label><input type="text" name="contrat.salaire_brut_mensuel"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Caisse retraite complémentaire</label><input type="text" name="contrat.caisse_retraite_complementaire"></div>
             </div>
             <h3>Avantages en nature</h3>
@@ -280,38 +278,38 @@
         <div class="form-card" id="sec-formation">
             <h2 onclick="toggleCard(this)">🏫 Formation / CFA</h2>
             <div class="card-body">
-            <div class="form-row"><div class="form-group"><label>CFA d'entreprise</label><div class="checkbox-group"><label><input type="radio" name="formation.cfa_entreprise" value="oui"> Oui</label><label><input type="radio" name="formation.cfa_entreprise" value="non"> Non</label></div></div></div>
-            <div class="form-row">
+            <div class="form-row triple">
                 <div class="form-group"><label>Dénomination du CFA</label><input type="text" name="formation.denomination_cfa"></div>
                 <div class="form-group"><label>N° UAI du CFA</label><input type="text" name="formation.uai_cfa"></div>
+                <div class="form-group"><label>SIRET du CFA</label><input type="text" name="formation.siret_cfa"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>SIRET du CFA</label><input type="text" name="formation.siret_cfa"></div></div>
             <div class="form-row">
+                <div class="form-group"><label>CFA d'entreprise</label><div class="checkbox-group"><label><input type="radio" name="formation.cfa_entreprise" value="oui"> Oui</label><label><input type="radio" name="formation.cfa_entreprise" value="non"> Non</label></div></div>
+            </div>
+            <div class="form-row triple">
                 <div class="form-group"><label>N°</label><input type="text" name="formation.adresse_cfa_numero"></div>
                 <div class="form-group"><label>Voie</label><input type="text" name="formation.adresse_cfa_voie"></div>
+                <div class="form-group"><label>Complément</label><input type="text" name="formation.adresse_cfa_complement"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Complément</label><input type="text" name="formation.adresse_cfa_complement"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>Code postal</label><input type="text" name="formation.adresse_cfa_code_postal" maxlength="5"></div>
                 <div class="form-group"><label>Commune</label><input type="text" name="formation.adresse_cfa_commune"></div>
             </div>
             <div class="form-row"><div class="form-group"><label><input type="checkbox" name="formation.cfa_meme_lieu" value="true"> Le CFA est le lieu de formation principal</label></div></div>
-            <h3>Diplôme visé</h3>
+            <h3>Diplôme visé et formation</h3>
             <div class="form-row">
                 <div class="form-group"><label>Diplôme visé</label><select name="formation.diplome_vise"><option value="">--</option><option value="33">33 - CAP</option><option value="34">34 - BEP</option><option value="41">41 - Bac Pro</option><option value="42">42 - Bac Général</option><option value="43">43 - Bac Techno</option><option value="54">54 - BTS</option><option value="55">55 - DUT</option><option value="62">62 - Licence Pro</option><option value="63">63 - Licence</option><option value="64">64 - BUT</option><option value="73">73 - Master</option><option value="75">75 - Ingénieur</option><option value="80">80 - Doctorat</option></select></div>
                 <div class="form-group"><label>Intitulé précis</label><input type="text" name="formation.intitule_precis"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Code diplôme</label><input type="text" name="formation.code_diplome"></div>
-                <div class="form-group"><label>Code RNCP</label><input type="text" name="formation.code_rncp"></div>
-            </div>
-            <div class="form-row">
                 <div class="form-group"><label>Date début formation CFA</label><div class="date-group"><input type="text" name="formation.date_debut_formation_jour" placeholder="JJ" maxlength="2"><input type="text" name="formation.date_debut_formation_mois" placeholder="MM" maxlength="2"><input type="text" name="formation.date_debut_formation_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>Date fin épreuves</label><div class="date-group"><input type="text" name="formation.date_fin_formation_jour" placeholder="JJ" maxlength="2"><input type="text" name="formation.date_fin_formation_mois" placeholder="MM" maxlength="2"><input type="text" name="formation.date_fin_formation_annee" placeholder="AAAA" maxlength="4"></div></div>
             </div>
-            <div class="form-row">
-                <div class="form-group"><label>Durée formation (heures)</label><input type="number" name="formation.duree_formation_heures"></div>
-                <div class="form-group"><label>Dont à distance</label><input type="number" name="formation.duree_formation_distance" value="0"></div>
+            <div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+                <div class="form-group"><label>Code diplôme</label><input type="text" name="formation.code_diplome"></div>
+                <div class="form-group"><label>Code RNCP</label><input type="text" name="formation.code_rncp"></div>
+                <div class="form-group"><label>Durée formation (h)</label><input type="number" name="formation.duree_formation_heures"></div>
+                <div class="form-group"><label>Dont à distance (h)</label><input type="number" name="formation.duree_formation_distance" value="0"></div>
             </div>
             </div>
         </div>
@@ -367,8 +365,8 @@
                 <div class="form-group"><label>Date de naissance</label><div class="date-group"><input type="text" name="maitre_apprentissage.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="maitre_apprentissage.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="maitre_apprentissage.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>Courriel</label><input type="email" name="maitre_apprentissage.courriel"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage.emploi_occupe"></div></div>
-            <div class="form-row">
+            <div class="form-row triple">
+                <div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage.emploi_occupe"></div>
                 <div class="form-group"><label>Diplôme le plus élevé</label><input type="text" name="maitre_apprentissage.diplome_le_plus_eleve"></div>
                 <div class="form-group"><label>Niveau</label><select name="maitre_apprentissage.niveau_diplome"><option value="">--</option><option value="1">1 - CAP/BEP</option><option value="2">2 - Bac</option><option value="3">3 - Bac+2</option><option value="4">4 - Bac+3/4</option><option value="5">5 - Bac+5+</option></select></div>
             </div>
@@ -381,8 +379,8 @@
                 <div class="form-group"><label>Date de naissance</label><div class="date-group"><input type="text" name="maitre_apprentissage_2.date_naissance_jour" placeholder="JJ" maxlength="2"><input type="text" name="maitre_apprentissage_2.date_naissance_mois" placeholder="MM" maxlength="2"><input type="text" name="maitre_apprentissage_2.date_naissance_annee" placeholder="AAAA" maxlength="4"></div></div>
                 <div class="form-group"><label>Courriel</label><input type="email" name="maitre_apprentissage_2.courriel"></div>
             </div>
-            <div class="form-row full"><div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage_2.emploi_occupe"></div></div>
-            <div class="form-row">
+            <div class="form-row triple">
+                <div class="form-group"><label>Emploi occupé</label><input type="text" name="maitre_apprentissage_2.emploi_occupe"></div>
                 <div class="form-group"><label>Diplôme le plus élevé</label><input type="text" name="maitre_apprentissage_2.diplome_le_plus_eleve"></div>
                 <div class="form-group"><label>Niveau</label><select name="maitre_apprentissage_2.niveau_diplome"><option value="">--</option><option value="1">1 - CAP/BEP</option><option value="2">2 - Bac</option><option value="3">3 - Bac+2</option><option value="4">4 - Bac+3/4</option><option value="5">5 - Bac+5+</option></select></div>
             </div>
@@ -396,8 +394,10 @@
         <div class="form-card" id="sec-attestation">
             <h2 onclick="toggleCard(this)">✅ Attestation</h2>
             <div class="card-body">
-            <div class="form-row full"><div class="form-group"><label>Fait à</label><input type="text" name="attestation.fait_a" placeholder="Ex: Paris"></div></div>
-            <div class="form-row full"><div class="form-group"><label><input type="checkbox" name="attestation.pieces_justificatives" value="true"> L'employeur atteste disposer de l'ensemble des pièces justificatives</label></div></div>
+            <div class="form-row">
+                <div class="form-group"><label>Fait à</label><input type="text" name="attestation.fait_a" placeholder="Ex: Paris"></div>
+                <div class="form-group"><label><input type="checkbox" name="attestation.pieces_justificatives" value="true"> L'employeur atteste disposer de l'ensemble des pièces justificatives</label></div>
+            </div>
             </div>
         </div>
 
