@@ -97,7 +97,7 @@
                 </div>
             </div>
 
-            <form id="etudiantForm">
+            <form id="etudiantForm" novalidate>
                 
                 <div class="form-section open">
                     <h2 onclick="toggleSection(this)">État Civil</h2>
@@ -597,69 +597,101 @@
         document.getElementById('etudiantForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.style.display = 'none';
             btn.textContent = '⏳ Envoi en cours...';
             btn.disabled = true;
 
-            const formData = new FormData(e.target);
-            const data = {};
-            
-            for (let [key, value] of formData.entries()) {
-                const parts = key.split('.');
-                if (parts.length === 2) {
-                    if (!data[parts[0]]) data[parts[0]] = {};
-                    data[parts[0]][parts[1]] = value;
-                } else {
-                    data[key] = value;
+            // Validation manuelle des champs requis
+            const requiredFields = e.target.querySelectorAll('[required]');
+            let firstEmpty = null;
+            for (const field of requiredFields) {
+                if (field.type === 'radio') {
+                    const group = e.target.querySelectorAll(`[name="${field.name}"]`);
+                    const checked = Array.from(group).some(r => r.checked);
+                    if (!checked && !firstEmpty) firstEmpty = field;
+                } else if (!field.value || field.value === '') {
+                    if (!firstEmpty) firstEmpty = field;
                 }
             }
-
-            // Initialiser les sections si elles n'existent pas
-            if (!data.apprenti) data.apprenti = {};
-            if (!data.representant_legal) data.representant_legal = {};
-
-            // Gestion des checkboxes booléennes
-            const handicap = document.querySelector('input[name="apprenti.handicap"]:checked');
-            data.apprenti.handicap_oui = handicap?.value === 'oui';
-            data.apprenti.handicap_non = handicap?.value === 'non';
-            
-            const sportif = document.querySelector('input[name="apprenti.sportif_haut_niveau"]:checked');
-            data.apprenti.sportif_haut_niveau_oui = sportif?.value === 'oui';
-            data.apprenti.sportif_haut_niveau_non = sportif?.value === 'non';
-
-            const sexe = document.querySelector('input[name="apprenti.sexe"]:checked');
-            data.apprenti.sexe_homme = sexe?.value === 'homme';
-            data.apprenti.sexe_femme = sexe?.value === 'femme';
-
-            const statutAge = document.querySelector('input[name="apprenti.statut_age"]:checked');
-            data.apprenti.statut_age = statutAge?.value || 'majeur';
-            data.apprenti.mineur = statutAge?.value === 'mineur';
-            data.apprenti.majeur = statutAge?.value === 'majeur';
-
-            // Nettoyer les données avant envoi
-            const cleanedData = cleanData(data);
+            if (firstEmpty) {
+                // Ouvrir la section contenant le champ vide
+                const section = firstEmpty.closest('.form-section');
+                if (section && !section.classList.contains('open')) section.classList.add('open');
+                firstEmpty.focus();
+                firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                errorMsg.textContent = 'Veuillez remplir tous les champs obligatoires (*)';
+                errorMsg.style.display = 'block';
+                btn.textContent = '📤 Envoyer mes informations';
+                btn.disabled = false;
+                return;
+            }
 
             try {
+                const formData = new FormData(e.target);
+                const data = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    const parts = key.split('.');
+                    if (parts.length === 2) {
+                        if (!data[parts[0]]) data[parts[0]] = {};
+                        data[parts[0]][parts[1]] = value;
+                    } else {
+                        data[key] = value;
+                    }
+                }
+
+                // Initialiser les sections si elles n'existent pas
+                if (!data.apprenti) data.apprenti = {};
+                if (!data.representant_legal) data.representant_legal = {};
+
+                // Gestion des checkboxes booléennes
+                const handicap = document.querySelector('input[name="apprenti.handicap"]:checked');
+                data.apprenti.handicap_oui = handicap?.value === 'oui';
+                data.apprenti.handicap_non = handicap?.value === 'non';
+                
+                const sportif = document.querySelector('input[name="apprenti.sportif_haut_niveau"]:checked');
+                data.apprenti.sportif_haut_niveau_oui = sportif?.value === 'oui';
+                data.apprenti.sportif_haut_niveau_non = sportif?.value === 'non';
+
+                const sexe = document.querySelector('input[name="apprenti.sexe"]:checked');
+                data.apprenti.sexe_homme = sexe?.value === 'homme';
+                data.apprenti.sexe_femme = sexe?.value === 'femme';
+
+                const statutAge = document.querySelector('input[name="apprenti.statut_age"]:checked');
+                data.apprenti.statut_age = statutAge?.value || 'majeur';
+                data.apprenti.mineur = statutAge?.value === 'mineur';
+                data.apprenti.majeur = statutAge?.value === 'majeur';
+
+                // Nettoyer les données avant envoi
+                const cleanedData = cleanData(data);
+                console.log('[Etudiant] Envoi des données...', Object.keys(cleanedData));
+
                 const response = await fetch(`/api/etudiant/${token}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(cleanedData)
                 });
 
+                console.log('[Etudiant] Réponse:', response.status);
+
                 if (response.ok) {
                     document.getElementById('etudiantForm').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
-                    const err = await response.json();
-                    document.getElementById('errorMessage').textContent = err.error || 'Erreur lors de l\'envoi';
-                    document.getElementById('errorMessage').style.display = 'block';
+                    let errText = 'Erreur lors de l\'envoi';
+                    try { const err = await response.json(); errText = err.error || errText; } catch(e) {}
+                    errorMsg.textContent = errText;
+                    errorMsg.style.display = 'block';
                     btn.textContent = '📤 Envoyer mes informations';
                     btn.disabled = false;
                 }
             } catch (err) {
-                console.error('Erreur soumission:', err);
-                document.getElementById('errorMessage').textContent = 'Erreur de connexion : ' + err.message;
-                document.getElementById('errorMessage').style.display = 'block';
-                btn.textContent = '📤 Mettre à jour mes informations';
+                console.error('[Etudiant] Erreur soumission:', err);
+                errorMsg.textContent = 'Erreur de connexion : ' + (err.message || 'inconnue');
+                errorMsg.style.display = 'block';
+                btn.textContent = '📤 Envoyer mes informations';
                 btn.disabled = false;
             }
         });
