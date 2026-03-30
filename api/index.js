@@ -888,8 +888,122 @@ module.exports = async function handler(req, res) {
       updateContractStatus(result.contract);
       if (!result.contract.history) result.contract.history = [];
       result.contract.history.push({ action: 'etudiant_submitted', date: new Date().toISOString(), by: 'etudiant' });
+
+      // Auto-initialiser les parties de signature pour apprenti (et représentant légal si mineur)
+      const appEmail = body.apprenti?.courriel || '';
+      const appNom = `${body.apprenti?.prenom || ''} ${body.apprenti?.nom_naissance || ''}`.trim() || 'Apprenti';
+      const isMineur = body.apprenti?.statut_age === 'mineur' || body.apprenti?.mineur === true || body.apprenti?.mineur === 'true';
+
+      // Initialiser ou mettre à jour la structure signature
+      if (!result.contract.signature) {
+        result.contract.signature = {
+          initiatedAt: new Date().toISOString(),
+          initiatedBy: 'etudiant_form',
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          parties: [],
+          documentHash: crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex'),
+          completed: false
+        };
+      }
+
+      // Ajouter partie apprenti si pas déjà présente
+      if (!result.contract.signature.parties.find(p => p.role === 'apprenti')) {
+        result.contract.signature.parties.push({
+          role: 'apprenti', email: appEmail, name: appNom, signed: false
+        });
+      }
+
+      // Ajouter partie représentant légal si mineur et pas déjà présente
+      if (isMineur && body.representant_legal?.nom_prenom) {
+        if (!result.contract.signature.parties.find(p => p.role === 'representant_legal')) {
+          result.contract.signature.parties.push({
+            role: 'representant_legal',
+            email: body.representant_legal?.courriel || '',
+            name: body.representant_legal?.nom_prenom || 'Représentant légal',
+            signed: false
+          });
+        }
+      }
+
       await saveContract(result.contract);
-      return sendJSON(res, { success: true, message: 'Données étudiant enregistrées' });
+
+      // Retourner les infos de signature pour le frontend
+      const signatureInfo = {
+        canSign: true,
+        isMineur,
+        apprentiSigned: result.contract.signature.parties.find(p => p.role === 'apprenti')?.signed || false,
+        representantSigned: isMineur ? (result.contract.signature.parties.find(p => p.role === 'representant_legal')?.signed || false) : null
+      };
+
+      return sendJSON(res, { success: true, message: 'Données étudiant enregistrées', signature: signatureInfo });
+    }
+
+    // ---------- POST /api/etudiant/:token/sign (signature apprenti depuis le formulaire) ----------
+    const etuSignMatch = matchRoute(url, '/api/etudiant/:token/sign');
+    if (method === 'POST' && etuSignMatch) {
+      const result = await getContractByToken(etuSignMatch.token);
+      if (!result || result.type !== 'etudiant') return sendJSON(res, { error: 'Token invalide' }, 404);
+      const contract = result.contract;
+      if (!contract.signature) return sendJSON(res, { error: 'Signature non initialisée' }, 400);
+
+      const body = await parseBody(req);
+      if (!body.signatureData) return sendJSON(res, { error: 'Données de signature manquantes' }, 400);
+      const role = body.role || 'apprenti';
+      if (!['apprenti', 'representant_legal'].includes(role)) return sendJSON(res, { error: 'Rôle invalide' }, 400);
+
+      const partyIndex = contract.signature.parties.findIndex(p => p.role === role);
+      if (partyIndex === -1) return sendJSON(res, { error: 'Partie non trouvée' }, 404);
+      if (contract.signature.parties[partyIndex].signed) return sendJSON(res, { error: 'Déjà signé' }, 400);
+
+      const now = new Date().toISOString();
+      const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const signatureHash = generateSignatureHash(contract.id, role, body.signatureData, now);
+
+      contract.signature.parties[partyIndex].signed = true;
+      contract.signature.parties[partyIndex].signedAt = now;
+      contract.signature.parties[partyIndex].signatureData = body.signatureData;
+      contract.signature.parties[partyIndex].signatureHash = signatureHash;
+      contract.signature.parties[partyIndex].ip = ip;
+      contract.signature.parties[partyIndex].userAgent = userAgent;
+
+      if (!contract.history) contract.history = [];
+      contract.history.push({ action: 'signed', role, by: contract.signature.parties[partyIndex].email, name: contract.signature.parties[partyIndex].name, date: now, ip, signatureHash });
+
+      // Vérifier si toutes les parties ont signé
+      const allSigned = contract.signature.parties.every(p => p.signed);
+      if (allSigned) {
+        contract.signature.completed = true;
+        contract.signature.completedAt = now;
+        contract.status = 'signed';
+        contract.history.push({ action: 'all_signatures_completed', date: now });
+      }
+
+      await saveContract(contract);
+
+      return sendJSON(res, {
+        success: true,
+        role,
+        signatureHash,
+        allSigned,
+        remainingParties: contract.signature.parties.filter(p => !p.signed).map(p => ({ role: p.role, name: p.name }))
+      });
+    }
+
+    // ---------- GET /api/etudiant/:token/signature-status ----------
+    const etuSigStatusMatch = matchRoute(url, '/api/etudiant/:token/signature-status');
+    if (method === 'GET' && etuSigStatusMatch) {
+      const result = await getContractByToken(etuSigStatusMatch.token);
+      if (!result || result.type !== 'etudiant') return sendJSON(res, { error: 'Token invalide' }, 404);
+      const contract = result.contract;
+      const isMineur = contract.etudiant?.apprenti?.statut_age === 'mineur' || contract.etudiant?.apprenti?.mineur === true;
+      if (!contract.signature) return sendJSON(res, { canSign: false });
+      return sendJSON(res, {
+        canSign: true,
+        isMineur,
+        apprentiSigned: contract.signature.parties.find(p => p.role === 'apprenti')?.signed || false,
+        representantSigned: isMineur ? (contract.signature.parties.find(p => p.role === 'representant_legal')?.signed || false) : null
+      });
     }
 
     // ---------- POST /api/entreprise/:token ----------
@@ -1479,20 +1593,30 @@ module.exports = async function handler(req, res) {
       parties.push({ role: 'employeur', email: empEmail, name: empNom, token: empToken, signed: false });
       await saveSignToken(empToken, { contractId: contract.id, role: 'employeur', email: empEmail, name: empNom, expiresAt });
 
-      // Partie Apprenti
-      const appEmail = body.apprentiEmail || contract.etudiant?.apprenti?.courriel || '';
-      const appNom = `${contract.etudiant?.apprenti?.prenom || ''} ${contract.etudiant?.apprenti?.nom_naissance || ''}`.trim() || 'Apprenti';
-      const appToken = crypto.randomUUID();
-      parties.push({ role: 'apprenti', email: appEmail, name: appNom, token: appToken, signed: false });
-      await saveSignToken(appToken, { contractId: contract.id, role: 'apprenti', email: appEmail, name: appNom, expiresAt });
+      // Partie Apprenti — conserver la signature si déjà faite via le formulaire étudiant
+      const existingAppSig = contract.signature?.parties?.find(p => p.role === 'apprenti' && p.signed);
+      if (existingAppSig) {
+        parties.push(existingAppSig);
+      } else {
+        const appEmail = body.apprentiEmail || contract.etudiant?.apprenti?.courriel || '';
+        const appNom = `${contract.etudiant?.apprenti?.prenom || ''} ${contract.etudiant?.apprenti?.nom_naissance || ''}`.trim() || 'Apprenti';
+        const appToken = crypto.randomUUID();
+        parties.push({ role: 'apprenti', email: appEmail, name: appNom, token: appToken, signed: false });
+        await saveSignToken(appToken, { contractId: contract.id, role: 'apprenti', email: appEmail, name: appNom, expiresAt });
+      }
 
-      // Partie Représentant légal (optionnel, si mineur)
+      // Partie Représentant légal (optionnel, si mineur) — conserver si déjà signé
       if (body.representantLegal || contract.etudiant?.representant_legal?.nom_prenom) {
-        const rlEmail = body.representantEmail || contract.etudiant?.representant_legal?.courriel || '';
-        const rlNom = contract.etudiant?.representant_legal?.nom_prenom || 'Représentant légal';
-        const rlToken = crypto.randomUUID();
-        parties.push({ role: 'representant_legal', email: rlEmail, name: rlNom, token: rlToken, signed: false });
-        await saveSignToken(rlToken, { contractId: contract.id, role: 'representant_legal', email: rlEmail, name: rlNom, expiresAt });
+        const existingRLSig = contract.signature?.parties?.find(p => p.role === 'representant_legal' && p.signed);
+        if (existingRLSig) {
+          parties.push(existingRLSig);
+        } else {
+          const rlEmail = body.representantEmail || contract.etudiant?.representant_legal?.courriel || '';
+          const rlNom = contract.etudiant?.representant_legal?.nom_prenom || 'Représentant légal';
+          const rlToken = crypto.randomUUID();
+          parties.push({ role: 'representant_legal', email: rlEmail, name: rlNom, token: rlToken, signed: false });
+          await saveSignToken(rlToken, { contractId: contract.id, role: 'representant_legal', email: rlEmail, name: rlNom, expiresAt });
+        }
       }
 
       // Partie CFA

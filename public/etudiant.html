@@ -97,6 +97,42 @@
                 </div>
             </div>
 
+            <!-- Section signature intégrée -->
+            <div id="signatureSection" style="display:none;">
+                <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:24px;margin-top:20px;">
+                    <h3 style="color:var(--primary);margin:0 0 8px;">✍️ Signature de l'apprenti(e)</h3>
+                    <p style="color:#666;font-size:13px;margin:0 0 12px;">En signant, vous confirmez l'exactitude des informations fournies et acceptez les termes du contrat d'apprentissage.</p>
+                    <div id="apprentiSignatureStatus" style="display:none;background:#e8f5e9;color:#2e7d32;padding:12px;border-radius:8px;margin-bottom:12px;font-weight:600;text-align:center;">
+                        ✅ Vous avez signé ce contrat
+                    </div>
+                    <div id="apprentiSignaturePad">
+                        <canvas id="signatureCanvas" width="500" height="150" style="border:2px solid #ddd;border-radius:8px;cursor:crosshair;background:#fafafa;display:block;margin:0 auto;max-width:100%;touch-action:none;"></canvas>
+                        <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+                            <button type="button" onclick="clearSignature('signatureCanvas')" style="padding:8px 16px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;">🗑️ Effacer</button>
+                            <button type="button" id="submitAppSignBtn" onclick="submitSignature('apprenti','signatureCanvas')" style="padding:8px 20px;border:none;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-size:13px;font-weight:600;">✅ Signer en tant qu'apprenti(e)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signature représentant légal (si mineur) -->
+                <div id="representantSignatureSection" style="display:none;">
+                    <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:24px;margin-top:16px;">
+                        <h3 style="color:#8e24aa;margin:0 0 8px;">✍️ Signature du représentant légal</h3>
+                        <p style="color:#666;font-size:13px;margin:0 0 12px;">Le représentant légal doit également signer car l'apprenti(e) est mineur(e).</p>
+                        <div id="representantSignatureStatus" style="display:none;background:#e8f5e9;color:#2e7d32;padding:12px;border-radius:8px;margin-bottom:12px;font-weight:600;text-align:center;">
+                            ✅ Le représentant légal a signé
+                        </div>
+                        <div id="representantSignaturePad">
+                            <canvas id="signatureCanvasRL" width="500" height="150" style="border:2px solid #ddd;border-radius:8px;cursor:crosshair;background:#fafafa;display:block;margin:0 auto;max-width:100%;touch-action:none;"></canvas>
+                            <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+                                <button type="button" onclick="clearSignature('signatureCanvasRL')" style="padding:8px 16px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;">🗑️ Effacer</button>
+                                <button type="button" id="submitRLSignBtn" onclick="submitSignature('representant_legal','signatureCanvasRL')" style="padding:8px 20px;border:none;border-radius:6px;background:#8e24aa;color:#fff;cursor:pointer;font-size:13px;font-weight:600;">✅ Signer en tant que représentant légal</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <form id="etudiantForm" novalidate>
                 
                 <div class="form-section open">
@@ -676,9 +712,14 @@
                 console.log('[Etudiant] Réponse:', response.status);
 
                 if (response.ok) {
+                    const result = await response.json();
                     document.getElementById('etudiantForm').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Afficher la section signature
+                    if (result.signature && result.signature.canSign) {
+                        showSignatureSection(result.signature);
+                    }
                 } else {
                     let errText = 'Erreur lors de l\'envoi';
                     try { const err = await response.json(); errText = err.error || errText; } catch(e) {}
@@ -695,6 +736,151 @@
                 btn.disabled = false;
             }
         });
+        // =====================
+        // SIGNATURE CANVAS LOGIC
+        // =====================
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+            let lastX = 0, lastY = 0;
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                if (e.touches && e.touches[0]) {
+                    return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+                }
+                return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+            }
+
+            function startDraw(e) {
+                e.preventDefault();
+                drawing = true;
+                const pos = getPos(e);
+                lastX = pos.x; lastY = pos.y;
+            }
+            function draw(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.strokeStyle = '#1a3a5c';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                lastX = pos.x; lastY = pos.y;
+            }
+            function stopDraw() { drawing = false; }
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('mouseleave', stopDraw);
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', stopDraw);
+        }
+
+        function clearSignature(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasEmpty(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return true;
+            const ctx = canvas.getContext('2d');
+            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            for (let i = 3; i < pixelData.length; i += 4) {
+                if (pixelData[i] > 0) return false;
+            }
+            return true;
+        }
+
+        function showSignatureSection(sigInfo) {
+            const section = document.getElementById('signatureSection');
+            section.style.display = 'block';
+
+            // Initialiser les canvas
+            initCanvas('signatureCanvas');
+
+            if (sigInfo.apprentiSigned) {
+                document.getElementById('apprentiSignatureStatus').style.display = 'block';
+                document.getElementById('apprentiSignaturePad').style.display = 'none';
+            }
+
+            if (sigInfo.isMineur) {
+                document.getElementById('representantSignatureSection').style.display = 'block';
+                initCanvas('signatureCanvasRL');
+                if (sigInfo.representantSigned) {
+                    document.getElementById('representantSignatureStatus').style.display = 'block';
+                    document.getElementById('representantSignaturePad').style.display = 'none';
+                }
+            }
+        }
+
+        async function submitSignature(role, canvasId) {
+            if (isCanvasEmpty(canvasId)) {
+                alert('Veuillez dessiner votre signature avant de valider.');
+                return;
+            }
+
+            const canvas = document.getElementById(canvasId);
+            const signatureData = canvas.toDataURL('image/png');
+            const btnId = role === 'apprenti' ? 'submitAppSignBtn' : 'submitRLSignBtn';
+            const btn = document.getElementById(btnId);
+            const origText = btn.textContent;
+            btn.textContent = '⏳ Signature en cours...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/etudiant/${token}/sign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role, signatureData })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (role === 'apprenti') {
+                        document.getElementById('apprentiSignatureStatus').style.display = 'block';
+                        document.getElementById('apprentiSignaturePad').style.display = 'none';
+                    } else {
+                        document.getElementById('representantSignatureStatus').style.display = 'block';
+                        document.getElementById('representantSignaturePad').style.display = 'none';
+                    }
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(err.error || 'Erreur lors de la signature');
+                    btn.textContent = origText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('[Signature] Erreur:', err);
+                alert('Erreur de connexion : ' + (err.message || 'inconnue'));
+                btn.textContent = origText;
+                btn.disabled = false;
+            }
+        }
+
+        // Au chargement de la page, vérifier si la signature est déjà initialisée
+        if (token) {
+            fetch(`/api/etudiant/${token}/signature-status`)
+                .then(r => r.json())
+                .then(sigInfo => {
+                    if (sigInfo.canSign) {
+                        showSignatureSection(sigInfo);
+                    }
+                })
+                .catch(e => console.log('[Signature] Pas encore initialisée'));
+        }
     </script>
 </body>
 </html>
