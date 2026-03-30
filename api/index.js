@@ -1070,10 +1070,10 @@ module.exports = async function handler(req, res) {
         // Zones de signature sur la page 2 du CERFA (coordonnees en points PDF, y=0 = bas de page)
         // Page A4 = 595 x 842 pt. Les 3 zones de signature sont juste au-dessus du "CADRE RESERVE"
         const sigZones = {
-          employeur: { x: 45, y: 88, maxW: 140, maxH: 40 },
-          apprenti: { x: 220, y: 88, maxW: 140, maxH: 40 },
-          representant_legal: { x: 400, y: 88, maxW: 160, maxH: 40 },
-          cfa: { x: 400, y: 30, maxW: 140, maxH: 35 }
+          employeur: { x: 55, y: 128, maxW: 130, maxH: 35 },
+          apprenti: { x: 230, y: 128, maxW: 130, maxH: 35 },
+          representant_legal: { x: 420, y: 128, maxW: 140, maxH: 35 },
+          cfa: { x: 420, y: 55, maxW: 130, maxH: 30 }
         };
         const page2 = pdfDoc.getPage(1); // Page 2 = index 1
 
