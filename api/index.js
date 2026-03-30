@@ -1073,7 +1073,7 @@ module.exports = async function handler(req, res) {
           employeur: { x: 55, y: 128, maxW: 130, maxH: 35 },
           apprenti: { x: 230, y: 128, maxW: 130, maxH: 35 },
           representant_legal: { x: 420, y: 128, maxW: 140, maxH: 35 },
-          cfa: { x: 420, y: 82, maxW: 130, maxH: 30 }
+          cfa: { x: 420, y: 128, maxW: 140, maxH: 35 }
         };
         const page2 = pdfDoc.getPage(1); // Page 2 = index 1
 
