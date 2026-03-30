@@ -1073,7 +1073,7 @@ module.exports = async function handler(req, res) {
           employeur: { x: 55, y: 128, maxW: 130, maxH: 35 },
           apprenti: { x: 230, y: 128, maxW: 130, maxH: 35 },
           representant_legal: { x: 420, y: 128, maxW: 140, maxH: 35 },
-          cfa: { x: 420, y: 55, maxW: 130, maxH: 30 }
+          cfa: { x: 420, y: 82, maxW: 130, maxH: 30 }
         };
         const page2 = pdfDoc.getPage(1); // Page 2 = index 1
 
@@ -1120,17 +1120,17 @@ module.exports = async function handler(req, res) {
         const allSigned = contract.signature.parties.every(p => p.signed);
 
         // Titre
-        signPage.drawText('CERTIFICAT DE SIGNATURE ELECTRONIQUE', { x: leftMargin, y, font: fontBold, size: 16, color: rgb(0.118, 0.227, 0.373) });
+        signPage.drawText('CERTIFICAT DE SIGNATURE ELECTRONIQUE', { x: leftMargin, y, font: fontBold, size: 20, color: rgb(0.118, 0.227, 0.373) });
         y -= 20;
-        signPage.drawText('Contrat d\'apprentissage - CERFA 10103-14', { x: leftMargin, y, font, size: 10, color: rgb(0.4, 0.4, 0.4) });
-        signPage.drawText('Certificat ' + certVersion, { x: pageWidth - leftMargin - 80, y, font, size: 8, color: rgb(0.6, 0.6, 0.6) });
+        signPage.drawText('Contrat d\'apprentissage - CERFA 10103-14', { x: leftMargin, y, font, size: 12, color: rgb(0.4, 0.4, 0.4) });
+        signPage.drawText('Certificat ' + certVersion, { x: pageWidth - leftMargin - 80, y, font, size: 10, color: rgb(0.6, 0.6, 0.6) });
         y -= 14;
-        signPage.drawText(sanitize('Identifiant du contrat : ' + contract.id), { x: leftMargin, y, font, size: 9, color: rgb(0.5, 0.5, 0.5) });
+        signPage.drawText(sanitize('Identifiant du contrat : ' + contract.id), { x: leftMargin, y, font, size: 10, color: rgb(0.5, 0.5, 0.5) });
         y -= 10;
-        signPage.drawText(sanitize('Empreinte du document (SHA-256) : ' + (contract.signature.documentHash || 'N/A')), { x: leftMargin, y, font, size: 7, color: rgb(0.5, 0.5, 0.5) });
+        signPage.drawText(sanitize('Empreinte du document (SHA-256) : ' + (contract.signature.documentHash || 'N/A')), { x: leftMargin, y, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
         y -= 10;
         if (allSigned) {
-          signPage.drawText('DOCUMENT VERROUILLE - Toute modification est interdite apres signature', { x: leftMargin, y, font: fontBold, size: 7, color: rgb(0.7, 0.1, 0.1) });
+          signPage.drawText('DOCUMENT VERROUILLE - Toute modification est interdite apres signature', { x: leftMargin, y, font: fontBold, size: 9, color: rgb(0.7, 0.1, 0.1) });
           y -= 10;
         }
         y -= 8;
@@ -1141,10 +1141,10 @@ module.exports = async function handler(req, res) {
 
         // Statut global
         if (allSigned) {
-          signPage.drawText('[OK] TOUTES LES PARTIES ONT SIGNE', { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.106, 0.369, 0.125) });
+          signPage.drawText('[OK] TOUTES LES PARTIES ONT SIGNE', { x: leftMargin, y, font: fontBold, size: 14, color: rgb(0.106, 0.369, 0.125) });
         } else {
           const signedCount = contract.signature.parties.filter(p => p.signed).length;
-          signPage.drawText('SIGNATURE EN COURS (' + signedCount + '/' + contract.signature.parties.length + ')', { x: leftMargin, y, font: fontBold, size: 12, color: rgb(0.557, 0.141, 0.667) });
+          signPage.drawText('SIGNATURE EN COURS (' + signedCount + '/' + contract.signature.parties.length + ')', { x: leftMargin, y, font: fontBold, size: 14, color: rgb(0.557, 0.141, 0.667) });
         }
         y -= 28;
 
@@ -1159,19 +1159,19 @@ module.exports = async function handler(req, res) {
           }
 
           // Cadre
-          const boxH = party.signed ? 95 : 60;
+          const boxH = party.signed ? 110 : 65;
           currentPage.drawRectangle({ x: leftMargin, y: y - boxH, width: pageWidth - 2 * leftMargin, height: boxH + 5, borderColor: rgb(0.85, 0.85, 0.85), borderWidth: 1, color: party.signed ? rgb(0.97, 0.99, 0.97) : rgb(1, 0.98, 0.94) });
 
           const roleLabel = roleLabels[party.role] || party.role;
-          currentPage.drawText(sanitize(roleLabel), { x: leftMargin + 10, y: y - 2, font: fontBold, size: 11, color: rgb(0.118, 0.227, 0.373) });
-          currentPage.drawText(sanitize(party.name), { x: leftMargin + 10, y: y - 16, font, size: 10, color: rgb(0.2, 0.2, 0.2) });
-          currentPage.drawText(sanitize(party.email || ''), { x: leftMargin + 10, y: y - 30, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
+          currentPage.drawText(sanitize(roleLabel), { x: leftMargin + 10, y: y - 2, font: fontBold, size: 13, color: rgb(0.118, 0.227, 0.373) });
+          currentPage.drawText(sanitize(party.name), { x: leftMargin + 10, y: y - 18, font, size: 12, color: rgb(0.2, 0.2, 0.2) });
+          currentPage.drawText(sanitize(party.email || ''), { x: leftMargin + 10, y: y - 34, font, size: 10, color: rgb(0.5, 0.5, 0.5) });
 
           if (party.signed) {
-            currentPage.drawText(sanitize('Signe le ' + new Date(party.signedAt).toLocaleString('fr-FR')), { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.106, 0.369, 0.125) });
-            currentPage.drawText(sanitize('IP: ' + (party.ip || 'N/A') + '  |  User-Agent: ' + (party.userAgent || 'N/A').substring(0, 60)), { x: leftMargin + 10, y: y - 58, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
-            currentPage.drawText(sanitize('Hash signature: ' + (party.signatureHash || 'N/A')), { x: leftMargin + 10, y: y - 68, font, size: 6, color: rgb(0.6, 0.6, 0.6) });
-            currentPage.drawText('Consentement: le signataire a explicitement accepte de signer ce document par voie electronique', { x: leftMargin + 10, y: y - 80, font: fontItalic, size: 6, color: rgb(0.4, 0.4, 0.4) });
+            currentPage.drawText(sanitize('Signe le ' + new Date(party.signedAt).toLocaleString('fr-FR')), { x: leftMargin + 10, y: y - 50, font, size: 11, color: rgb(0.106, 0.369, 0.125) });
+            currentPage.drawText(sanitize('IP: ' + (party.ip || 'N/A') + '  |  User-Agent: ' + (party.userAgent || 'N/A').substring(0, 60)), { x: leftMargin + 10, y: y - 64, font, size: 7, color: rgb(0.6, 0.6, 0.6) });
+            currentPage.drawText(sanitize('Hash signature: ' + (party.signatureHash || 'N/A')), { x: leftMargin + 10, y: y - 76, font, size: 7, color: rgb(0.6, 0.6, 0.6) });
+            currentPage.drawText('Consentement: le signataire a explicitement accepte de signer ce document par voie electronique', { x: leftMargin + 10, y: y - 90, font: fontItalic, size: 8, color: rgb(0.4, 0.4, 0.4) });
 
             // Inserer l'image de signature si disponible
             if (party.signatureData && party.signatureData.startsWith('data:image/png;base64,')) {
@@ -1185,7 +1185,7 @@ module.exports = async function handler(req, res) {
                 const ratio = Math.min(maxW / sigDims.width, maxH / sigDims.height, 1);
                 currentPage.drawImage(sigImage, {
                   x: pageWidth - leftMargin - (sigDims.width * ratio) - 10,
-                  y: y - 85,
+                  y: y - 100,
                   width: sigDims.width * ratio,
                   height: sigDims.height * ratio
                 });
@@ -1195,7 +1195,7 @@ module.exports = async function handler(req, res) {
             }
             y -= (boxH + 15);
           } else {
-            currentPage.drawText('En attente de signature', { x: leftMargin + 10, y: y - 46, font, size: 9, color: rgb(0.8, 0.5, 0.0) });
+            currentPage.drawText('En attente de signature', { x: leftMargin + 10, y: y - 50, font, size: 11, color: rgb(0.8, 0.5, 0.0) });
             y -= (boxH + 15);
           }
         }
