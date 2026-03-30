@@ -1068,17 +1068,16 @@ module.exports = async function handler(req, res) {
       const hasSigs = contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed);
       if (hasSigs) {
         // Zones de signature sur la page 2 du CERFA (coordonnees en points PDF, y=0 = bas de page)
-        // Page A4 = 595 x 842 pt. Les 3 zones : employeur (gauche), apprenti (centre), repr. legal / CFA (droite)
-        // Si representant legal present → repr. legal a droite, CFA dans le cadre reserve en bas
-        // Si pas de representant legal → CFA a droite (zone repr. legal)
-        const hasRepresentant = contract.signature.parties.some(p => p.role === 'representant_legal');
+        // Page A4 = 595 x 842 pt.
+        // - Employeur: gauche, juste au-dessus du "CADRE RESERVE"
+        // - Apprenti: centre, meme ligne
+        // - Representant legal: droite, meme ligne
+        // - CFA: zone "Visa du CFA (cachet et signature du directeur)" = gauche, plus haut
         const sigZones = {
           employeur: { x: 55, y: 128, maxW: 130, maxH: 35 },
           apprenti: { x: 230, y: 128, maxW: 130, maxH: 35 },
           representant_legal: { x: 420, y: 128, maxW: 140, maxH: 35 },
-          cfa: hasRepresentant
-            ? { x: 420, y: 82, maxW: 130, maxH: 30 }
-            : { x: 420, y: 128, maxW: 140, maxH: 35 }
+          cfa: { x: 55, y: 300, maxW: 180, maxH: 55 }
         };
         const page2 = pdfDoc.getPage(1); // Page 2 = index 1
 
