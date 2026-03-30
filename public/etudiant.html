@@ -538,7 +538,13 @@
                         } else if (input.type === 'checkbox') {
                             input.checked = !!value;
                         } else if (input.tagName === 'SELECT') {
-                            input.value = value || '';
+                            const strVal = String(value || '');
+                            input.value = strVal;
+                            // Si la valeur n'a pas pris (optgroup), chercher l'option manuellement
+                            if (input.value !== strVal && strVal) {
+                                const opt = Array.from(input.options).find(o => o.value === strVal || o.textContent.includes(strVal));
+                                if (opt) input.value = opt.value;
+                            }
                         } else {
                             input.value = value || '';
                         }
@@ -606,6 +612,10 @@
                     data[key] = value;
                 }
             }
+
+            // Initialiser les sections si elles n'existent pas
+            if (!data.apprenti) data.apprenti = {};
+            if (!data.representant_legal) data.representant_legal = {};
 
             // Gestion des checkboxes booléennes
             const handicap = document.querySelector('input[name="apprenti.handicap"]:checked');
