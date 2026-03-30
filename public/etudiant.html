@@ -537,6 +537,8 @@
                             if (radio) radio.checked = true;
                         } else if (input.type === 'checkbox') {
                             input.checked = !!value;
+                        } else if (input.tagName === 'SELECT') {
+                            input.value = value || '';
                         } else {
                             input.value = value || '';
                         }
@@ -565,6 +567,11 @@
             document.getElementById('etudiantForm').style.display = 'block';
             document.getElementById('submitBtn').textContent = '📤 Mettre à jour mes informations';
             document.getElementById('submitBtn').disabled = false;
+            // Re-fetch et re-prefill pour s'assurer que tous les champs sont remplis
+            fetch(`/api/contract/by-token/${token}`)
+                .then(r => r.json())
+                .then(data => { if (data.data) prefillForm(data.data); })
+                .catch(e => console.error(e));
         }
 
         // Vérifier si déjà rempli et pré-remplir
@@ -639,9 +646,10 @@
                     btn.disabled = false;
                 }
             } catch (err) {
-                document.getElementById('errorMessage').textContent = 'Erreur de connexion';
+                console.error('Erreur soumission:', err);
+                document.getElementById('errorMessage').textContent = 'Erreur de connexion : ' + err.message;
                 document.getElementById('errorMessage').style.display = 'block';
-                btn.textContent = '📤 Envoyer mes informations';
+                btn.textContent = '📤 Mettre à jour mes informations';
                 btn.disabled = false;
             }
         });
