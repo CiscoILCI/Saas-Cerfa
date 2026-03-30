@@ -1067,11 +1067,13 @@ module.exports = async function handler(req, res) {
       // Apposer les signatures directement sur la page 2 du CERFA
       const hasSigs = contract.signature && contract.signature.parties && contract.signature.parties.some(p => p.signed);
       if (hasSigs) {
-        // Zones de signature sur la page 2 du CERFA (coordonnees en points PDF)
+        // Zones de signature sur la page 2 du CERFA (coordonnees en points PDF, y=0 = bas de page)
+        // Page A4 = 595 x 842 pt. Les 3 zones de signature sont juste au-dessus du "CADRE RESERVE"
         const sigZones = {
-          employeur: { x: 30, y: 140, maxW: 150, maxH: 50 },
-          apprenti: { x: 210, y: 140, maxW: 150, maxH: 50 },
-          representant_legal: { x: 410, y: 140, maxW: 150, maxH: 50 }
+          employeur: { x: 45, y: 88, maxW: 140, maxH: 40 },
+          apprenti: { x: 220, y: 88, maxW: 140, maxH: 40 },
+          representant_legal: { x: 400, y: 88, maxW: 160, maxH: 40 },
+          cfa: { x: 400, y: 30, maxW: 140, maxH: 35 }
         };
         const page2 = pdfDoc.getPage(1); // Page 2 = index 1
 
